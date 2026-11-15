@@ -24,6 +24,7 @@ body.contrast{--bg:#fff;--card:#fff;--ink:#000;--muted:#222;--line:#000;--pri:#0
 body.contrast .card,body.contrast .btn,body.contrast .chip{border:2px solid #000!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:var(--fs)}
+html,body{overflow-x:hidden;max-width:100%}
 body{margin:0;font-family:'Assistant',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding-bottom:84px}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--pri)}
@@ -148,7 +149,7 @@ body.contrast .near{background:#002b80;border:2px solid #000}
 .near-x small{opacity:.8;font-size:.8rem}
 .near-go{flex:none;background:#fff;color:var(--pri);border-radius:14px;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;font-weight:800;font-size:.85rem;gap:2px}
 .near-go{font-size:1.3rem}.near-go span{font-size:.8rem}
-.cmp-wrap{position:relative;width:260px;height:270px;margin:6px auto 0}
+.cmp-wrap{position:relative;width:260px;height:270px;margin:6px auto 0;overflow:hidden;border-radius:12px;contain:paint}
 .cmp-top{position:absolute;top:-2px;left:50%;transform:translateX(-50%);color:var(--warn);font-size:1.3rem;z-index:2}
 .cmp{position:absolute;top:18px;left:5px;width:250px;height:250px;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle,var(--card) 60%,var(--soft));transition:transform .15s linear,border-color .3s}
 .cmp.ok{border-color:var(--ok);box-shadow:0 0 0 6px rgba(47,125,85,.2)}
