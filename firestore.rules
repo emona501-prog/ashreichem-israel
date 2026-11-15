@@ -1,0 +1,88 @@
+rules_version = '2';
+// כללי האבטחה של "אשריכם ישראל"
+// מדביקים את כל הקובץ הזה ב-Firebase: Firestore ← כללים (Rules) ← פרסום (Publish)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signed()  { return request.auth != null; }
+    function isAdmin() { return signed() && request.auth.token.email == 'admin@ashreichem-israel.app'; }
+    function myRole()  { return get(/databases/$(database)/documents/roles/$(request.auth.uid)).data; }
+    function isGabbaiOf(sid) {
+      return signed() && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+             && myRole().role == 'gabbai' && myRole().sid == sid;
+    }
+    function canEditShul(sid) { return isAdmin() || isGabbaiOf(sid); }
+
+    // הגדרות כלליות, שכונות, הילולות – רק המנהל
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // בתי כנסת – כל גבאי רק את שלו (בלי לשנות את פרטי הכניסה)
+    match /shuls/{sid} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() ||
+        (isGabbaiOf(sid) && request.resource.data.get('login', '') == resource.data.get('login', ''));
+    }
+
+    // תמונות של בתי כנסת
+    match /photos/{id} {
+      allow read: if true;
+      allow create: if canEditShul(request.resource.data.sid) && request.resource.data.img is string;
+      allow delete: if canEditShul(resource.data.sid);
+    }
+
+    // פס העדכונים והודעות נעוצות בלוח השנה
+    match /ticker/{id} {
+      allow read: if true;
+      allow create: if canEditShul(request.resource.data.sid) || (isAdmin());
+      allow update, delete: if isAdmin() || isGabbaiOf(resource.data.sid);
+    }
+    match /pins/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || isGabbaiOf(request.resource.data.sid);
+      allow update, delete: if isAdmin() || isGabbaiOf(resource.data.sid);
+    }
+
+    // מודעות – כל אחד יכול לבקש (ממתין לאישור), המנהל מאשר
+    match /ads/{id} {
+      allow read: if resource.data.st == 'ok' || isAdmin();
+      allow create: if signed() && (
+        (request.resource.data.st == 'pend' && request.resource.data.title is string && request.resource.data.title.size() < 100)
+        || isAdmin()
+        || (request.resource.data.st == 'ok' && isGabbaiOf(request.resource.data.sid)));
+      allow update, delete: if isAdmin();
+    }
+
+    // תהילים מחולק – כל משתמש יכול לקחת ולסמן פרקים
+    match /th2/{bid} {
+      allow read: if true;
+      allow create: if isAdmin() || isGabbaiOf(request.resource.data.sid)
+        || (signed() && request.resource.data.auto == true && request.resource.data.ch.size() == 0);
+      allow update: if signed() && (isAdmin() ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ch', 'doneAt']));
+      allow delete: if isAdmin() || isGabbaiOf(resource.data.sid);
+    }
+    match /pub/{doc} {
+      allow read: if true;
+      allow write: if signed();
+    }
+
+    // סטטיסטיקה – כולם סופרים, רק המנהל רואה
+    match /stats/{doc} {
+      allow read: if isAdmin();
+      allow create, update: if signed();
+    }
+
+    // הרשאות גבאים וקודים – רק המנהל
+    match /roles/{uid} {
+      allow read: if signed() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
+    }
+    match /secrets/{doc} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

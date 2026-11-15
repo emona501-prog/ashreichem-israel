@@ -245,7 +245,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 
 function seed(){
   return {
-    settings:{appName:'אשריכם ישראל',adminPass:'admin1234',adminPhone:'',tickerSpeed:30},
+    settings:{appName:'אשריכם ישראל',adminPhone:'',tickerSpeed:30},
     neighborhoods:['ארנונה – תלפיות'],
     shuls:[
       {id:'horsha',name:'בית הכנסת החורשה',nh:'ארנונה – תלפיות',address:'רחוב הערבה 6, ירושלים',nusach:'',gabbai:'',phone:'',code:'6060',photos:[],
@@ -333,7 +333,7 @@ function seed(){
       ['Av',1,'אהרן הכהן',''],['Av',5,'האר״י הקדוש','צפת'],['Av',9,'החוזה מלובלין',''],['Av',10,'יששכר בן יעקב – השבט הקדוש',''],
       ['Elul',3,'הרב קוק','הר הזיתים'],['Elul',9,'דן בן יעקב – השבט הקדוש',''],['Elul',13,'הבן איש חי',''],['Elul',18,'המהר״ל מפראג','פראג'],['Elul',24,'החפץ חיים','ראדין']
     ].map(h=>({id:uid(),m:h[0],d:h[1],name:h[2],place:h[3]})),
-    stats:{visits:0,days:{},views:{}}
+    stats:{visits:0,users:0,days:{},views:{}}
   };
 }
 function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
@@ -554,7 +554,7 @@ function shuls(){
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
   ${list.map(s=>`<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
-    <div class="thumb" style="${s.photos[0]?`background-image:url(${s.photos[0]})`:''}">${s.photos[0]?'':ic('shul','fill')}</div>
+    <div class="thumb" style="${(s.thumb||s.photos[0])?`background-image:url(${s.thumb||s.photos[0]})`:''}">${(s.thumb||s.photos[0])?'':ic('shul','fill')}</div>
     <div style="flex:1;min-width:0"><b>${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
     <button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
   </div>`).join('')||`<div class="empty-msg">לא נמצאו בתי כנסת</div>`}`;
@@ -563,11 +563,11 @@ function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,
 function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
 function shulPage(){
   const s=shul(ST.id);if(!s)return'<div class="empty-msg">בית הכנסת לא נמצא</div>';
-  if(!ST._v){S.stats.views[s.id]=(S.stats.views[s.id]||0)+1;save();ST._v=1}
+  if(!ST._v){countView(s.id);ST._v=1}loadPhotos(s.id);
   const ed=canEdit(s.id);const gp=groupBy(s.prayers),ge=groupBy(s.events);
   const maps=encodeURIComponent(s.address+' '+(s.nh||''));
   return `<button class="btn ghost sm" onclick="go('shuls')">→ חזרה</button><div style="height:10px"></div>
-  <div class="hero ${s.photos[0]?'':'empty'}" style="${s.photos[0]?`background-image:url(${s.photos[0]})`:''}">${s.photos[0]?'':ic('shul','fill')}</div>
+  <div class="hero ${(s.photos[0]||s.thumb)?'':'empty'}" style="${(s.photos[0]||s.thumb)?`background-image:url(${s.photos[0]||s.thumb})`:''}">${(s.photos[0]||s.thumb)?'':ic('shul','fill')}</div>
   <h2 style="margin-bottom:2px">${esc(s.name)}</h2>
   <div class="muted">📍 ${esc(s.address)} · ${esc(s.nh)}${s.nusach?' · נוסח '+esc(s.nusach):''}</div>
   ${s.gabbai?`<div class="muted">👤 גבאי: ${esc(s.gabbai)}</div>`:''}
@@ -633,8 +633,7 @@ function updates(){
   return `<h2>📢 עדכונים</h2>${l.map(u=>`<div class="card"><div>${esc(u.text)}</div><div class="muted">${u.sid&&shul(u.sid)?esc(shul(u.sid).name)+' · ':''}${new Date(u.dt).toLocaleDateString('he-IL')}</div>${(ROLE?.type==='admin'||(u.sid&&canEdit(u.sid)))?`<button class="btn red sm" style="margin-top:6px" onclick="delUpd('${u.id}')">מחיקה</button>`:''}</div>`).join('')||'<div class="empty-msg">אין עדכונים</div>'}`;
 }
 function openUpdates(){go('updates')}
-function delUpd(id){S.ticker=S.ticker.filter(t=>t.id!==id);save();render()}
-
+//@delUpd
 /* ===== הילולות ===== */
 function hill(){
   const up=[];for(let i=0;i<60;i++){const dt=new Date();dt.setDate(dt.getDate()+i);hillulotOn(dt).forEach(h=>up.push({h,i,dt}))}
@@ -652,10 +651,9 @@ function editHill(id){
   <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><div><label class="f">יום</label><input class="inp" id="hd" type="number" min="1" max="30" value="${h.d}"></div>
   <div><label class="f">חודש</label><select class="inp" id="hm">${Object.entries(HM).filter(([k])=>!k.includes(' ')).map(([k,v])=>`<option value="${k}" ${k===h.m?'selected':''}>${v}</option>`).join('')}</select></div></div>
   <label class="f">מקום ציון (לא חובה)</label><input class="inp" id="hp" value="${esc(h.place)}">
-  <div class="btns" style="margin-top:14px"><button class="btn" onclick="saveHill('${id||''}')">שמירה</button>${id?`<button class="btn red" onclick="S.hillulot=S.hillulot.filter(x=>x.id!=='${id}');save();closeModal();render()">מחיקה</button>`:''}</div>`,id?'עריכת הילולא':'הילולא חדשה');
+  <div class="btns" style="margin-top:14px"><button class="btn" onclick="saveHill('${id||''}')">שמירה</button>${id?`<button class="btn red" onclick="delHill('${id}')">מחיקה</button>`:''}</div>`,id?'עריכת הילולא':'הילולא חדשה');
 }
-function saveHill(id){const o={id:id||uid(),name:$('#hn').value.trim(),d:+$('#hd').value,m:$('#hm').value,place:$('#hp').value.trim()};if(!o.name)return toast('נא למלא שם');if(id)S.hillulot=S.hillulot.map(x=>x.id===id?o:x);else S.hillulot.push(o);save();closeModal();render()}
-
+//@saveHill
 /* ===== לוח מודעות ===== */
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')':a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span></div><span>‹</span></div>`}
@@ -682,17 +680,8 @@ function adForm(){
   ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${ROLE.sid===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
   <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">שליחה לאישור</button>`,'בקשת פרסום');
 }
-async function sendAd(){
-  const a={id:uid(),title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:'',st:ROLE?.type==='admin'?'ok':'pend',dt:Date.now(),
-    date:$('#aw').value==='date'?$('#awd').value:'',d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
-  if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');
-  const f=$('#ai').files[0];if(f)a.img=await shrink(f,900);
-  S.ads.push(a);save();closeModal();render();
-  toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור');
-  if(a.st!=='ok'&&S.settings.adminPhone)window.open(`https://wa.me/${S.settings.adminPhone.replace(/\D/g,'').replace(/^0/,'972')}?text=`+encodeURIComponent(`בקשת פרסום חדשה:\n*${a.title}*\n${a.text}\n${a.contact}`));
-}
-function adSt(id,st){if(st==='del'){if(!confirm('למחוק את המודעה?'))return;S.ads=S.ads.filter(a=>a.id!==id)}else S.ads.find(a=>a.id===id).st=st;save();render()}
-
+//@sendAd
+//@adSt
 /* ===== אזור אישי ===== */
 function mine(){
   const favs=S.shuls.filter(s=>U.favs.includes(s.id));
@@ -797,15 +786,8 @@ function pinForm(s){
   <label class="sw"><span>להציג גם בפס העדכונים</span><input type="checkbox" id="ptk"></label>
   <button class="btn" style="width:100%;margin-top:14px" onclick="addPin('${s}')">נעיצה בלוח 📌</button>`,'📌 '+hebDate(fromIso(s)));
 }
-function addPin(s){
-  const title=$('#pt').value.trim();if(!title)return toast('נא למלא כותרת');
-  const sid=ROLE.type==='admin'?$('#ps').value:ROLE.sid;
-  const q={id:uid(),date:s,title,text:$('#px').value.trim(),tm:$('#ptm').value,sid};
-  S.pins=S.pins||[];S.pins.push(q);
-  if($('#ptk').checked)S.ticker.push({id:uid(),text:`${title} – ${hebDate(fromIso(s),1)}${q.tm?' בשעה '+q.tm:''}`,sid,dt:Date.now()});
-  save();render();openDay(s);toast('ההודעה ננעצה בלוח 📌');
-}
-function delPin(id,s){if(!confirm('למחוק את ההודעה?'))return;S.pins=S.pins.filter(q=>q.id!==id);save();render();openDay(s)}
+//@addPin
+//@delPin
 function showAd(id){const a=S.ads.find(z=>z.id===id);modal(adCard(a).replace('class="card ad"','class="ad"'),'📢 מודעה')}
 
 /* ===== מיקום ===== */
@@ -946,7 +928,7 @@ function addYz(){const n=$('#yzn').value.trim();U.notes.push({id:uid(),date:wind
 /* ===== תהילים מחולק (קהילתי) =====
    כרגע במצב ניסיון במכשיר. אחרי חיבור לשרת – אותם נתונים משותפים לכל המשתמשים בזמן אמת. */
 const RES_MIN=30;
-function th2(){if(!S.th2)S.th2={books:[],total:0};if(!S.th2.books.some(b=>!b.doneAt))S.th2.books.push(newBook('ספר תהילים קהילתי','',true));return S.th2}
+function th2(){if(!S.th2)S.th2={books:[],total:0};if(!S.th2.books.some(b=>!b.doneAt)){if(C.ok&&S.cloud)ensureBook();else S.th2.books.push(newBook('ספר תהילים קהילתי','',true))}return S.th2}
 function newBook(title,ded,auto,deadline,sid){return{id:uid(),title,ded:ded||'',auto:!!auto,deadline:deadline||'',sid:sid||'',created:Date.now(),doneAt:null,ch:{}}}
 const bookOf=id=>th2().books.find(b=>b.id===id);
 function chSt(b,n){const c=b.ch[n];if(!c)return'free';if(c.st==='d')return'done';if(Date.now()-c.at<RES_MIN*6e4)return c.by===U.dev?'mine':'taken';return'free'}
@@ -981,10 +963,10 @@ function thBook(b){
   <div class="card"><h3>או בחרו פרק פנוי</h3>
   <div class="th">${Array.from({length:150},(_,i)=>{const n=i+1,s=chSt(b,n);return `<button class="${cls[s]}" ${s==='done'||s==='taken'?'disabled':''} onclick="takeCh('${b.id}',${n})" aria-label="פרק ${n} – ${({free:'פנוי',done:'נקרא',taken:'בקריאה אצל מישהו',mine:'שלך'})[s]}">${heNum(n)}</button>`}).join('')}</div>
   <div class="legend"><span><i style="background:var(--card);border:1px solid var(--line)"></i>פנוי</span><span><i style="background:#e9c46a"></i>בקריאה עכשיו</span><span><i style="background:var(--pri2)"></i>שלך</span><span><i style="background:var(--ok)"></i>נקרא</span></div></div>
-  ${ROLE?.type==='admin'||(b.sid&&canEdit(b.sid))?`<button class="btn red sm" onclick="if(confirm('לסגור את הספר הזה?')){S.th2.books=S.th2.books.filter(x=>x.id!=='${b.id}');save();go('th2')}">סגירת הספר</button>`:''}`;
+  ${ROLE?.type==='admin'||(b.sid&&canEdit(b.sid))?`<button class="btn red sm" onclick="closeBook('${b.id}')">סגירת הספר</button>`:''}`;
 }
 function takeNext(bid){const b=bookOf(bid);const n=nextFree(b);if(!n)return toast('כל הפרקים כבר נלקחו – נסו שוב בעוד כמה דקות');takeCh(bid,n)}
-function takeCh(bid,n){const b=bookOf(bid),s=chSt(b,n);if(s==='done'||s==='taken')return toast('הפרק הזה כבר לא פנוי');if(s==='free'){b.ch[n]={st:'r',by:U.dev,at:Date.now()};save()}openCh(bid,n)}
+//@takeCh
 function openCh(bid,n){
   const b=bookOf(bid);n=+n;
   modal(`<div class="muted" style="margin-top:-6px">${esc(b.title)}${b.ded?' · '+esc(b.ded):''}</div>
@@ -1025,18 +1007,8 @@ async function loadPsalm(n){
   try{const r=await fetch(`https://www.sefaria.org/api/texts/Psalms.${n}?context=0&commentary=0`);const j=await r.json();const v=clean(j.he);if(v.length){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}return v}}catch(e){}
   return null;
 }
-function releaseCh(bid,n){const b=bookOf(bid);if(chSt(b,n)==='mine'){delete b.ch[n];save()}closeModal();render();toast('הפרק הוחזר והוא פנוי לאחרים')}
-function doneCh(bid,n){
-  const b=bookOf(bid);if(chSt(b,n)==='done'){closeModal();return}
-  b.ch[n]={st:'d',by:U.dev,at:Date.now()};U.thMine=(U.thMine||0)+1;saveU();
-  if(!U.th.includes(n)){U.th.push(n);saveU()}
-  if(doneCnt(b)>=150){b.doneAt=Date.now();S.th2.total++;if(b.auto)S.th2.books.push(newBook(b.title,b.ded,true));save();closeModal();render();celebrate(b);return}
-  save();const nx=nextFree(b);
-  modal(`<div style="text-align:center;font-size:3rem">✅</div><div style="text-align:center;font-weight:800;font-size:1.2rem">תזכו למצוות! פרק ${heNum(n)} סומן</div>
-  <div style="margin:12px 0">${thBar(b)}</div>
-  <div class="btns">${nx?`<button class="btn" style="flex:1" onclick="takeNext('${bid}')">📖 עוד פרק</button>`:''}<button class="btn ghost" style="flex:1" onclick="closeModal()">סיום</button></div>`,'כל הכבוד');
-  render();
-}
+//@releaseCh
+//@doneCh
 function celebrate(b){
   const box=document.createElement('div');box.className='confetti';box.setAttribute('aria-hidden','true');
   for(let i=0;i<60;i++){const s=document.createElement('i');s.style.left=Math.random()*100+'%';s.style.background=['#c49a2c','#24456b','#2f7d55','#b5462f','#e9c46a'][i%5];s.style.animationDelay=Math.random()*1.2+'s';s.style.transform=`rotate(${Math.random()*360}deg)`;box.appendChild(s)}
@@ -1055,13 +1027,7 @@ function bookForm(){
   <label class="sw"><span>להודיע בפס העדכונים</span><input type="checkbox" id="btk" checked></label>
   <button class="btn" style="width:100%;margin-top:14px" onclick="addBook()">פתיחת הספר</button>`,'📖 ספר תהילים חדש');
 }
-function addBook(){
-  const t=$('#bt').value.trim()||'ספר תהילים',n=$('#bn').value.trim(),ded=n?($('#bk').value?$('#bk').value+' ':'')+n:'';
-  const b=newBook(t,ded,false,$('#bd').value,ROLE.type==='gabbai'?ROLE.sid:'');th2().books.push(b);
-  if($('#btk').checked)S.ticker.push({id:uid(),text:`נפתח ${t}${ded?' '+ded:''} – כל אחד לוקח פרק אחד, ביחד מסיימים!`,sid:b.sid,dt:Date.now()});
-  save();closeModal();go('th2',{b:b.id});toast('הספר נפתח 📖');
-}
-
+//@addBook
 /* ===== נגישות ===== */
 function applyA11y(){const a=U.a11y;document.documentElement.style.setProperty('--fs',a.fs+'px');document.body.classList.toggle('dark',a.dark);document.body.classList.toggle('contrast',a.contrast);document.body.classList.toggle('nomotion',a.nomotion);document.body.classList.toggle('noyt',!!a.noyt)}
 function openA11y(){
@@ -1072,22 +1038,9 @@ function openA11y(){
 function fs(x){U.a11y.fs=Math.min(26,Math.max(14,U.a11y.fs+x));saveU();applyA11y()}
 
 /* ===== כניסת גבאים / מנהל ===== */
-function openLogin(){
-  if(ROLE)return toast('כבר מחוברים – אפשר לצאת בפס הירוק');
-  modal(`<div class="muted">כל גבאי מקבל קוד אישי לבית הכנסת שלו בלבד.</div>
-  <label class="f">קוד כניסה</label><input class="inp" id="pw" type="password" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')login()">
-  <button class="btn" style="width:100%;margin-top:14px" onclick="login()">כניסה</button>`,'🔑 כניסת גבאים');
-  setTimeout(()=>$('#pw')?.focus(),100);
-}
-function login(){
-  const p=$('#pw').value.trim();if(!p)return;
-  if(p===S.settings.adminPass){ROLE={type:'admin'};closeModal();go('admin');return toast('שלום למנהל 🛡️')}
-  const s=S.shuls.find(x=>x.code&&x.code===p);
-  if(s){ROLE={type:'gabbai',sid:s.id};closeModal();go('shul',{id:s.id});return toast('שלום גבאי '+s.name)}
-  toast('קוד שגוי');
-}
-function logout(){ROLE=null;render();toast('יצאתם ממצב עריכה')}
-
+//@openLogin
+//@login
+//@logout
 /* ===== עריכת בית כנסת ===== */
 const dsOpts=v=>Object.entries(DAYSETS).map(([k,o])=>`<option value="${k}" ${k===v?'selected':''}>${o.l}</option>`).join('');
 let ED=null;
@@ -1101,7 +1054,8 @@ function setTmMode(arr,i,mode){const it=ED[arr][i];const r=parseRel(it.tm);if(mo
 function setTmVal(arr,i,v){const it=ED[arr][i];const r=parseRel(it.tm);if(!r)return;it.tm='@'+r.b+r.s+Math.max(0,parseInt(v)||0);const el=$('#tp_'+arr+'_'+i);if(el)el.textContent='היום: '+(resolveTm(it.tm,nextDateIn(it.d))||'—')}
 function editShul(id){
   if(id&&!canEdit(id))return;
-  ED=id?JSON.parse(JSON.stringify(shul(id))):{id:'s'+uid(),name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',gabbai:'',phone:'',code:String(Math.floor(1000+Math.random()*9000)),notes:'',photos:[],prayers:[],events:[]};
+  ED=id?JSON.parse(JSON.stringify(shul(id))):{id:'s'+uid(),name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',gabbai:'',phone:'',code:String(Math.floor(100000+Math.random()*900000)),notes:'',photos:[],prayers:[],events:[]};
+  if(id)ED.code=codeOf(id);
   drawEd(!id);
 }
 function drawEd(isNew){
@@ -1117,7 +1071,7 @@ function drawEd(isNew){
     <div><label class="f">שם הגבאי</label><input class="inp" value="${esc(e.gabbai)}" oninput="ED.gabbai=this.value"></div>
     <div><label class="f">טלפון</label><input class="inp" inputmode="tel" value="${esc(e.phone)}" oninput="ED.phone=this.value"></div>
   </div>
-  ${adm?`<label class="f">🔑 קוד כניסה לגבאי (רק המנהל רואה)</label><input class="inp" value="${esc(e.code)}" oninput="ED.code=this.value">`:''}
+  ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">`:''}
   <label class="f">הודעה קבועה / הערות</label><textarea class="inp" oninput="ED.notes=this.value">${esc(e.notes)}</textarea>
 
   <h3 style="margin-top:16px">🕰️ זמני תפילות</h3>
@@ -1148,23 +1102,16 @@ function drawEd(isNew){
     ${adm&&!isNew&&shul(e.id)?`<button class="btn red" onclick="delShul('${e.id}')">מחיקת בית כנסת</button>`:''}
   </div>`, shul(e.id)?'עריכה: '+e.name:'בית כנסת חדש',true);
 }
-function saveShul(){
-  if(!ED.name.trim())return toast('נא למלא שם');
-  if(ED.code&&S.shuls.some(s=>s.id!==ED.id&&s.code===ED.code))return toast('הקוד הזה כבר תפוס לבית כנסת אחר');
-  const i=S.shuls.findIndex(s=>s.id===ED.id);
-  if(i<0){if(ROLE?.type!=='admin')return;S.shuls.push(ED)}else{if(!canEdit(ED.id))return;S.shuls[i]=ED}
-  save();closeModal();go('shul',{id:ED.id});toast('נשמר בהצלחה ✔️');
-}
-function delShul(id){if(!confirm('למחוק את בית הכנסת וכל המידע שלו?'))return;S.shuls=S.shuls.filter(s=>s.id!==id);save();closeModal();go('shuls')}
+//@saveShul
+//@delShul
 function shrink(file,max=1000){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.72))};im.src=r.result};r.readAsDataURL(file)})}
-function addPhoto(id){const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=true;i.onchange=async()=>{for(const f of i.files){shul(id).photos.push(await shrink(f))}save();render();toast('התמונות נוספו 📷')};i.click()}
-function delPhoto(id,i){if(!canEdit(id)||!confirm('למחוק את התמונה?'))return;shul(id).photos.splice(i,1);save();render()}
+//@addPhoto
+//@delPhoto
 function postUpdate(sid){
   modal(`<label class="f">נוסח העדכון (יופיע בפס הרץ למעלה)</label><textarea class="inp" id="ut" maxlength="160" placeholder="לדוגמה: הערב שיעור מיוחד בשעה 20:30"></textarea>
   <button class="btn" style="width:100%;margin-top:14px" onclick="addUpd('${sid||''}')">פרסום</button>`,'📢 עדכון חדש');
 }
-function addUpd(sid){const t=$('#ut').value.trim();if(!t)return;S.ticker.push({id:uid(),text:t,sid,dt:Date.now()});save();closeModal();render();toast('העדכון פורסם 📢')}
-
+//@addUpd
 /* ===== לוח ניהול ===== */
 function admin(){
   if(ROLE?.type!=='admin')return'<div class="empty-msg">אין הרשאה</div>';
@@ -1175,10 +1122,10 @@ function admin(){
   return `<h2>🛡️ לוח ניהול</h2>
   <div class="card"><h3>📊 סטטיסטיקה</h3><div class="stat"><div><b>${st.days[today]||0}</b>כניסות היום</div><div><b>${week}</b>השבוע</div><div><b>${st.visits}</b>סה״כ</div></div>
   ${top.length?`<h3 style="margin-top:12px">בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}`:''}
-  <div class="muted" style="margin-top:8px">⚠️ כרגע הנתונים נספרים במכשיר הזה בלבד. אחרי חיבור לשרת – יוצגו כאן כל המשתמשים והכניסות מכל המכשירים.</div></div>
+  <div class="muted" style="margin-top:8px">👥 משתמשים שונים (מכשירים): <b>${st.users||0}</b> · הנתונים מכל המכשירים</div><button class="btn ghost sm" style="margin-top:6px" onclick="loadStats()">🔄 רענון</button></div>
 
   <div class="card"><h3>🕍 בתי כנסת וקודי גבאים</h3>
-  ${S.shuls.map(s=>`<div class="row"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)} · קוד: <b>${esc(s.code)}</b></span></div><button class="btn ghost sm" onclick="editShul('${s.id}')">✏️</button><button class="btn ghost sm" aria-label="שליחת קוד לגבאי" onclick="sendCode('${s.id}')">💬</button></div>`).join('')}
+  ${S.shuls.map(s=>`<div class="row"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)} · קוד: <b>${esc(codeOf(s.id))||'—'}</b></span></div><button class="btn ghost sm" onclick="editShul('${s.id}')">✏️</button><button class="btn ghost sm" aria-label="שליחת קוד לגבאי" onclick="sendCode('${s.id}')">💬</button></div>`).join('')}
   <button class="btn sm" style="margin-top:8px" onclick="editShul()">➕ בית כנסת חדש</button></div>
 
   <div class="card"><h3>🏘️ שכונות</h3><div class="chips" style="flex-wrap:wrap">${S.neighborhoods.map((n,i)=>`<span class="chip">${esc(n)} <button style="background:none;border:0;color:var(--warn)" aria-label="מחיקה" onclick="delNh(${i})">✕</button></span>`).join('')}</div>
@@ -1188,27 +1135,26 @@ function admin(){
 
   <div class="card"><h3>⚙️ הגדרות</h3>
   <label class="f">שם האפליקציה</label><input class="inp" id="sn" value="${esc(S.settings.appName)}">
-  <label class="f">סיסמת מנהל</label><input class="inp" id="sp" value="${esc(S.settings.adminPass)}">
+  <label class="f">סיסמת מנהל חדשה (רק אם רוצים להחליף)</label><input class="inp" id="sp" type="password" autocomplete="new-password" placeholder="לפחות 6 תווים">
   <label class="f">וואטסאפ של המנהל (לקבלת בקשות פרסום)</label><input class="inp" id="sw" inputmode="tel" value="${esc(S.settings.adminPhone)}">
   <label class="f">מהירות הפס הרץ (שניות לסיבוב)</label><input class="inp" id="ss" type="number" min="10" max="90" value="${S.settings.tickerSpeed||30}">
   <button class="btn" style="margin-top:10px" onclick="saveSet()">שמירת הגדרות</button></div>
 
-  <div class="card"><h3>💾 גיבוי ושחזור</h3><div class="btns"><button class="btn sec sm" onclick="exportData()">⬇️ הורדת גיבוי</button><button class="btn sec sm" onclick="importData()">⬆️ טעינת גיבוי</button><button class="btn red sm" onclick="if(confirm('לאפס הכל לנתוני הדוגמה?')){S=seed();save();render()}">איפוס</button></div></div>`;
+  <div class="card"><h3>☁️ שרת</h3><div class="muted" style="margin-bottom:8px">מצב: ${C.ok?'✅ מחובר':'⚠️ לא מחובר'}${S.cloud?'':' · השרת עדיין ריק'}</div><div class="btns">${S.cloud?'':'<button class="btn sm" onclick="firstUpload()">🚀 העלאה ראשונה של הנתונים לשרת</button>'}<button class="btn sec sm" onclick="exportData()">⬇️ הורדת גיבוי</button></div></div>`;
 }
-function sendCode(id){const s=shul(id);window.open('https://wa.me/?text='+encodeURIComponent(`שלום ${s.gabbai||''},\nזה קוד הכניסה שלך לעריכת "${s.name}" באפליקציית ${S.settings.appName}:\n*${s.code}*\nנכנסים דרך 🔑 בפינה העליונה.`))}
-function addNh(){const n=prompt('שם השכונה החדשה:');if(n&&n.trim()&&!S.neighborhoods.includes(n.trim())){S.neighborhoods.push(n.trim());save();render()}}
-function delNh(i){if(S.shuls.some(s=>s.nh===S.neighborhoods[i]))return toast('יש בתי כנסת בשכונה הזו – העבירו אותם קודם');S.neighborhoods.splice(i,1);save();render()}
-function saveSet(){const p=$('#sp').value.trim();if(p.length<4)return toast('סיסמה קצרה מדי');if(S.shuls.some(s=>s.code===p))return toast('הסיסמה זהה לקוד של גבאי');Object.assign(S.settings,{appName:$('#sn').value.trim()||'אשריכם ישראל',adminPass:p,adminPhone:$('#sw').value.trim(),tickerSpeed:+$('#ss').value||30});save();render();toast('ההגדרות נשמרו')}
+//@sendCode
+//@addNh
+//@delNh
+//@saveSet
 function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kehila-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()}
-function importData(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=()=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.shuls)throw 0;S=d;save();render();toast('הגיבוי נטען ✔️')}catch(e){toast('קובץ לא תקין')}};r.readAsText(i.files[0])};i.click()}
-
+//@importData
 /* ===== מודל ===== */
 function modal(html,title,keep){
   const prevScroll=keep?$('.modal')?.scrollTop:0;
   $('#modals').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="mh"><h2>${esc(title)}</h2><button class="iconbtn" style="background:var(--soft);color:var(--ink)" aria-label="סגירה" onclick="closeModal()">✕</button></div>${html}</div></div>`;
   if(keep&&prevScroll)$('.modal').scrollTop=prevScroll;
 }
-function closeModal(){$('#modals').innerHTML=''}
+function closeModal(){$('#modals').innerHTML='';if(window._dirty){window._dirty=0;render()}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 function installInfo(){if(_inst){_inst.prompt();_inst.userChoice.finally(()=>_inst=null);return}modal(`<p>📱 <b>אנדרואיד (כרום):</b> תפריט ⋮ ← "הוספה למסך הבית".</p><p>🍏 <b>אייפון (ספארי):</b> כפתור השיתוף ← "הוספה למסך הבית".</p><p class="muted">כך האפליקציה תיפתח במסך מלא כמו אפליקציה רגילה.</p>`,'התקנה כאפליקציה')}
 
@@ -1229,14 +1175,222 @@ function initYtDrag(){
   f.addEventListener('click',e=>{if(moved){e.preventDefault();moved=false;return}
     if(U.ytPos&&U.ytPos.edge&&!f.dataset.peek){e.preventDefault();f.dataset.peek=1;f.style.left=(U.ytPos.edge==='l'?6:innerWidth-W-6)+'px';f.classList.remove('edge');wake();setTimeout(()=>{delete f.dataset.peek;place()},4000)}});
 }
+/* =========================================================
+   ☁️ שרת – Firebase (פרויקט ashreichem-israel)
+   כל הנתונים המשותפים נשמרים ב-Firestore; המכשיר שומר עותק
+   כדי שהאפליקציה תיפתח מיד וגם בלי אינטרנט.
+   ========================================================= */
+const FB_CFG={apiKey:"AIzaSyDAMPlr-lqaEUjAtGMhw4qEE9wwpuOuINk",authDomain:"ashreichem-israel.firebaseapp.com",projectId:"ashreichem-israel",storageBucket:"ashreichem-israel.firebasestorage.app",messagingSenderId:"183608605179",appId:"1:183608605179:web:11dbaf9797b9181e68735e"};
+const ADMIN_EMAIL='admin@ashreichem-israel.app';
+const FBV='10.14.1';
+const C={ok:false,fs:null,auth:null,A:null,F:null,unsub:{},secrets:{},ready:null};
+const strip=o=>JSON.parse(JSON.stringify(o));
+function needCloud(){if(!C.ok){toast('אין חיבור לשרת כרגע – נסו שוב בעוד רגע');return false}return true}
+function cerr(e){console.error(e);toast('⚠️ השמירה בשרת נכשלה'+(e&&e.code==='permission-denied'?' (אין הרשאה)':''))}
+function softRender(){const a=document.activeElement;if($('#modals').innerHTML||(a&&a.closest&&a.closest('#view')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))){window._dirty=1;return}render()}
+
+async function cloudInit(){
+  try{
+    const base='https://www.gstatic.com/firebasejs/'+FBV+'/';
+    const [app,A,F]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+    C.A=A;C.F=F;C.appMod=app;
+    const fa=app.initializeApp(FB_CFG);
+    let fs;try{fs=F.initializeFirestore(fa,{localCache:F.persistentLocalCache({tabManager:F.persistentMultipleTabManager()})})}catch(e){fs=F.getFirestore(fa)}
+    C.fs=fs;C.auth=A.getAuth(fa);C.ok=true;
+    listenPublic();
+    A.onAuthStateChanged(C.auth,async u=>{
+      if(!u){try{await A.signInAnonymously(C.auth)}catch(e){console.warn(e)}return}
+      let role=null;
+      if(!u.isAnonymous){
+        if(u.email===ADMIN_EMAIL)role={type:'admin'};
+        else{try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists())role={type:'gabbai',sid:r.data().sid}}catch(e){}}
+      }
+      ROLE=role;
+      if(role&&role.type==='admin'){listenAdmin();loadSecrets();loadStats()}else stopAdmin();
+      countVisit();softRender();
+    });
+  }catch(e){console.warn('cloud off',e)}
+}
+const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
+function listenPublic(){
+  const F=C.F;
+  C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.shuls=F.onSnapshot(col('shuls'),q=>{if(q.empty&&!S.cloud)return;const old={};S.shuls.forEach(s=>old[s.id]=s);
+    S.shuls=q.docs.map(d=>{const v=d.data();v.id=d.id;v.photos=(old[d.id]&&old[d.id].photos)||[];v.photoIds=(old[d.id]&&old[d.id].photoIds)||[];return v});S.cloud=1;save();softRender()});
+  C.unsub.tick=F.onSnapshot(F.query(col('ticker'),F.orderBy('dt','desc'),F.limit(30)),q=>{if(q.empty&&!S.cloud)return;S.ticker=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
+  C.unsub.pins=F.onSnapshot(col('pins'),q=>{if(q.empty&&!S.cloud)return;S.pins=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
+  C.unsub.ads=F.onSnapshot(F.query(col('ads'),F.where('st','==','ok')),q=>{if(q.empty&&!S.cloud)return;const pend=S.ads.filter(a=>a.st!=='ok'&&ROLE&&ROLE.type==='admin');S.ads=q.docs.map(d=>({...d.data(),id:d.id})).concat(pend);save();softRender()});
+  C.unsub.th2=F.onSnapshot(col('th2'),q=>{if(q.empty&&!S.cloud)return;S.th2=S.th2||{books:[],total:0};S.th2.books=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
+  C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
+}
+function listenAdmin(){if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
+function stopAdmin(){if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
+async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
+async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},views:w.exists()?w.data():{}};softRender()}catch(e){}}
+let _counted=false;
+function countVisit(){
+  if(_counted||!C.ok)return;_counted=true;
+  if(sessionStorage.getItem('kv2')==='1')return;sessionStorage.setItem('kv2','1');
+  const F=C.F,t=iso(new Date());const o={total:F.increment(1),days:{[t]:F.increment(1)}};
+  if(!U.counted){o.users=F.increment(1);U.counted=1;saveU()}
+  F.setDoc(dref('stats','visits'),o,{merge:true}).catch(()=>{});
+}
+function countView(sid){if(!C.ok)return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
+function loadPhotos(sid){
+  if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
+  C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
+}
+function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
+function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;return o}
+
+/* ----- כניסה ----- */
+function openLogin(){
+  if(ROLE)return toast('כבר מחוברים – אפשר לצאת בפס הירוק');
+  modal(`<div class="muted">כל גבאי מקבל קוד אישי לבית הכנסת שלו בלבד.</div>
+  <label class="f">בית הכנסת</label><select class="inp" id="lsid"><option value="">בחרו…</option>${S.shuls.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}<option value="__admin">🛡️ מנהל ראשי</option></select>
+  <label class="f">קוד כניסה</label><input class="inp" id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+  <button class="btn" style="width:100%;margin-top:14px" onclick="login()">כניסה</button>`,'🔑 כניסת גבאים');
+}
+async function login(){
+  if(!needCloud())return;const sid=$('#lsid').value,p=$('#pw').value.trim();if(!sid||!p)return toast('נא לבחור ולהקליד קוד');
+  const A=C.A;let email;
+  if(sid==='__admin')email=ADMIN_EMAIL;else{const s=shul(sid);if(!s||!s.login)return toast('לבית הכנסת הזה עוד לא הוגדר קוד – פנו למנהל');email=s.login}
+  try{await A.signInWithEmailAndPassword(C.auth,email,p);closeModal();toast('נכנסתם בהצלחה ✔️');setTimeout(()=>ROLE&&(ROLE.type==='admin'?go('admin'):go('shul',{id:ROLE.sid})),400)}
+  catch(e){
+    if(sid==='__admin'&&/invalid-credential|user-not-found/.test(e.code||'')){
+      if(p.length<6)return toast('קוד שגוי');
+      if(!confirm('אם זו הכניסה הראשונה של המנהל – ליצור עכשיו חשבון מנהל עם הסיסמה הזו?'))return;
+      try{await A.createUserWithEmailAndPassword(C.auth,ADMIN_EMAIL,p);closeModal();toast('חשבון המנהל נוצר 🛡️');setTimeout(()=>go('admin'),500)}
+      catch(e2){toast(e2.code==='auth/email-already-in-use'?'סיסמה שגויה':'שגיאה: '+(e2.code||''))}
+    }else toast(/too-many/.test(e.code||'')?'יותר מדי ניסיונות – נסו שוב בעוד כמה דקות':'קוד שגוי');
+  }
+}
+async function logout(){try{await C.A.signOut(C.auth)}catch(e){}ROLE=null;render();toast('יצאתם ממצב עריכה')}
+
+/* ----- קודי גבאים (רק מנהל) ----- */
+async function setGabbaiCode(sid,code){
+  if(!needCloud())return false;if(!code||code.length<6){toast('קוד גבאי חייב להיות לפחות 6 תווים');return false}
+  const A=C.A,F=C.F;
+  try{
+    if(!C.sec){const sa=C.appMod.initializeApp(FB_CFG,'sec');C.sec=A.initializeAuth(sa,{persistence:A.inMemoryPersistence})}
+    const email='g-'+sid.toLowerCase().replace(/[^a-z0-9]/g,'')+'-'+Math.random().toString(36).slice(2,7)+'@ashreichem-israel.app';
+    const cr=await A.createUserWithEmailAndPassword(C.sec,email,code);const nu=cr.user.uid;await A.signOut(C.sec);
+    await F.setDoc(dref('roles',nu),{role:'gabbai',sid});
+    const old=C.secrets[sid];if(old&&old.uid&&old.uid!==nu){try{await F.deleteDoc(dref('roles',old.uid))}catch(e){}}
+    C.secrets[sid]={code,email,uid:nu};await F.setDoc(dref('secrets','gabbaim'),{[sid]:C.secrets[sid]},{merge:true});
+    await F.updateDoc(dref('shuls',sid),{login:email});
+    return true;
+  }catch(e){cerr(e);return false}
+}
+const codeOf=sid=>(C.secrets[sid]&&C.secrets[sid].code)||'';
+function sendCode(id){const s=shul(id),c=codeOf(id);if(!c)return toast('עוד לא הוגדר קוד לבית הכנסת הזה');window.open('https://wa.me/?text='+encodeURIComponent(`שלום ${s.gabbai||''},\nזה קוד הכניסה שלך לעריכת "${s.name}" באפליקציית ${S.settings.appName}:\n*${c}*\nנכנסים דרך 🔑 בפינה העליונה, בוחרים את בית הכנסת ומקלידים את הקוד.\n${location.origin+location.pathname}`))}
+
+/* ----- בתי כנסת ותמונות ----- */
+async function saveShul(){
+  if(!ED.name.trim())return toast('נא למלא שם');if(!needCloud())return;
+  const isNew=!shul(ED.id);if(isNew&&ROLE?.type!=='admin')return;if(!isNew&&!canEdit(ED.id))return;
+  const code=(ED.code||'').trim();const oldCode=codeOf(ED.id);
+  if(ROLE?.type==='admin'&&code&&code!==oldCode&&code.length<6)return toast('קוד גבאי חייב להיות לפחות 6 תווים');
+  const doc=shulDoc(ED);if(!isNew&&shul(ED.id).login)doc.login=shul(ED.id).login;
+  try{await C.F.setDoc(dref('shuls',ED.id),doc);}catch(e){return cerr(e)}
+  if(ROLE?.type==='admin'&&code&&code!==oldCode){toast('יוצר קוד גבאי…');if(await setGabbaiCode(ED.id,code))toast('קוד הגבאי עודכן 🔑')}
+  closeModal();go('shul',{id:ED.id});toast('נשמר בהצלחה ✔️');
+}
+async function delShul(id){if(!confirm('למחוק את בית הכנסת וכל המידע שלו?')||!needCloud())return;try{await C.F.deleteDoc(dref('shuls',id));const o=C.secrets[id];if(o&&o.uid)await C.F.deleteDoc(dref('roles',o.uid))}catch(e){return cerr(e)}closeModal();go('shuls')}
+function addPhoto(id){if(!needCloud())return;const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=true;i.onchange=async()=>{toast('מעלה תמונות…');let first=null;
+  for(const f of i.files){const img=await shrink(f,900);first=first||f;try{await C.F.addDoc(col('photos'),{sid:id,img,dt:Date.now()})}catch(e){return cerr(e)}}
+  const s=shul(id);if(s&&!s.thumb&&first){try{await C.F.updateDoc(dref('shuls',id),{thumb:await shrink(first,220)})}catch(e){}}toast('התמונות נוספו 📷')};i.click()}
+async function delPhoto(id,i){const s=shul(id);if(!canEdit(id)||!confirm('למחוק את התמונה?')||!needCloud())return;try{await C.F.deleteDoc(dref('photos',s.photoIds[i]));if(i===0)await C.F.updateDoc(dref('shuls',id),{thumb:''})}catch(e){cerr(e)}}
+
+/* ----- עדכונים, נעיצות, מודעות ----- */
+async function addUpd(sid){const t=$('#ut').value.trim();if(!t||!needCloud())return;try{await C.F.addDoc(col('ticker'),{text:t,sid:sid||'',dt:Date.now()})}catch(e){return cerr(e)}closeModal();toast('העדכון פורסם 📢')}
+async function delUpd(id){if(!needCloud())return;try{await C.F.deleteDoc(dref('ticker',id))}catch(e){cerr(e)}}
+async function addPin(s){
+  const title=$('#pt').value.trim();if(!title)return toast('נא למלא כותרת');if(!needCloud())return;
+  const sid=ROLE.type==='admin'?$('#ps').value:ROLE.sid;const q={date:s,title,text:$('#px').value.trim(),tm:$('#ptm').value,sid};const tk=$('#ptk').checked;
+  try{await C.F.addDoc(col('pins'),q);if(tk)await C.F.addDoc(col('ticker'),{text:`${title} – ${hebDate(fromIso(s),1)}${q.tm?' בשעה '+q.tm:''}`,sid,dt:Date.now()})}catch(e){return cerr(e)}
+  closeModal();toast('ההודעה ננעצה בלוח 📌');setTimeout(()=>openDay(s),300);
+}
+async function delPin(id,s){if(!confirm('למחוק את ההודעה?')||!needCloud())return;try{await C.F.deleteDoc(dref('pins',id))}catch(e){return cerr(e)}setTimeout(()=>openDay(s),300)}
+async function sendAd(){
+  const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:'',st:ROLE?'ok':'pend',dt:Date.now(),
+    date:$('#aw').value==='date'?$('#awd').value:'',d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
+  if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!needCloud())return;
+  if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
+  const f=$('#ai').files[0];if(f)a.img=await shrink(f,800);
+  try{await C.F.addDoc(col('ads'),a)}catch(e){return cerr(e)}
+  closeModal();toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור');
+  if(a.st!=='ok'&&S.settings.adminPhone)window.open(`https://wa.me/${S.settings.adminPhone.replace(/\D/g,'').replace(/^0/,'972')}?text=`+encodeURIComponent(`בקשת פרסום חדשה:\n*${a.title}*\n${a.text}\n${a.contact}`));
+}
+async function adSt(id,st){if(!needCloud())return;try{if(st==='del'){if(!confirm('למחוק את המודעה?'))return;await C.F.deleteDoc(dref('ads',id))}else await C.F.updateDoc(dref('ads',id),{st})}catch(e){cerr(e)}}
+
+/* ----- הגדרות, שכונות, הילולות ----- */
+function saveHill(id){const o={id:id||uid(),name:$('#hn').value.trim(),d:+$('#hd').value,m:$('#hm').value,place:$('#hp').value.trim()};if(!o.name)return toast('נא למלא שם');if(id)S.hillulot=S.hillulot.map(x=>x.id===id?o:x);else S.hillulot.push(o);saveConfig();closeModal();render()}
+function delHill(id){S.hillulot=S.hillulot.filter(x=>x.id!==id);saveConfig();closeModal();render()}
+function addNh(){const n=prompt('שם השכונה החדשה:');if(n&&n.trim()&&!S.neighborhoods.includes(n.trim())){S.neighborhoods.push(n.trim());saveConfig();render()}}
+function delNh(i){if(S.shuls.some(s=>s.nh===S.neighborhoods[i]))return toast('יש בתי כנסת בשכונה הזו – העבירו אותם קודם');S.neighborhoods.splice(i,1);saveConfig();render()}
+async function saveSet(){
+  Object.assign(S.settings,{appName:$('#sn').value.trim()||'אשריכם ישראל',adminPhone:$('#sw').value.trim(),tickerSpeed:+$('#ss').value||30});await saveConfig();
+  const np=$('#sp').value.trim();if(np){if(np.length<6)return toast('סיסמת מנהל – לפחות 6 תווים');try{await C.A.updatePassword(C.auth.currentUser,np);$('#sp').value='';toast('סיסמת המנהל הוחלפה 🔒')}catch(e){return toast(e.code==='auth/requires-recent-login'?'צאו והיכנסו שוב, ואז החליפו סיסמה':'שגיאה בהחלפת הסיסמה')}}
+  render();toast('ההגדרות נשמרו');
+}
+function importData(){toast('בגרסת השרת הנתונים נשמרים אוטומטית – אין צורך בטעינת גיבוי')}
+
+/* ----- העלאה ראשונה לשרת ----- */
+async function firstUpload(){
+  if(!needCloud()||ROLE?.type!=='admin')return;if(!confirm('להעלות לשרת את כל הנתונים שבמכשיר (בתי כנסת, הילולות, מודעות וכו׳)?'))return;
+  const F=C.F,d=seed(),src=S.shuls.length?S:d;toast('מעלה…');
+  try{
+    S.hillulot=S.hillulot.length?S.hillulot:d.hillulot;await saveConfig();
+    for(const s of src.shuls)await F.setDoc(dref('shuls',s.id),shulDoc(s));
+    for(const t of (src.ticker||[]))await F.addDoc(col('ticker'),{text:t.text,sid:t.sid||'',dt:t.dt||Date.now()});
+    for(const p of (src.pins||[])){const o=strip(p);delete o.id;await F.addDoc(col('pins'),o)}
+    for(const a of (src.ads||[])){const o=strip(a);delete o.id;await F.addDoc(col('ads'),o)}
+    const codes=[];for(const s of src.shuls){const c=(s.code&&s.code.length>=6)?s.code:String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}
+    modal(`<p>✅ הנתונים הועלו לשרת.</p><p><b>קודי הגבאים החדשים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">אפשר לשלוח כל קוד לגבאי בכפתור 💬 בלוח הניהול.</p>`,'העלאה הושלמה');
+  }catch(e){cerr(e)}
+}
+
+/* ----- תהילים מחולק משותף ----- */
+async function takeCh(bid,n){
+  if(!C.ok)return toast('צריך חיבור לאינטרנט כדי לקחת פרק');const F=C.F;
+  try{
+    const ok=await F.runTransaction(C.fs,async tx=>{const r=dref('th2',bid);const d=await tx.get(r);if(!d.exists())return false;const b={...d.data(),id:bid};const s=chSt(b,n);
+      if(s==='done'||s==='taken')return false;if(s==='free')tx.update(r,{['ch.'+n]:{st:'r',by:U.dev,at:Date.now()}});return true});
+    if(!ok)return toast('הפרק הזה כבר לא פנוי – נסו פרק אחר');openCh(bid,n);
+  }catch(e){cerr(e)}
+}
+function takeNext(bid){const b=bookOf(bid);const n=nextFree(b);if(!n)return toast('כל הפרקים כבר נלקחו – נסו שוב בעוד כמה דקות');takeCh(bid,n)}
+async function releaseCh(bid,n){closeModal();if(!C.ok)return;try{const b=bookOf(bid);if(b&&chSt(b,n)==='mine')await C.F.updateDoc(dref('th2',bid),{['ch.'+n]:C.F.deleteField()})}catch(e){}toast('הפרק הוחזר והוא פנוי לאחרים')}
+async function doneCh(bid,n){
+  if(!needCloud())return;const F=C.F;let fin=null;
+  try{
+    fin=await F.runTransaction(C.fs,async tx=>{const r=dref('th2',bid);const d=await tx.get(r);if(!d.exists())return null;const b=d.data();const ch={...b.ch,[n]:{st:'d',by:U.dev,at:Date.now()}};
+      const up={['ch.'+n]:ch[n]};const cnt=Object.values(ch).filter(c=>c.st==='d').length;let done=false;if(cnt>=150&&!b.doneAt){up.doneAt=Date.now();done=true}tx.update(r,up);return{done,b:{...b,id:bid,ch}}});
+  }catch(e){return cerr(e)}
+  U.thMine=(U.thMine||0)+1;if(!U.th.includes(n))U.th.push(n);saveU();
+  if(fin&&fin.done){try{await F.setDoc(dref('pub','th2'),{total:F.increment(1)},{merge:true});if(fin.b.auto)await F.addDoc(col('th2'),{title:fin.b.title,ded:fin.b.ded||'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){}
+    closeModal();S.th2.total=(S.th2.total||0)+1;celebrate(fin.b);return}
+  const b=fin?fin.b:bookOf(bid);const nx=nextFree(b);
+  modal(`<div style="text-align:center;font-size:3rem">✅</div><div style="text-align:center;font-weight:800;font-size:1.2rem">תזכו למצוות! פרק ${heNum(n)} סומן</div>
+  <div style="margin:12px 0">${thBar(b)}</div>
+  <div class="btns">${nx?`<button class="btn" style="flex:1" onclick="takeNext('${bid}')">📖 עוד פרק</button>`:''}<button class="btn ghost" style="flex:1" onclick="closeModal()">סיום</button></div>`,'כל הכבוד');
+}
+async function addBook(){
+  if(!needCloud())return;const t=$('#bt').value.trim()||'ספר תהילים',n=$('#bn').value.trim(),ded=n?($('#bk').value?$('#bk').value+' ':'')+n:'';
+  const b={title:t,ded,auto:false,deadline:$('#bd').value,sid:ROLE.type==='gabbai'?ROLE.sid:'',created:Date.now(),doneAt:null,ch:{}};const tk=$('#btk').checked;
+  try{const r=await C.F.addDoc(col('th2'),b);if(tk)await C.F.addDoc(col('ticker'),{text:`נפתח ${t}${ded?' '+ded:''} – כל אחד לוקח פרק אחד, ביחד מסיימים!`,sid:b.sid,dt:Date.now()});closeModal();go('th2',{b:r.id});toast('הספר נפתח 📖')}catch(e){cerr(e)}
+}
+async function closeBook(bid){if(!confirm('לסגור את הספר הזה?')||!needCloud())return;try{await C.F.deleteDoc(dref('th2',bid))}catch(e){return cerr(e)}go('th2')}
+async function ensureBook(){if(!C.ok||!S.cloud)return;if((S.th2?.books||[]).some(b=>!b.doneAt))return;if(window._eb)return;window._eb=1;try{await C.F.addDoc(col('th2'),{title:'ספר תהילים קהילתי',ded:'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){window._eb=0}}
+
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e});
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  if(sessionStorage.getItem('kv')!=='1'){S.stats.visits++;S.stats.days[t]=(S.stats.days[t]||0)+1;sessionStorage.setItem('kv','1');save()}
-  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();checkRem();setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
