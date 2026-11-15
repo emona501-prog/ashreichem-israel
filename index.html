@@ -1115,8 +1115,8 @@ function postUpdate(sid){
 /* ===== לוח ניהול ===== */
 function admin(){
   if(ROLE?.type!=='admin')return'<div class="empty-msg">אין הרשאה</div>';
-  const st=S.stats;const today=new Date().toISOString().slice(0,10);
-  const week=Object.entries(st.days).filter(([d])=>(Date.now()-new Date(d))/864e5<7).reduce((a,[,v])=>a+v,0);
+  const st=S.stats;const today=iso(new Date());
+  const week=Object.entries(st.days).filter(([d])=>(Date.now()-fromIso(d))/864e5<7).reduce((a,[,v])=>a+v,0);
   const top=Object.entries(st.views).map(([id,v])=>[shul(id),v]).filter(x=>x[0]).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const pend=S.ads.filter(a=>a.st==='pend').length;
   return `<h2>🛡️ לוח ניהול</h2>
