@@ -1,0 +1,18 @@
+{
+  "name": "אשריכם ישראל",
+  "short_name": "אשריכם ישראל",
+  "description": "בתי כנסת, מניינים, שיעורים, לוח שנה עברי והילולות – במקום אחד",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#24456b",
+  "theme_color": "#24456b",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
