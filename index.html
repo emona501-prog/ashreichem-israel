@@ -196,6 +196,7 @@ footer a{color:var(--muted)}
 .tk-psh h3{margin:0;color:var(--pri);font-size:1.15rem}
 .tk-ck{font-family:'Assistant',sans-serif;font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:6px;background:var(--soft);border-radius:999px;padding:4px 12px;cursor:pointer}
 .tk-ck input{width:20px;height:20px}
+.missbar{display:block;width:100%;border:0;background:#f6a04d;color:#2a1600;font:inherit;font-size:.88rem;padding:8px 14px;text-align:right;cursor:pointer}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -238,7 +239,7 @@ const PT=['שחרית','מנחה','ערבית','קבלת שבת','מוסף','א�
 const PTF=PT.filter(x=>x!=='זמן'&&x!=='אחר');
 const CATS=['שיעור תורה','תהילים','ילדים','נשים','ציבורי','אחר'];
 const DAYSETS={all:{l:'כל יום',d:[0,1,2,3,4,5,6]},wk:{l:'א׳–ה׳',d:[0,1,2,3,4]},wk6:{l:'א׳–ו׳',d:[0,1,2,3,4,5]},fri:{l:'ערב שבת',d:[5]},sat:{l:'שבת',d:[6]},
-  d0:{l:'יום א׳',d:[0]},d1:{l:'יום ב׳',d:[1]},d2:{l:'יום ג׳',d:[2]},d3:{l:'יום ד׳',d:[3]},d4:{l:'יום ה׳',d:[4]},d023:{l:'א׳, ג׳, ד׳',d:[0,2,3]},d03:{l:'א׳, ד׳',d:[0,3]},d13:{l:'ב׳, ד׳',d:[1,3]},d14:{l:'ב׳, ה׳',d:[1,4]},mz:{l:'מוצאי שבת',d:[6]}};
+  d0:{l:'יום א׳',d:[0]},d1:{l:'יום ב׳',d:[1]},d2:{l:'יום ג׳',d:[2]},d3:{l:'יום ד׳',d:[3]},d4:{l:'יום ה׳',d:[4]},d023:{l:'א׳, ג׳, ד׳',d:[0,2,3]},d03:{l:'א׳, ד׳',d:[0,3]},d013:{l:'א׳, ב׳, ד׳',d:[0,1,3]},d13:{l:'ב׳, ד׳',d:[1,3]},d14:{l:'ב׳, ה׳',d:[1,4]},mz:{l:'מוצאי שבת',d:[6]}};
 const DAYNAMES=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 const HM={Tishri:'תשרי',Heshvan:'חשוון',Kislev:'כסלו',Tevet:'טבת',Shevat:'שבט','Adar I':'אדר א׳','Adar II':'אדר ב׳',Adar:'אדר',Nisan:'ניסן',Iyar:'אייר',Sivan:'סיוון',Tamuz:'תמוז',Av:'אב',Elul:'אלול'};
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -400,7 +401,7 @@ function greet(){const h=new Date().getHours();return h<5?'לילה טוב':h<12
 
 /* אוסף את כל המניינים/הפעילויות ליום מסוים */
 /* ===== זמנים יחסיים: "@set-20" = 20 דק׳ לפני השקיעה ===== */
-const RELB={set:'השקיעה',tzeit:'צאת הכוכבים',rt:'צאת ר״ת',rise:'הנץ',plag:'פלג המנחה'};
+const RELB={set:'השקיעה',tzeit:'צאת הכוכבים',rt:'צאת ר״ת',rise:'הנץ',plag:'פלג המנחה',candle:'הדלקת נרות'};
 const isRel=t=>typeof t==='string'&&t[0]==='@';
 function parseRel(t){const m=/^@(\w+)([+-])(\d+)$/.exec(t||'');return m?{b:m[1],s:m[2],n:+m[3]}:null}
 function minTxt(n){return n===60?'שעה':n===75?'שעה ורבע':n===90?'שעה וחצי':n===120?'שעתיים':n+' דק׳'}
@@ -426,6 +427,11 @@ function collect(kind,day,filter,dt){
   const k=x=>x.tm?toMin(x.tm):9999;return out.sort((a,b)=>k(a)-k(b));
 }
 
+/* ===== גבאים ופרטים חסרים ===== */
+function gabbaimOf(s){if(s.gabbaim&&s.gabbaim.length)return s.gabbaim;return(s.gabbai||s.phone)?[{name:s.gabbai||'',phone:s.phone||'',pub:true}]:[]}
+const telOk=p=>(p||'').replace(/\D/g,'').length>=9;
+const waNum=p=>{let d=(p||'').replace(/\D/g,'');if(d[0]==='0')d='972'+d.slice(1);return d};
+function missingOf(s){const m=[];if(!gabbaimOf(s).some(g=>telOk(g.phone)))m.push('טלפון של גבאי');if(!(s.address||'').trim())m.push('כתובת');if(!(s.prayers||[]).length)m.push('זמני תפילות');return m}
 /* ===== ניווט ===== */
 function go(t,st){if(TAB==='compass'&&t!=='compass')stopCompass();TAB=t;ST=st||{};render();window.scrollTo(0,0)}
 function render(){
@@ -443,7 +449,8 @@ function renderTicker(){
   $('#ticker').innerHTML=`<div class="lbl">עדכונים</div><div style="overflow:hidden;flex:1"><div class="track">${txt||'<span>אין עדכונים כרגע</span>'}</div></div>`;
 }
 function renderRole(){
-  $('#rolebar').innerHTML=!ROLE?'':`<div class="rolebar"><span>${ROLE.type==='admin'?'🛡️ מחובר כמנהל ראשי':'✏️ גבאי: '+esc(shul(ROLE.sid)?.name)}</span><span class="btns"><button onclick="${ROLE.type==='admin'?"go('admin')":`go('shul',{id:'${ROLE.sid}'})`}">${ROLE.type==='admin'?'לוח ניהול':'הבית כנסת שלי'}</button><button onclick="logout()">יציאה</button></span></div>`;
+  const miss=ROLE&&ROLE.type==='gabbai'&&shul(ROLE.sid)?missingOf(shul(ROLE.sid)):[];
+  $('#rolebar').innerHTML=(!ROLE?'':`<div class="rolebar"><span>${ROLE.type==='admin'?'🛡️ מחובר כמנהל ראשי':'✏️ גבאי: '+esc(shul(ROLE.sid)?.name)}</span><span class="btns"><button onclick="${ROLE.type==='admin'?"go('admin')":`go('shul',{id:'${ROLE.sid}'})`}">${ROLE.type==='admin'?'לוח ניהול':'הבית כנסת שלי'}</button><button onclick="logout()">יציאה</button></span></div>`)+(miss.length?`<button class="missbar" onclick="editShul('${ROLE.sid}')">⚠️ חסרים פרטים בבית הכנסת שלך: <b>${miss.join(', ')}</b> – לחצו להשלמה</button>`:'');
 }
 function nhChips(){
   return `<div class="chips" role="group" aria-label="בחירת שכונה"><button class="chip ${!U.nh?'on':''}" onclick="setNh('')">כל האזור</button>${S.neighborhoods.map(n=>`<button class="chip ${U.nh===n?'on':''}" onclick="setNh('${esc(n)}')">${esc(n)}</button>`).join('')}</div>`;
@@ -560,7 +567,7 @@ function shuls(){
   </div>`).join('')||`<div class="empty-msg">לא נמצאו בתי כנסת</div>`}`;
 }
 function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
-function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
+function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d013','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
 function shulPage(){
   const s=shul(ST.id);if(!s)return'<div class="empty-msg">בית הכנסת לא נמצא</div>';
   if(!ST._v){countView(s.id);ST._v=1}loadPhotos(s.id);
@@ -570,13 +577,14 @@ function shulPage(){
   <div class="hero ${(s.photos[0]||s.thumb)?'':'empty'}" style="${(s.photos[0]||s.thumb)?`background-image:url(${s.photos[0]||s.thumb})`:''}">${(s.photos[0]||s.thumb)?'':ic('shul','fill')}</div>
   <h2 style="margin-bottom:2px">${esc(s.name)}</h2>
   <div class="muted">📍 ${esc(s.address)} · ${esc(s.nh)}${s.nusach?' · נוסח '+esc(s.nusach):''}</div>
-  ${s.gabbai?`<div class="muted">👤 גבאי: ${esc(s.gabbai)}</div>`:''}
+  ${s.access?`<div class="muted">♿ ${esc(s.access)}</div>`:''}
   <div class="btns" style="margin:12px 0">
     <a class="btn sm" href="https://waze.com/ul?q=${maps}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט</a>
-    ${s.phone?`<a class="btn sec sm" href="tel:${esc(s.phone)}">📞 התקשר</a>`:''}
     <button class="btn sec sm" onclick="shareShul('${s.id}')">💬 שתף</button>
     <button class="btn sec sm" onclick="fav('${s.id}')">${U.favs.includes(s.id)?'★ במועדפים':'☆ מועדף'}</button>
   </div>
+  ${ed&&missingOf(s).length?`<div class="card" style="background:#fdeee0;border-color:#f0b37e"><b>⚠️ חסרים פרטים חשובים:</b> ${missingOf(s).join(', ')}<div class="muted">הציבור צריך את הפרטים האלה. לחצו "עריכת פרטים וזמנים" כדי להשלים.</div></div>`:''}
+  ${(()=>{const gs=gabbaimOf(s).filter(g=>g.pub!==false&&(g.name||g.phone));return gs.length?`<div class="card"><h3>👤 גבאים ואנשי קשר</h3>${gs.map(g=>`<div class="row"><div class="main"><b>${esc(g.name||'גבאי')}</b>${g.phone?`<span class="muted" style="direction:ltr;text-align:right">${esc(g.phone)}</span>`:''}</div>${telOk(g.phone)?`<a class="btn sec sm" href="tel:${esc(g.phone)}" aria-label="חיוג">📞</a><a class="btn sec sm" href="https://wa.me/${waNum(g.phone)}" target="_blank" rel="noopener" aria-label="וואטסאפ">💬</a>`:''}</div>`).join('')}</div>`:''})()}
   ${ed?`<div class="card" style="background:#e5f4ec"><b>✏️ מצב עריכה</b><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="editShul('${s.id}')">עריכת פרטים וזמנים</button><button class="btn sm sec" onclick="addPhoto('${s.id}')">📷 הוספת תמונה</button><button class="btn sm sec" onclick="postUpdate('${s.id}')">📢 עדכון לפס הרץ</button></div></div>`:''}
   ${s.notes?`<div class="card hl" style="white-space:pre-line"><b>ℹ️ הודעות בית הכנסת</b>\n${linkify(s.notes)}</div>`:''}
   <div class="card"><h3>🕰️ זמני תפילות</h3>
@@ -1044,7 +1052,7 @@ function fs(x){U.a11y.fs=Math.min(26,Math.max(14,U.a11y.fs+x));saveU();applyA11y
 /* ===== עריכת בית כנסת ===== */
 const dsOpts=v=>Object.entries(DAYSETS).map(([k,o])=>`<option value="${k}" ${k===v?'selected':''}>${o.l}</option>`).join('');
 let ED=null;
-const TMODES=[['fixed','שעה קבועה'],['set-','דק׳ לפני השקיעה'],['set+','דק׳ אחרי השקיעה'],['tzeit+','דק׳ אחרי צאת הכוכבים'],['rt+','דק׳ אחרי צאת ר״ת'],['rise+','דק׳ אחרי הנץ'],['rise-','דק׳ לפני הנץ'],['plag+','דק׳ אחרי פלג המנחה']];
+const TMODES=[['fixed','שעה קבועה'],['set-','דק׳ לפני השקיעה'],['set+','דק׳ אחרי השקיעה'],['tzeit+','דק׳ אחרי צאת הכוכבים'],['rt+','דק׳ אחרי צאת ר״ת'],['rise+','דק׳ אחרי הנץ'],['rise-','דק׳ לפני הנץ'],['plag+','דק׳ אחרי פלג המנחה'],['candle+','דק׳ אחרי הדלקת נרות'],['tzeit-','דק׳ לפני צאת הכוכבים']];
 function tmCtl(arr,i,tm){
   const r=parseRel(tm);const mode=r?r.b+r.s:'fixed';
   return `<div class="tmctl"><select class="inp" aria-label="סוג הזמן" onchange="setTmMode('${arr}',${i},this.value)">${TMODES.map(([v,l])=>`<option value="${v}" ${v===mode?'selected':''}>${l}</option>`).join('')}</select>
@@ -1056,6 +1064,7 @@ function editShul(id){
   if(id&&!canEdit(id))return;
   ED=id?JSON.parse(JSON.stringify(shul(id))):{id:'s'+uid(),name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',gabbai:'',phone:'',code:String(Math.floor(100000+Math.random()*900000)),notes:'',photos:[],prayers:[],events:[]};
   if(id)ED.code=codeOf(id);
+  ED.gabbaim=JSON.parse(JSON.stringify(gabbaimOf(ED)));if(!ED.gabbaim.length)ED.gabbaim.push({name:'',phone:'',pub:true});
   drawEd(!id);
 }
 function drawEd(isNew){
@@ -1067,10 +1076,15 @@ function drawEd(isNew){
     <div><label class="f">נוסח</label><input class="inp" list="nus" value="${esc(e.nusach)}" oninput="ED.nusach=this.value"><datalist id="nus"><option>ספרד</option><option>אשכנז</option><option>עדות המזרח</option><option>תימני</option><option>חב״ד</option></datalist></div>
   </div>
   <label class="f">כתובת</label><input class="inp" value="${esc(e.address)}" oninput="ED.address=this.value">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><label class="f">שם הגבאי</label><input class="inp" value="${esc(e.gabbai)}" oninput="ED.gabbai=this.value"></div>
-    <div><label class="f">טלפון</label><input class="inp" inputmode="tel" value="${esc(e.phone)}" oninput="ED.phone=this.value"></div>
-  </div>
+  <label class="f">♿ נגישות</label><input class="inp" value="${esc(e.access||'')}" placeholder="לדוגמה: נגיש / יש מדרגות" oninput="ED.access=this.value">
+  <h3 style="margin-top:16px">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
+  ${e.gabbaim.map((g,i)=>`<div class="ed2">
+    <input class="inp" placeholder="שם" value="${esc(g.name)}" oninput="ED.gabbaim[${i}].name=this.value">
+    <input class="inp" placeholder="טלפון" inputmode="tel" value="${esc(g.phone)}" oninput="ED.gabbaim[${i}].phone=this.value" style="${telOk(g.phone)?'':'border-color:#e08a4f'}">
+    <label class="muted" style="display:flex;align-items:center;gap:6px"><input type="checkbox" ${g.pub!==false?'checked':''} onchange="ED.gabbaim[${i}].pub=this.checked"> להציג לציבור</label>
+    <button class="btn red sm" onclick="ED.gabbaim.splice(${i},1);drawEd()">מחיקה</button>
+  </div>`).join('')}
+  <button class="btn sec sm" onclick="ED.gabbaim.push({name:'',phone:'',pub:true});drawEd()">➕ הוספת גבאי / איש קשר</button>
   ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">`:''}
   <label class="f">הודעה קבועה / הערות</label><textarea class="inp" oninput="ED.notes=this.value">${esc(e.notes)}</textarea>
 
@@ -1124,8 +1138,9 @@ function admin(){
   ${top.length?`<h3 style="margin-top:12px">בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}`:''}
   <div class="muted" style="margin-top:8px">👥 משתמשים שונים (מכשירים): <b>${st.users||0}</b> · הנתונים מכל המכשירים</div><button class="btn ghost sm" style="margin-top:6px" onclick="loadStats()">🔄 רענון</button></div>
 
+  ${S.cloud&&packPending().length?`<div class="card hl"><h3>📥 ${packPending().length} בתי כנסת חדשים מוכנים להוספה</h3><div class="muted">${packPending().map(s=>esc(s.name)).join(' · ')}</div><button class="btn" style="margin-top:10px" onclick="importPack()">➕ הוספה לאפליקציה + יצירת קודים</button></div>`:''}
   <div class="card"><h3>🕍 בתי כנסת וקודי גבאים</h3>
-  ${S.shuls.map(s=>`<div class="row"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)} · קוד: <b>${esc(codeOf(s.id))||'—'}</b></span></div><button class="btn ghost sm" onclick="editShul('${s.id}')">✏️</button><button class="btn ghost sm" aria-label="שליחת קוד לגבאי" onclick="sendCode('${s.id}')">💬</button></div>`).join('')}
+  ${S.shuls.map(s=>`<div class="row"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)} · קוד: <b>${esc(codeOf(s.id))||'—'}</b></span>${missingOf(s).length?`<span class="badge" style="background:#fdeee0;color:#9a4b10">⚠️ חסר: ${missingOf(s).join(', ')}</span>`:''}</div><button class="btn ghost sm" onclick="editShul('${s.id}')">✏️</button><button class="btn ghost sm" aria-label="שליחת קוד לגבאי" onclick="sendCode('${s.id}')">💬</button></div>`).join('')}
   <button class="btn sm" style="margin-top:8px" onclick="editShul()">➕ בית כנסת חדש</button></div>
 
   <div class="card"><h3>🏘️ שכונות</h3><div class="chips" style="flex-wrap:wrap">${S.neighborhoods.map((n,i)=>`<span class="chip">${esc(n)} <button style="background:none;border:0;color:var(--warn)" aria-label="מחיקה" onclick="delNh(${i})">✕</button></span>`).join('')}</div>
@@ -1207,6 +1222,7 @@ async function cloudInit(){
       }
       ROLE=role;
       if(role&&role.type==='admin'){listenAdmin();loadSecrets();loadStats()}else stopAdmin();
+      if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
       countVisit();softRender();
     });
   }catch(e){console.warn('cloud off',e)}
@@ -1288,6 +1304,8 @@ function sendCode(id){const s=shul(id),c=codeOf(id);if(!c)return toast('עוד �
 /* ----- בתי כנסת ותמונות ----- */
 async function saveShul(){
   if(!ED.name.trim())return toast('נא למלא שם');if(!needCloud())return;
+  ED.gabbaim=(ED.gabbaim||[]).filter(g=>(g.name||'').trim()||(g.phone||'').trim());const g0=ED.gabbaim[0]||{};ED.gabbai=g0.name||'';ED.phone=g0.phone||'';
+  if(!ED.gabbaim.some(g=>telOk(g.phone))&&!confirm('⚠️ לא הוזן טלפון של גבאי – זה פרט חובה. לשמור בכל זאת?'))return;
   const isNew=!shul(ED.id);if(isNew&&ROLE?.type!=='admin')return;if(!isNew&&!canEdit(ED.id))return;
   const code=(ED.code||'').trim();const oldCode=codeOf(ED.id);
   if(ROLE?.type==='admin'&&code&&code!==oldCode&&code.length<6)return toast('קוד גבאי חייב להיות לפחות 6 תווים');
@@ -1384,6 +1402,30 @@ async function addBook(){
 async function closeBook(bid){if(!confirm('לסגור את הספר הזה?')||!needCloud())return;try{await C.F.deleteDoc(dref('th2',bid))}catch(e){return cerr(e)}go('th2')}
 async function ensureBook(){if(!C.ok||!S.cloud)return;if((S.th2?.books||[]).some(b=>!b.doneAt))return;if(window._eb)return;window._eb=1;try{await C.F.addDoc(col('th2'),{title:'ספר תהילים קהילתי',ded:'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){window._eb=0}}
 
+/* ===== חבילת בתי כנסת להוספה (מרשימת ארמון הנציב וארנונה) ===== */
+const NEW_SHULS=[
+ {id:'nirnachshon',name:'ניר נחשון',address:'',nusach:'ספרדי ירושלמי',access:'לא נגיש – יש מדרגות',gabbaim:[{name:'שאול',phone:'052-2204028',pub:true}],notes:'',prayers:[],events:[]},
+ {id:'simchatshmuel',name:'שמחת שמואל חב״ד',address:'',nusach:'חב״ד',access:'לא נגיש – מדרגות',gabbaim:[{name:'חיים',phone:'054-5468772',pub:true}],notes:'',prayers:[],events:[]},
+ {id:'chibatyer',name:'חיבת ירושלים',address:'אליהו חכים פינת קשאני (מתחת לבית הכנסת משכן ראובן)',nusach:'אשכנז',access:'מדרגה אחת. לבאים מרחובות אליהו חכים וקשאני',gabbaim:[{name:'גדיאל דלטרוף',phone:'054-4492658',pub:true}],
+  notes:'אין תפילות במשך השבוע ואין מנחה בשבת אחה״צ.',prayers:[['קבלת שבת','fri','@candle+25','מנחה וקבלת שבת'],['שחרית','sat','08:30','']],events:[]},
+ {id:'morashet',name:'קהילת מורשת אברהם',address:'אדם 22',nusach:'אשכנז',access:'נגיש',gabbaim:[{name:'דוד גודמן',phone:'054-5858544',pub:true}],notes:'קהילה מסורתית.',
+  prayers:[['שחרית','d0','07:00',''],['שחרית','fri','08:15',''],['קבלת שבת','fri','@candle+20','מנחה וקבלת שבת'],['שחרית','sat','08:30','גם בחגים'],['מנחה','sat','@tzeit-60','שעה לפני צאת השבת · אחריה שיעור, מעריב והבדלה']],
+  events:[['בית מדרש','שיעור תורה','d013','19:30','','','']]},
+ {id:'mordot',name:'קהילת מורדות ארנונה ע״ש ענת שפירא',address:'הרב אברהם זקן 13',nusach:'מרוקאי / ירושלמי / אשכנזי',access:'נגיש',gabbaim:[{name:'אדיר לוי',phone:'052-6738036',pub:true}],
+  notes:'בינתיים תפילות השבת מתקיימות בחניון מתחת לדובדבן.',prayers:[['קבלת שבת','fri','@candle+10','מנחה וקבלת שבת – 10 דק׳ אחרי כניסת השבת'],['שחרית','sat','08:30','בקיץ 8:45']],events:[]},
+ {id:'mishkanreuven',name:'משכן ראובן',address:'אליעזר קשאני 26',nusach:'ספרדי ירושלמי',access:'',gabbaim:[{name:'שמעון עזרא',phone:'054-4978735',pub:true}],notes:'זמני התפילות מתפרסמים מדי שבוע.',prayers:[],events:[]},
+ {id:'chabadarnona',name:'בית חב״ד ובית כנסת חב״ד ארנונה',address:'כפר עציון 8',nusach:'חב״ד',access:'',gabbaim:[{name:'הרב מענדי בריקמן',phone:'054-5922801',pub:true}],notes:'',prayers:[],events:[]},
+ {id:'israelhatzair',name:'בית כנסת "ישראל הצעיר"',address:'אבשלום חביב 11',nusach:'אשכנז',access:'',gabbaim:[{name:'הרב שמואל שער',phone:'052-3904110',pub:true}],notes:'',
+  prayers:[['שחרית','wk6','06:30',''],['ערבית','wk','21:00',''],['קבלת שבת','fri','@candle+25','מנחה וקבלת שבת'],['שחרית','sat','06:45','נוסח ספרד'],['שחרית','sat','08:30','נוסח אשכנז']],events:[]}
+].map(s=>({...s,nh:'ארנונה – תלפיות',photos:[],gabbai:s.gabbaim[0].name,phone:s.gabbaim[0].phone,
+  prayers:s.prayers.map(p=>({id:uid(),t:p[0],d:p[1],tm:p[2],n:p[3]})),events:s.events.map(e=>({id:uid(),title:e[0],c:e[1],d:e[2],tm:e[3],end:e[4],who:e[5],n:e[6]}))}));
+const packPending=()=>NEW_SHULS.filter(s=>!shul(s.id));
+async function importPack(){
+  if(!needCloud()||ROLE?.type!=='admin')return;const L=packPending();if(!L.length)return;
+  if(!confirm('להוסיף '+L.length+' בתי כנסת חדשים ולייצר לכל אחד קוד גבאי?'))return;toast('מוסיף…');const codes=[];
+  for(const s of L){try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
+  modal(`<p>✅ נוספו ${codes.length} בתי כנסת.</p><p><b>קודי הגבאים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">שליחה לכל גבאי בכפתור 💬 בלוח הניהול.</p>`,'הוספה הושלמה');
+}
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e});
