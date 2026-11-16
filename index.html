@@ -221,7 +221,8 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
-.adm-home{background:linear-gradient(135deg,#16294a,#2f5585);color:#fff}.adm-home h3{color:#f3d78e}.adm-home .muted{color:#cfdcec}.adq-sp{width:100%;margin-top:10px;background:linear-gradient(135deg,#c49a2c,#f3d78e);color:#16294a;border:0;border-radius:12px;padding:12px;font:inherit;text-align:center;line-height:1.35}.adq-sp b{font-size:1.05rem}.adq-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.adq{position:relative;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit}.adq span{font-size:1.5rem}.adq b{font-size:.82rem;line-height:1.2}.adq i{position:absolute;top:4px;left:6px;background:#d93025;color:#fff;border-radius:999px;font-style:normal;font-size:.72rem;min-width:18px;padding:0 5px}
+.adm-home{background:linear-gradient(135deg,#16294a,#2f5585);color:#fff}.adm-home h3{color:#f3d78e}.adm-home .muted{color:#cfdcec}.terms h3{font-size:1rem;margin:12px 0 4px;color:var(--brand,#16294a)}.terms h3:first-child{margin-top:0}.terms p{margin:0;line-height:1.65;font-size:.93rem}.terms-ok{display:flex;gap:8px;align-items:flex-start;font-size:.88rem;margin:12px 0 4px;width:100%;flex-basis:100%;line-height:1.45}.terms-ok input{width:20px;height:20px;flex:none;margin-top:1px}.terms-ok.need{color:#b3261e;font-weight:700}.terms-pop{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}.terms-in{background:var(--bg,#f6f4ef);width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px}
+.adq-sp{width:100%;margin-top:10px;background:linear-gradient(135deg,#c49a2c,#f3d78e);color:#16294a;border:0;border-radius:12px;padding:12px;font:inherit;text-align:center;line-height:1.35}.adq-sp b{font-size:1.05rem}.adq-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.adq{position:relative;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit}.adq span{font-size:1.5rem}.adq b{font-size:.82rem;line-height:1.2}.adq i{position:absolute;top:4px;left:6px;background:#d93025;color:#fff;border-radius:999px;font-style:normal;font-size:.72rem;min-width:18px;padding:0 5px}
 .ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
 .ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
 .ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -481,7 +482,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -699,6 +700,7 @@ function more(){
   ${it('🔑','כניסת גבאים',"openLogin()")}
   ${ROLE?.type==='admin'?it('🛡️','לוח ניהול',"go('admin')"):''}
   ${it('📲','התקנה כאפליקציה',"installInfo()",'הוספה למסך הבית')}
+  ${it('📜','תקנון ותנאי שימוש',"go('terms')")}
   </div>${ytCard()}`;
 }
 function updates(){
@@ -754,6 +756,7 @@ function adForm(){
   <select class="inp" id="awr" style="display:none;margin-top:6px">${dsOpts('mz')}</select>
   <label class="f">להציג עד תאריך (לא חובה)</label><input class="inp" type="date" id="au">
   ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${ROLE.sid===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
+  ${ROLE?'':termsBox('adT')}
   <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">שליחה לאישור</button>`,'בקשת פרסום');
 }
 //@sendAd
@@ -1408,6 +1411,7 @@ function drawEd(isNew){
   </div>`).join('')}
   <button class="btn sec sm" onclick="ED.events.push({id:uid(),title:'',c:'שיעור תורה',d:'wk',tm:'20:00',end:'',who:'',n:''});drawEd()">➕ הוספת שיעור / פעילות</button>
 
+  ${rq?termsBox('rqT'):''}
   <div class="btns" style="margin-top:20px;position:sticky;bottom:-26px;background:var(--card);padding:10px 0">
     <button class="btn" style="flex:1" onclick="${rq?'reqSubmit()':'saveShul()'}">${rq?'📤 שליחת הפרטים לאישור':e._fromReq?'✅ אישור והעלאה לאפליקציה':'💾 שמירה'}</button>
     ${adm&&!isNew&&shul(e.id)?`<button class="btn red" onclick="delShul('${e.id}')">מחיקת בית כנסת</button>`:''}
@@ -1680,7 +1684,7 @@ async function delPin(id,s){if(!confirm('למחוק את ההודעה?')||!needC
 async function sendAd(){
   const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:'',st:ROLE?'ok':'pend',dt:Date.now(),
     date:$('#aw').value==='date'?$('#awd').value:'',d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
-  if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!needCloud())return;
+  if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
   const f=$('#ai').files[0];if(f)a.img=await shrink(f,800);
   try{await C.F.addDoc(col('ads'),a)}catch(e){return cerr(e)}
@@ -1923,7 +1927,7 @@ function reqValidate(){
   if(!e.gabbaim.some(g=>telOk(g.phone)))return'טלפון של גבאי';if(!e.prayers.length)return'לפחות זמן תפילה אחד';return'';
 }
 async function reqSubmit(){
-  const miss=reqValidate();if(miss)return toast('חסר: '+miss);const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
+  const miss=reqValidate();if(miss)return toast('חסר: '+miss);if(!termsChk('rqT'))return;const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
   const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
   try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',data:shulDoc(ED)})}catch(e){return cerr(e)}
   relayAdmin('req','📥 בקשת הצטרפות חדשה',ED.name||'בית כנסת');
@@ -2069,6 +2073,27 @@ function adminPop(k,n,m){
 /* שליחת התראה למנהל גם כשהאפליקציה סגורה – דרך ממסר Google Apps Script (חינמי) */
 function relayAdmin(kind,title,body){const u=S.settings.relay;if(!u||!/^https:\/\/script\.google\.com\//.test(u))return;
   try{fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind,title:String(title).slice(0,80),body:String(body).slice(0,160)})}).catch(()=>{})}catch(e){}}
+
+/* ===== 📜 תקנון ותנאי שימוש ===== */
+const TERMS_VER='1.0 · כסלו תשפ״ז';
+const TERMS=[
+['1. כללי','האפליקציה "אשריכם ישראל" (להלן: "האפליקציה") היא מיזם קהילתי פרטי, הניתן ללא תמורה ומופעל ומנוהל על ידי "חי אפליקציות" (להלן: "המפעיל"). השימוש באפליקציה, לרבות צפייה, הרשמה, פרסום, שליחת הודעה או תרומה, מהווה הסכמה מלאה לתקנון זה. מי שאינו מסכים לתקנון – מתבקש שלא להשתמש באפליקציה. התקנון מנוסח בלשון זכר מטעמי נוחות בלבד ומתייחס לכל המינים.'],
+['2. אופי האפליקציה וייעודה','האפליקציה נועדה לשרת את ציבור שומרי התורה והמצוות, ולהנגיש מידע על תפילות, שיעורי תורה, פעילויות ואירועים – ברוח התורה וההלכה ובהתאם לאופייה ולערכיה של האפליקציה, כפי שאלה נקבעים על ידי המפעיל ועל פי שיקול דעתו.'],
+['3. אין זכות לפרסום','האפליקציה אינה במה ציבורית פתוחה, ולאף אדם, קהילה, בית כנסת, ארגון או גוף אין זכות לפרסם בה. כל פרסום – לרבות רישום בית כנסת, זמני תפילה, שיעור, פעילות, מודעה, קריאה למניין, ספר תהילים, תמונה או עדכון – נתון לשיקול דעתו הבלעדי והמוחלט של המפעיל.'],
+['4. סמכות המפעיל לגבי תוכן','המפעיל רשאי, בכל עת ועל פי שיקול דעתו הבלעדי, ללא הודעה מוקדמת וללא חובת הנמקה: לסרב לפרסם כל תוכן; לערוך, לקצר או לתקן תוכן; להסיר תוכן שכבר פורסם; לבטל או להשעות גישה, קוד גבאי או חשבון; ולהסיר בית כנסת, קהילה או גוף מהאפליקציה – לרבות בשל תוכן או פעילות שאינם תואמים, לדעת המפעיל, את אופי האפליקציה וייעודה כאמור בסעיף 2.'],
+['5. ויתור על טענות','המשתמש, המפרסם והגבאי מצהירים כי ידוע להם שאין להם כל זכות לפרסום באפליקציה, וכי לא תהיה להם כל טענה, דרישה או תביעה כלפי המפעיל, מי מטעמו או מי שמסייע לו, בגין סירוב לפרסם, עריכה, הסרה, השעיה או ביטול – מכל סיבה שהיא.'],
+['6. אחריות על התוכן ועל הזמנים','האחריות על נכונות התוכן המפורסם מוטלת על המפרסם או הגבאי בלבד. זמני התפילה והזמנים ההלכתיים מחושבים באופן ממוחשב ומוצגים לנוחות בלבד; ייתכנו טעויות, שינויים או סטיות, ומומלץ להחמיר כמה דקות ולוודא מול בית הכנסת או מורה הוראה. המפעיל אינו אחראי לכל נזק, ישיר או עקיף, הנובע מהסתמכות על המידע.'],
+['7. השירות כמות שהוא','השירות ניתן כמות שהוא (AS IS), ללא התחייבות לזמינות, לרציפות או להיעדר תקלות. המפעיל רשאי לשנות, להשבית או להפסיק את האפליקציה או כל חלק ממנה, בכל עת וללא הודעה מוקדמת.'],
+['8. תרומות','תרומות וצדקה (לרבות בעת הקדשת ספר תהילים) הן מרצון בלבד, ניתנות לזיכוי הרבים ולהחזקת האפליקציה, ואינן מקנות לתורם כל זכות, שירות או תמורה – לרבות זכות לפרסום או להשארת תוכן. ההחלטה על פתיחה, השארה או הסרה של ספר או הקדשה נתונה לשיקול דעת המפעיל.'],
+['9. פרטיות','האפליקציה שומרת מידע הנדרש לפעולתה בלבד (כגון פרטי בתי כנסת, הודעות שנשלחו, סטטיסטיקת כניסות כללית והעדפות במכשיר). פרטי גבאים ומפרסמים, כגון שם וטלפון, מוצגים לציבור לפי מה שמסרו לפרסום. אין להעלות פרטים של אדם אחר ללא הסכמתו. ניתן לבקש תיקון או הסרה של פרטים דרך תיבת ההודעות למנהל.'],
+['10. התנהגות המשתמשים','אין לפרסם או לשלוח באפליקציה תוכן פוגעני, מעליב, לשון הרע, תוכן מסחרי שלא אושר, דבר שאינו חוקי או שאינו תואם את אופי האפליקציה. המפעיל רשאי לחסום משתמש שהפר הוראה זו.'],
+['11. קניין','עיצוב האפליקציה, הקוד שלה והתכנים שהמפעיל יצר שייכים למפעיל. מפרסם המעלה תוכן או תמונה מצהיר שהוא רשאי לעשות כן ומתיר למפעיל להציגם באפליקציה ובשיתופים ממנה.'],
+['12. שינויים, דין וסמכות שיפוט','המפעיל רשאי לעדכן תקנון זה מעת לעת, והנוסח המעודכן הוא שיחול מעת פרסומו באפליקציה. על התקנון יחולו דיני מדינת ישראל, וסמכות השיפוט הבלעדית נתונה לבתי המשפט המוסמכים בירושלים.'],
+['13. יצירת קשר','לכל פנייה, בקשה להסרת פרטים או שאלה – דרך "📮 תיבת הודעות למנהל" באפליקציה.']];
+function termsV(){return `<h2>📜 תקנון ותנאי שימוש</h2><div class="muted" style="margin-bottom:10px">גרסה ${TERMS_VER}</div><div class="card terms">${TERMS.map(([h,t])=>`<h3>${h}</h3><p>${esc(t)}</p>`).join('')}</div>`}
+function termsBox(id){return `<label class="terms-ok"><input type="checkbox" id="${id}"> <span>קראתי ואני מסכים/ה ל<a href="#" onclick="event.preventDefault();termsPop()">תקנון ולתנאי השימוש</a>, ולכך שהפרסום נתון לשיקול דעת המנהל</span></label>`}
+function termsPop(){const w=document.createElement('div');w.className='terms-pop';w.innerHTML=`<div class="terms-in">${termsV()}<button class="btn" style="width:100%;margin-top:10px" onclick="this.closest('.terms-pop').remove()">סגירה</button></div>`;document.body.appendChild(w)}
+function termsChk(id){const c=$('#'+id);if(c&&!c.checked){toast('יש לאשר את התקנון ותנאי השימוש');c.closest('.terms-ok').classList.add('need');return false}return true}
 /* ===== 📮 תיבת הודעות למנהל ===== */
 const IB_CAT=[['idea','💡','הצעה / רעיון'],['req','🙏','בקשה'],['info','➕','להוסיף / לתקן מידע'],['bug','🐞','תקלה באפליקציה'],['other','💬','אחר']];
 const ibCat=k=>IB_CAT.find(c=>c[0]===k)||IB_CAT[4];
