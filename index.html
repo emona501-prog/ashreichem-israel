@@ -1117,8 +1117,9 @@ const sayTm=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return t||'';const[h,m]=t.spli
 const sayDur=(h,m)=>{const hw=h===1?'שעה':h===2?'שעתיים':numW(h)+' שעות';return m?`${hw} ו${m===1?'דקה':numW(m)+' דקות'}`:hw};
 const sayFix=s=>sayNikud(SAYFIX.reduce((a,[r,v])=>a.replace(r,v),s).replace(/(\d{1,2}):(\d{2})/g,(x)=>sayTm(x)));
 let SAYING=false;
-function speak(t){if(!('speechSynthesis'in window))return toast('הטלפון לא תומך בהקראה');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(sayFix(t));u.lang='he-IL';
-  const v=speechSynthesis.getVoices().find(v=>/^(he|iw)/i.test(v.lang));if(v)u.voice=v;u.rate=U.ttsRate||.95;u.onend=u.onerror=()=>{SAYING=false};SAYING=true;speechSynthesis.speak(u)}
+function speak(t){if(!('speechSynthesis'in window))return toast('הטלפון לא תומך בהקראה');const wasBusy=speechSynthesis.speaking||speechSynthesis.pending;speechSynthesis.cancel();
+  const go=()=>{try{speechSynthesis.resume()}catch(e){}const u=new SpeechSynthesisUtterance(sayFix(t));u.lang='he-IL';const v=speechSynthesis.getVoices().find(v=>/^(he|iw)/i.test(v.lang));if(v)u.voice=v;u.rate=U.ttsRate||.95;u.onend=u.onerror=()=>{SAYING=false};SAYING=true;speechSynthesis.speak(u)};
+  wasBusy?setTimeout(go,120):go()}
 function sayToggle(fn){if(SAYING&&'speechSynthesis'in window){speechSynthesis.cancel();SAYING=false;return toast('ההקראה נעצרה')}const t=fn();if(t){speak(t);toast('🔊 מקריא… לחיצה נוספת עוצרת')}}
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
 function nearSay(t){const now=new Date(),nm=nowMin();let day=now.getDay(),when='היום';let l=collect('prayers',day,p=>p.t!=='זמן'&&p.tm&&(!t||p.t===t)).filter(p=>toMin(p.tm)>=nm);
@@ -1131,14 +1132,15 @@ function shabSay(sat){sat=sat||nextSat(new Date());const f=addDays(sat,-1),zf=zm
 function shulSay(id){const s=shul(id);if(!s)return'';const d=new Date().getDay(),L=collect('prayers',d,p=>p.tm,new Date()).filter(p=>p.s.id===id);return `${s.name}${s.address?', '+s.address:''}. ${L.length?'תפילות היום: '+L.map(p=>`${p.t} ב${p.tm}`).join('. ')+'.':'אין תפילות רשומות להיום.'}`}
 const VQ=['מתי מנחה?','מתי ערבית?','מתי שחרית?','מתי נכנסת שבת?','מתי השקיעה?','מה פרשת השבוע?','מתי החג הבא?'];
 let _rec=null;
-function askVoice(){
+function ttsPrime(){try{if(!('speechSynthesis'in window)||window._ttsOk)return;const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='he-IL';speechSynthesis.speak(u);window._ttsOk=1}catch(e){}}
+function askVoice(){ttsPrime();
   modal(`<div style="text-align:center;padding:8px 4px"><button class="mic-big" id="micB" onclick="micStart()" aria-label="לחצו ודברו">${ic('mic','big')}</button>
   <div id="micS" style="font-weight:800;margin-top:6px">לחצו על המיקרופון ושאלו</div><div id="micT" class="muted" style="min-height:22px;margin-top:4px"></div></div>
   <div class="f">או בחרו שאלה:</div><div class="chips" style="flex-wrap:wrap">${VQ.map(q=>`<button class="chip" onclick="voiceAnswer('${q}')">${q}</button>`).join('')}</div>
   <div style="display:flex;gap:6px;margin-top:10px"><input class="inp" id="micQ" placeholder="או הקלידו שאלה…" onkeydown="if(event.key==='Enter'&&this.value.trim())voiceAnswer(this.value)"><button class="btn sm" onclick="$('#micQ').value.trim()&&voiceAnswer($('#micQ').value)">שאל</button></div>`,'🎤 שאלה בקול');
   setTimeout(micStart,250);
 }
-async function micStart(){const R=window.SpeechRecognition||window.webkitSpeechRecognition,S2=t=>{const e=$('#micS');if(e)e.textContent=t};
+async function micStart(){ttsPrime();const R=window.SpeechRecognition||window.webkitSpeechRecognition,S2=t=>{const e=$('#micS');if(e)e.textContent=t};
   if(!R){S2('הדפדפן הזה לא תומך בזיהוי קולי – אפשר לבחור או להקליד שאלה');return}
   if(_rec){try{_rec.abort()}catch(e){}_rec=null}
   try{if(navigator.mediaDevices?.getUserMedia){const st=await navigator.mediaDevices.getUserMedia({audio:true});st.getTracks().forEach(t=>t.stop())}}
@@ -1164,7 +1166,7 @@ function voiceAnswer(q){let a;const z=zmanim(new Date());
   else if(/זמנ/.test(q))a=zmSay();
   else if(/חג|חנוכה|פורים|פסח|סוכות|צום/.test(q)){const c=chagItems(new Date(),30)[0];a=c?`${c.h.join(', ')} ביום ${DAYNAMES[c.x.getDay()]}, ${hebDate(c.x,1)}. ${c.rows.map(r=>r[0]+' '+r[1]).join('. ')}`:'אין חג בחודש הקרוב.'}
   else a='לא הבנתי. אפשר לשאול: מתי מנחה, מתי נכנסת שבת, מתי השקיעה, או מה פרשת השבוע.';
-  modal(`<div class="muted">שאלתם: "${esc(q)}"</div><div class="card" style="font-size:1.1rem;line-height:1.6;margin-top:8px">${esc(a)}</div><div class="btns"><button class="btn" style="flex:1" onclick="speak(${esc(JSON.stringify(a))})">${ic('speaker','bi')}שוב</button><button class="btn sec" style="flex:1" onclick="askVoice()">${ic('mic','bi')}שאלה נוספת</button></div>`,'🎤 תשובה');speak(a)}
+  modal(`<div class="muted">שאלתם: "${esc(q)}"</div><div class="card" style="font-size:1.1rem;line-height:1.6;margin-top:8px">${esc(a)}</div><div class="btns"><button class="btn" style="flex:1" onclick="speak(${esc(JSON.stringify(a))})">${ic('speaker','bi')}שוב</button><button class="btn sec" style="flex:1" onclick="askVoice()">${ic('mic','bi')}שאלה נוספת</button></div>`,'🎤 תשובה');setTimeout(()=>speak(a),450)}
 /* ===== 📰 עלוני שבת של בתי הכנסת (PDF או תמונות) – נשמרים ב-Firestore בחלקים ===== */
 const ALON_MAX=6*1024*1024,ALON_CH=800000,ALON_KEEP=3,ALON_KEEP_G=10;
 function alonKind(b){document.querySelectorAll('#alK .chip').forEach(c=>c.classList.toggle('on',c===b));const l=b.dataset.k==='link';$('#alFB').style.display=l?'none':'';$('#alLB').style.display=l?'':'none'}
