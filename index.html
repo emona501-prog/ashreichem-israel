@@ -223,6 +223,8 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .ib-b{max-width:88%;padding:8px 12px;border-radius:14px;background:var(--soft)}.ib-b small{display:block;color:var(--muted);font-size:.72rem;margin-top:2px}
 .ib-b.me{align-self:flex-start;background:#e4ecf5}.ib-b.them{align-self:flex-end;background:var(--gold-soft)}.ib-b.adm{border:1px solid #ead9a6}
 body.dark .ib-b.me{background:#22344a}
+.cmp-loc{background:#fdf3e4;border-color:#f0c98a}.cmp-loc.ok{background:#e5f4ec;border-color:#a7d7b9;display:flex;align-items:center;gap:10px}
+body.dark .cmp-loc{background:var(--card)}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -835,12 +837,13 @@ function showAd(id){const a=S.ads.find(z=>z.id===id);modal(adCard(a).replace('cl
 /* ===== מיקום ===== */
 const DEF_LOC={lat:31.7525,lng:35.2205,name:'תלפיות, ירושלים'};
 const LOC=()=>U.loc||DEF_LOC;
-function getLoc(cb){
+function getLoc(cb,quiet){
   if(!navigator.geolocation){toast('המכשיר לא תומך באיתור מיקום');return}
   toast('מאתר מיקום…');
-  navigator.geolocation.getCurrentPosition(p=>{U.loc={lat:p.coords.latitude,lng:p.coords.longitude,name:'המיקום שלי'};saveU();toast('המיקום עודכן 📍');cb?cb():render()},
-    ()=>toast('לא התקבל מיקום – משתמשים ב'+DEF_LOC.name),{enableHighAccuracy:true,timeout:12000});
+  navigator.geolocation.getCurrentPosition(p=>{U.loc={lat:p.coords.latitude,lng:p.coords.longitude,name:'המיקום שלי'};U.locAt=Date.now();saveU();toast('המיקום עודכן 📍');cb?cb():render()},
+    e=>{toast(e&&e.code===1?'הגישה למיקום נחסמה – אפשר לאפשר בהגדרות הדפדפן':'לא התקבל מיקום – משתמשים ב'+DEF_LOC.name)},{enableHighAccuracy:true,timeout:15000});
 }
+
 function locLine(){return `<div class="muted" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px"><span>📍 ${esc(LOC().name)}</span><span class="btns"><button class="btn ghost sm" onclick="getLoc()">עדכון למיקום שלי</button>${U.loc?`<button class="btn ghost sm" onclick="U.loc=null;saveU();render()">ירושלים</button>`:''}</span></div>`}
 
 /* ===== זמני היום (חישוב אסטרונומי) ===== */
@@ -1012,8 +1015,11 @@ function bearingTo(a,b){const r=Math.PI/180;const y=Math.sin((b.lng-a.lng)*r)*Ma
 function distKm(a,b){const r=Math.PI/180;const d=Math.sin((b.lat-a.lat)*r/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin((b.lng-a.lng)*r/2)**2;return 6371*2*Math.atan2(Math.sqrt(d),Math.sqrt(1-d))}
 function dirName(b){return['צפון','צפון־מזרח','מזרח','דרום־מזרח','דרום','דרום־מערב','מערב','צפון־מערב'][Math.round(b/45)%8]}
 function compass(){
-  const b=bearingTo(LOC(),HARBAYIT),d=distKm(LOC(),HARBAYIT);
-  return `<h2>🧭 מצפן תפילה</h2>${locLine()}
+  const b=bearingTo(LOC(),HARBAYIT),d=distKm(LOC(),HARBAYIT);const has=!!U.loc;const near=d<1.2;
+  return `<h2>🧭 מצפן תפילה</h2>
+  ${has?`<div class="card cmp-loc ok"><span style="font-size:1.4rem">📍</span><div style="flex:1"><b>המיקום שלך פעיל</b><div class="muted">המצפן מחושב לפי המקום המדויק שלך${U.locAt?' · עודכן '+new Date(U.locAt).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}):''}</div></div><button class="btn ghost sm" onclick="getLoc()">🔄 רענון</button></div>`
+  :`<div class="card cmp-loc"><div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:1.6rem">📍</span><div style="flex:1"><b>מומלץ להפעיל מיקום – לדיוק מלא</b><div class="muted">בלי מיקום, הכיוון מחושב לפי מרכז תלפיות. בירושלים ההבדל בין שכונה לשכונה יכול להגיע לעשרות מעלות!</div></div></div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="askLoc()">📍 הפעלת מיקום</button></div>`}
   <div class="card" style="text-align:center">
     <div class="cmp-wrap"><div class="cmp-top" aria-hidden="true">▼</div>
       <div class="cmp" id="cmpDial">
@@ -1022,10 +1028,20 @@ function compass(){
       </div>
     </div>
     <div id="cmpMsg" style="font-weight:800;font-size:1.15rem;margin-top:12px">${HEAD===null?'לחצו על "הפעלת מצפן" וסובבו את הטלפון':''}</div>
-    <div class="muted" style="margin-top:6px">כיוון הר הבית: <b>${Math.round(b)}° · ${dirName(b)}</b>${d<0.3?'':` · מרחק ${d<10?d.toFixed(1):Math.round(d)} ק״מ`}</div>
+    <div class="muted" style="margin-top:6px">כיוון הר הבית: <b>${Math.round(b)}° · ${dirName(b)}</b>${near?'':` · מרחק ${d<10?d.toFixed(1):Math.round(d)} ק״מ`}</div>
     <button class="btn" style="width:100%;margin-top:14px" onclick="startCompass()">🧭 הפעלת מצפן</button>
   </div>
-  <div class="muted" style="padding:0 4px">מחזיקים את הטלפון שטוח. כשהבית כנסת הקטן מגיע למעלה, אתם מכוונים למקום המקדש. אם המצפן לא מדויק – מזיזים את הטלפון בצורת הספרה 8 כמה פעמים, ומרחיקים ממגנטים וכיסויים מגנטיים.</div>`;
+  <div class="card"><h3>🙏 איך מכוונים בתפילה?</h3>
+  ${stepList(['<b>מפעילים מיקום</b> (למעלה) – כדי שהחישוב יהיה מהמקום המדויק שבו אתם עומדים.','<b>מחזיקים את הטלפון שטוח</b>, מקביל לרצפה, בגובה החזה – ומרחיקים ממתכות, מגנטים וכיסויים מגנטיים.','<b>מסובבים את הגוף לאט</b> עד שהבית כנסת הקטן 🕍 מגיע אל המשולש האדום ▼ למעלה. העיגול נצבע בירוק והטלפון רוטט.','<b>זה הכיוון:</b> עומדים כשהפנים לכיוון הזה – לעבר ירושלים, הר הבית ומקום קודש הקודשים.'])}
+  <div class="muted">🔁 <b>המצפן לא יציב?</b> מזיזים את הטלפון באוויר בצורת הספרה <b>8</b> כמה פעמים – זה מכייל את החיישן.</div>
+  <div class="muted" style="margin-top:6px">📖 על פי ההלכה (שו״ע או״ח צ״ד): בחוץ לארץ מכוונים כנגד ארץ ישראל, בארץ – כנגד ירושלים, ובירושלים – כנגד המקדש ובית קודש הקודשים. מי שאינו יכול לכוון – יכוון את ליבו לאביו שבשמיים.</div></div>`;
+}
+function askLoc(){
+  if(!navigator.geolocation)return toast('המכשיר לא תומך באיתור מיקום');
+  modal(`<div style="text-align:center;font-size:3rem">📍</div><p style="text-align:center"><b>בחלון שיופיע – לחצו "אישור" / "בזמן השימוש באפליקציה"</b></p>
+  <div class="muted">המיקום משמש רק לחישוב כיוון התפילה וזמני היום, נשמר רק בטלפון שלכם ולא נשלח לשום מקום.</div>
+  <button class="btn" style="width:100%;margin-top:14px" onclick="closeModal();getLoc(()=>{U.locAt=Date.now();saveU();render();toast('המיקום הופעל ✔️ המצפן מדויק עכשיו')},true)">המשך</button>
+  <details style="margin-top:12px"><summary class="muted">הלחיצה לא עובדת / חסמתי בטעות</summary><div class="muted" style="margin-top:6px">${DEV.ios?'הגדרות ← פרטיות ← שירותי מיקום ← ספארי ← "בזמן השימוש". אחר כך מרעננים את הדף.':'בכרום: לוחצים על הסמל שליד הכתובת למעלה (🔒 או ⚙️) ← הרשאות ← מיקום ← אפשר. ובהגדרות הטלפון: מיקום ← מופעל.'}</div></details>`,'הפעלת מיקום');
 }
 function onOri(e){
   let h=null;
@@ -1044,7 +1060,7 @@ function onOri(e){
 }
 async function startCompass(){
   try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')return toast('לא ניתנה הרשאה למצפן')}}catch(e){}
-  if(!U.loc)getLoc(()=>{render()});
+  if(!U.loc)askLoc();
   stopCompass();CMP_ON=true;
   if('ondeviceorientationabsolute'in window)window.addEventListener('deviceorientationabsolute',onOri);else window.addEventListener('deviceorientation',onOri);
   setTimeout(()=>{if(CMP_ON&&HEAD===null){const m=$('#cmpMsg');if(m)m.textContent='לא נמצא חיישן מצפן במכשיר – היעזרו בכיוון במעלות שמתחת'}},3500);
