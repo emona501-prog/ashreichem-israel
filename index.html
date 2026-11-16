@@ -217,6 +217,7 @@ footer a{color:var(--muted)}
 body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px;padding:10px}
 .mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
 .share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
+.adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
 .ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
 .ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
 .ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -230,6 +231,8 @@ body.dark .cmp-loc{background:var(--card)}
 .gab-home{display:flex;align-items:center;gap:12px;cursor:pointer;background:linear-gradient(135deg,#24456b,#3a6596);color:#fff;border:0}.gab-home .muted{color:#dfe7f1}
 .gab-hero{background:linear-gradient(135deg,#16294a,#2f5585);color:#fff;border-radius:22px;padding:20px 16px;text-align:center;margin-bottom:12px;font-family:'Frank Ruhl Libre',serif}
 .gab-mat{display:flex;flex-direction:column;gap:6px}.gab-mat label{display:flex;align-items:center;gap:8px;background:var(--soft);border-radius:10px;padding:8px 10px}.gab-mat input{width:20px;height:20px}
+.pr-types{display:flex;flex-direction:column;gap:6px}.pr-t{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer}.pr-t input{width:20px;height:20px}
+.pr-wrap{width:100%;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#fff;position:relative}.pr-wrap iframe{border:0;transform-origin:top right;position:absolute;top:0;right:0;background:#fff}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -621,6 +624,7 @@ function shulPage(){
   <div class="btns" style="margin:12px 0">
     <a class="btn sm" href="https://waze.com/ul?q=${maps}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט</a>
     <button class="btn sec sm" onclick="shareShul('${s.id}')">💬 שתף</button>
+    <button class="btn sec sm" onclick="printCenter('shul','${s.id}')">🖨️ הדפסה</button>
     <button class="btn sec sm" onclick="fav('${s.id}')">${U.favs.includes(s.id)?'★ במועדפים':'☆ מועדף'}</button>
   </div>
   ${ed&&missingOf(s).length?`<div class="card" style="background:#fdeee0;border-color:#f0b37e"><b>⚠️ חסרים פרטים חשובים:</b> ${missingOf(s).join(', ')}<div class="muted">הציבור צריך את הפרטים האלה. לחצו "עריכת פרטים וזמנים" כדי להשלים.</div></div>`:''}
@@ -670,6 +674,7 @@ function more(){
   ${it('🕯️','הילולות צדיקים',"go('hill')",'היום והקרובות')}
   ${it('📌','לוח מודעות',"go('board')",'מודעות קהילה · בקשת פרסום')}
   ${it('🕍','גבאי? הצטרפו לאפליקציה',"go('gab')",'שליחת פרטי בית הכנסת וקבלת קוד גבאי')}
+  ${it('🖨️','הדפסת לוחות',"printCenter()",'זמנים, שבת, בית כנסת, סיכום יום ולוח חודש')}
   ${it('📮','תיבת הודעות למנהל'+ibBadge(ROLE&&ROLE.type==='admin'?ibAdminNew():ibUserNew()),"go('inbox')",'רעיונות, בקשות, מידע להוסיף ותקלות')}
   ${it('📢','כל העדכונים',"go('updates')")}
   ${it('⭐','האזור האישי שלי',"go('mine')",'מועדפים · תזכורות · תהילים')}
@@ -903,6 +908,7 @@ function zmanimV(){
     <div class="zm-loc">📍 ${esc(LOC().name)} · <button class="zm-lnk" onclick="getLoc()">עדכון למיקום שלי</button>${U.loc?` · <button class="zm-lnk" onclick="U.loc=null;saveU();render()">ירושלים</button>`:''}${ST.zd?` · <button class="zm-lnk" onclick="ST.zd='';render()">חזרה להיום</button>`:''}</div>
   </div>
   <button class="btn" style="width:100%;margin:12px 0;min-height:52px;font-size:1.05rem" onclick="zmShareMenu('${iso(dt)}')">📤 שיתוף מעוצב – זמנים, שבת, חגים ועומר</button>
+  <button class="btn sec" style="width:100%;margin:-4px 0 12px" onclick="printCenter('zmw')">🖨️ הדפסת זמנים – יום, שבוע, שבת וחודש</button>
   ${moladCard()}
   ${special.map(s=>`<div class="card hl zm-sp"><span class="zm-spi">${s[0]}</span><div style="flex:1"><b>${s[1]}</b><div class="muted">${esc(s[3])}</div></div><div class="time" style="color:var(--acc)">${s[2]}</div></div>`).join('')}
   ${SEC.map(s=>`<div class="card zm-sec"><h3>${s[0]} ${s[1]}</h3>${s[2].map(x=>`<div class="row zm-row ${next&&x===next?'zm-on':''} ${isToday&&x[1]&&x[1]<nowD?'past':''}"><div class="main"><b>${x[0]}</b>${x[2]?`<span class="muted">${x[2]}</span>`:''}</div><div class="time">${hm(x[1])}</div></div>`).join('')}</div>`).join('')}
@@ -1335,6 +1341,11 @@ function admin(){
 
   <div class="card ${reqCnt()?'ib-new':''}" style="cursor:pointer" onclick="go('reqs')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📥</span><div style="flex:1"><h3 style="margin:0">בקשות הצטרפות של בתי כנסת ${ibBadge(reqCnt())}</h3><div class="muted">${reqCnt()?reqCnt()+' בתי כנסת ממתינים לאישור':'אין בקשות ממתינות'}</div></div><span>‹</span></div></div>
   <div class="card" style="cursor:pointer" onclick="go('inbox')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📮</span><div style="flex:1"><h3 style="margin:0">תיבת הודעות ממשתמשים ${ibBadge(ibAdminNew())}</h3><div class="muted">${ibAdminNew()?ibAdminNew()+' הודעות חדשות מחכות לך':'אין הודעות חדשות'}</div></div><span>‹</span></div></div>
+  <div class="card"><h3>📲 התראות אליך כשמגיעה הודעה או בקשה</h3>
+  <div class="muted">כשהאפליקציה פתוחה – קופצת לך הודעה עם צליל ורטט. כדי לקבל התראה <b>גם כשהאפליקציה סגורה</b>: 1) הפעילו התראות בטלפון הזה (עוד ← 🔔 התראות) כשאתם מחוברים כמנהל. 2) הדביקו כאן את כתובת הממסר (Google Apps Script) – פעם אחת בלבד.</div>
+  <div class="muted" style="margin-top:4px">מצב בטלפון הזה: ${PUSH.on?'✅ התראות פעילות':'⚠️ התראות כבויות'}</div>
+  <label class="f">כתובת הממסר</label><input class="inp" id="srl" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(S.settings.relay||'')}">
+  <div class="btns" style="margin-top:8px"><button class="btn sm" onclick="saveRelay()">שמירה</button><button class="btn sec sm" onclick="relayTest()">🔔 שליחת התראת בדיקה</button><a class="btn ghost sm" style="text-decoration:none" href="https://github.com/emona501-prog/ashreichem-israel/blob/main/relay.gs" target="_blank" rel="noopener">📄 קוד הממסר</a></div></div>
   <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
   <a class="btn" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://dashboard.onesignal.com/apps/${OS_APP}/notifications/new" target="_blank" rel="noopener">✍️ כתיבת התראה חדשה</a></div>
   <div class="card"><h3>☁️ שרת</h3><div class="muted" style="margin-bottom:8px">מצב: ${C.ok?'✅ מחובר':'⚠️ לא מחובר'}${S.cloud?'':' · השרת עדיין ריק'}</div><div class="btns">${S.cloud?'':'<button class="btn sm" onclick="firstUpload()">🚀 העלאה ראשונה של הנתונים לשרת</button>'}<button class="btn sec sm" onclick="exportData()">⬇️ הורדת גיבוי</button></div></div>`;
@@ -1471,7 +1482,7 @@ function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
 }
-function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
+function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30,relay:S.settings.relay||''},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
 function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;Object.keys(o).forEach(k=>{if(k[0]==='_')delete o[k]});return o}
 
 /* ----- כניסה ----- */
@@ -1563,6 +1574,8 @@ function saveHill(id){const o={id:id||uid(),name:$('#hn').value.trim(),d:+$('#hd
 function delHill(id){S.hillulot=S.hillulot.filter(x=>x.id!==id);saveConfig();closeModal();render()}
 function addNh(){const n=prompt('שם השכונה החדשה:');if(n&&n.trim()&&!S.neighborhoods.includes(n.trim())){S.neighborhoods.push(n.trim());saveConfig();render()}}
 function delNh(i){if(S.shuls.some(s=>s.nh===S.neighborhoods[i]))return toast('יש בתי כנסת בשכונה הזו – העבירו אותם קודם');S.neighborhoods.splice(i,1);saveConfig();render()}
+async function saveRelay(){const v=$('#srl').value.trim();if(v&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v))return toast('הכתובת צריכה להתחיל ב-https://script.google.com/macros/s/ ולהסתיים ב-/exec');S.settings.relay=v;await saveConfig();toast('נשמר ✔️');pushTags()}
+function relayTest(){if(!S.settings.relay)return toast('קודם שמרו את כתובת הממסר');relayAdmin('test','🔔 בדיקה – אשריכם ישראל','אם קיבלת את זה – ההתראות למנהל עובדות!');toast('נשלחה בדיקה – תגיע תוך כמה שניות (גם כשהאפליקציה סגורה)')}
 async function saveSet(){
   Object.assign(S.settings,{appName:$('#sn').value.trim()||'אשריכם ישראל',adminPhone:$('#sw').value.trim(),tickerSpeed:+$('#ss').value||30});await saveConfig();
   const np=$('#sp').value.trim();if(np){if(np.length<6)return toast('סיסמת מנהל – לפחות 6 תווים');try{await C.A.updatePassword(C.auth.currentUser,np);$('#sp').value='';toast('סיסמת המנהל הוחלפה 🔒')}catch(e){return toast(e.code==='auth/requires-recent-login'?'צאו והיכנסו שוב, ואז החליפו סיסמה':'שגיאה בהחלפת הסיסמה')}}
@@ -1753,13 +1766,14 @@ async function reqSubmit(){
   const miss=reqValidate();if(miss)return toast('חסר: '+miss);const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
   const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
   try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',data:shulDoc(ED)})}catch(e){return cerr(e)}
+  relayAdmin('req','📥 בקשת הצטרפות חדשה',ED.name||'בית כנסת');
   const nm=ED.name;closeModal();
   modal(`<div style="text-align:center;font-size:3rem">🎉</div><h2 style="text-align:center">הפרטים נשלחו בהצלחה!</h2>
   <p style="text-align:center">בית הכנסת <b>${esc(nm)}</b> ממתין לאישור המנהל. אחרי האישור הוא יופיע באפליקציה, ותקבל <b>קוד גבאי אישי</b> לעדכונים.</p>
   <button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${adminWa()}?text='+encodeURIComponent('שלום, אני ${esc(g0.name||'')}, הגבאי של *${esc(nm).replace(/'/g,'')}* 🕍\\nמילאתי עכשיו את פרטי בית הכנסת באפליקציה ואשמח לאישור. תודה!'))">💬 להודיע למנהל בוואטסאפ (לא חובה)</button>
   <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal();go('home')">סיום</button>`,'תודה רבה! 🙏');
 }
-function listenReqs(){if(C.unsub.reqs)return;const F=C.F;C.unsub.reqs=F.onSnapshot(F.query(col('shulReqs'),F.where('st','==','pend')),q=>{S.reqs=q.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>b.dt-a.dt);softRender()},e=>console.warn(e))}
+function listenReqs(){if(C.unsub.reqs)return;const F=C.F;C.unsub.reqs=F.onSnapshot(F.query(col('shulReqs'),F.where('st','==','pend')),q=>{S.reqs=q.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>b.dt-a.dt);adminWatch('req',q);softRender()},e=>console.warn(e))}
 const reqCnt=()=>(S.reqs||[]).length;
 function reqsV(){
   if(ROLE?.type!=='admin')return'<div class="empty-msg">אין הרשאה</div>';const L=S.reqs||[];
@@ -1788,12 +1802,119 @@ async function reqDone(rid,sid,code,s){
   ${g?`<button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${waNum(g.phone)}?text='+encodeURIComponent(${JSON.stringify(msg).replace(/"/g,'&quot;')}))">💬 שליחת הקוד לגבאי בוואטסאפ</button>`:''}
   <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal();go('shul',{id:'${s.id}'})">צפייה בבית הכנסת</button>`,'אושר!');
 }
+/* ===== 🖨️ מרכז הדפסה ===== */
+const PR_T=[['shul','🕍','לוח תפילות ושיעורים של בית כנסת','לשבוע הקרוב – לתלות על לוח המודעות'],['shab','🕯️','זמני שבת','הדלקת נרות, צאת השבת ותפילות השבת בכל בתי הכנסת'],['day','📋','סיכום יום – כל המניינים והשיעורים','כל בתי הכנסת באזור, ליום שתבחרו'],['zmw','☀️','זמני היום לשבוע','טבלה של 7 ימים'],['month','📅','לוח חודש עברי','חגים, הילולות, מולד ואירועים']];
+function printCenter(type,sid){
+  const t=type||'shul';const today=iso(new Date());
+  modal(`<div class="pr-types">${PR_T.map(x=>`<label class="pr-t"><input type="radio" name="prT" value="${x[0]}" ${x[0]===t?'checked':''} onchange="$('#prShul').style.display=this.value==='shul'?'block':'none'"><span style="font-size:1.5rem">${x[1]}</span><span><b>${x[2]}</b><small class="muted" style="display:block">${x[3]}</small></span></label>`).join('')}</div>
+  <div id="prShul" style="display:${t==='shul'?'block':'none'}"><label class="f">בית כנסת</label><select class="inp" id="prS">${S.shuls.map(s=>`<option value="${s.id}" ${s.id===sid?'selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
+  <label class="f">החל מתאריך</label><input class="inp" type="date" id="prD" value="${today}">
+  <button class="btn" style="width:100%;margin-top:14px;min-height:52px" onclick="printBuild()">👁️ תצוגה מקדימה והדפסה</button>`,'🖨️ הדפסת לוחות');
+}
+const prDateIn=(dk,base)=>{const ds=DAYSETS[dk]?.d||[0,1,2,3,4,5,6];for(let i=0;i<7;i++){const x=addDays(base,i);if(ds.includes(x.getDay()))return x}return base};
+function prHead(title,sub){return `<header><img src="${location.href.replace(/[^/]*$/,'')}icon-192.png" alt=""><div><h1>${esc(title)}</h1>${sub?`<div class="sub">${sub}</div>`:''}</div><div class="brand">${esc(S.settings.appName||'אשריכם ישראל')}</div></header>`}
+function prFoot(){return `<footer>📲 כל הזמנים באפליקציה: ${APP_URL.replace('https://','').replace(/\/$/,'')} &nbsp;·&nbsp; ▶ ערוץ גאולה וישועה ביוטיוב &nbsp;·&nbsp; הזמנים מחושבים – יש להחמיר 2–3 דקות</footer>`}
+const prRange=(a,b)=>`${hebDate(a,1)} – ${hebDate(b)} &nbsp;|&nbsp; ${gStr(a)} – ${gStr(b)}`;
+function prShul(sid,base){
+  const s=shul(sid);if(!s)return'';const end=addDays(base,6);
+  const K=['all','wk6','wk','d023','d14','d013','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];
+  const grp=a=>{const g={};a.forEach(x=>(g[x.d]=g[x.d]||[]).push(x));return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))};
+  const rt=x=>{const d=prDateIn(x.d,base);return x.tm?resolveTm(x.tm,d):''};
+  const sortT=a=>a.sort((x,y)=>(rt(x)?toMin(rt(x)):9999)-(rt(y)?toMin(rt(y)):9999));
+  const pr=grp(s.prayers||[]),ev=grp(s.events||[]);const gs=gabbaimOf(s).filter(g=>g.pub!==false&&(g.name||g.phone));
+  return prHead(s.name,`📍 ${esc(s.address||'')}${s.nusach?' · נוסח '+esc(s.nusach):''}<br>${prRange(base,end)}`)+
+  `<div class="cols"><section><h2>🕰️ זמני תפילות</h2>${pr.map(([d,a])=>`<h3>${DAYSETS[d]?.l||d}</h3><table>${sortT(a).map(p=>p.t==='זמן'?`<tr class="z"><td class="tm">${rt(p)}</td><td colspan="2">${esc(p.n)}</td></tr>`:`<tr><td class="tm">${rt(p)}</td><td><b>${esc(p.t)}</b></td><td class="n">${esc(p.n||'')}${isRel(p.tm)?` <i>(${relLabel(p.tm)})</i>`:''}</td></tr>`).join('')}</table>`).join('')||'<p>לא הוזנו זמנים</p>'}</section>
+  <section>${ev.length?`<h2>📚 שיעורים ופעילויות</h2>${ev.map(([d,a])=>`<h3>${DAYSETS[d]?.l||d}</h3><table>${sortT(a).map(e=>`<tr><td class="tm">${rt(e)||'—'}</td><td><b>${esc(e.title)}</b>${e.who?`<div class="n">${esc(e.who)}</div>`:''}</td><td class="n">${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.n||'')}</td></tr>`).join('')}</table>`).join('')}`:''}
+  ${s.notes?`<h2>ℹ️ הודעות</h2><div class="notes">${esc(s.notes)}</div>`:''}
+  ${gs.length?`<h2>👤 גבאים</h2><table>${gs.map(g=>`<tr><td><b>${esc(g.name||'גבאי')}</b></td><td dir="ltr" style="text-align:right">${esc(g.phone||'')}</td></tr>`).join('')}</table>`:''}</section></div>`+prFoot();
+}
+function prShab(base){
+  let f=new Date(base);while(f.getDay()!==5)f=addDays(f,1);const sa=addDays(f,1);
+  const hol=holidaysOn(f).concat(holidaysOn(sa)).filter((x,i,a)=>a.indexOf(x)===i);const mv=MOLAD().find(e=>{const m=mevOf(e);return m&&iso(m)===iso(sa)});
+  const rows=CITIES.map(([n,la,lo,cl])=>{const a=zmanim(f,{lat:la,lng:lo}),b=zmanim(sa,{lat:la,lng:lo});return `<tr><td><b>${n}</b></td><td class="tm">${hm(addM(a.set,-cl))}</td><td class="tm">${hm(b.tzeit)}</td><td class="tm">${hm(b.rt)}</td></tr>`}).join('');
+  const ty=[['קבלת שבת','fri'],['שחרית','sat'],['מנחה','sat'],['ערבית','mz']];
+  const sh=S.shuls.map(s=>{const c=ty.map(([t,dk])=>{const L=(s.prayers||[]).filter(p=>p.t===t&&DAYSETS[p.d]?.d.includes(dk==='fri'?5:6)&&(dk!=='mz'||p.d==='mz')&&(dk==='mz'||p.d!=='mz')).map(p=>resolveTm(p.tm,dk==='fri'?f:sa)).filter(Boolean).sort((a,b)=>toMin(a)-toMin(b));return L.join(' · ')||'—'});return c.some(x=>x!=='—')?`<tr><td><b>${esc(s.name)}</b></td>${c.map(x=>`<td class="tm s">${x}</td>`).join('')}</tr>`:''}).join('');
+  return prHead('שבת שלום',`ערב שבת ${hebDate(f)} · ${gStr(f)}${hol.length?' · '+hol.join(' · '):''}${mv?`<br>✨ שבת מברכים חודש ${mv.m} · ${esc(molFix(mv.com))}`:''}`)+
+  `<h2>🕯️ זמני השבת בערים</h2><table class="big"><tr><th>עיר</th><th>הדלקת נרות</th><th>צאת השבת</th><th>רבנו תם</th></tr>${rows}</table>
+  ${sh?`<h2>🕍 תפילות השבת בבתי הכנסת</h2><table><tr><th>בית כנסת</th><th>קבלת שבת</th><th>שחרית</th><th>מנחה</th><th>ערבית מוצ״ש</th></tr>${sh}</table>`:''}
+  <div class="blessing">שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!</div>`+prFoot();
+}
+function prDay(base){
+  const w=base.getDay(),z=zmanim(base),hol=holidaysOn(base),hil=hillulotOn(base),pins=pinsOn(base),me=moladEvents(base);
+  const pr=collect('prayers',w,p=>p.t!=='זמן'&&p.tm,base);const ev=collect('events',w,null,base);
+  const byT={};pr.forEach(p=>(byT[p.t]=byT[p.t]||[]).push(p));
+  return prHead('סיכום היום',`יום ${DAYNAMES[w]} · ${hebDate(base)} · ${gStr(base)}${hol.length?'<br>✡️ '+hol.join(' · '):''}${hil.length?'<br>🕯️ הילולת '+hil.map(h=>h.name).join(', '):''}`)+
+  `<div class="zrow">${[['הנץ',z.rise],['סוף ק״ש גר״א',z.shmaG],['חצות',z.chatzot],['שקיעה',z.set],['צאת הכוכבים',z.tzeit]].map(x=>`<span><small>${x[0]}</small><b>${hm(x[1])}</b></span>`).join('')}</div>
+  ${me.length||pins.length?`<div class="notes">${me.map(m=>m.em+' '+esc(m.t)+' – '+esc(m.s)).concat(pins.map(q=>'📌 '+esc(q.title)+(q.tm?' · '+q.tm:'')+(q.sid&&shul(q.sid)?' · '+esc(shul(q.sid).name):''))).join('<br>')}</div>`:''}
+  <div class="cols"><section><h2>🕰️ מניינים</h2>${PT.filter(t=>byT[t]).map(t=>`<h3>${t}</h3><table>${byT[t].map(p=>`<tr><td class="tm">${p.tm}</td><td>${esc(p.s.name)}</td><td class="n">${esc(p.n||'')}</td></tr>`).join('')}</table>`).join('')||'<p>אין מניינים רשומים</p>'}</section>
+  <section><h2>📚 שיעורים ופעילויות</h2>${ev.length?`<table>${ev.map(e=>`<tr><td class="tm">${e.tm||'—'}</td><td><b>${esc(e.title)}</b><div class="n">${esc(e.s.name)}${e.who?' · '+esc(e.who):''}</div></td></tr>`).join('')}</table>`:'<p>אין שיעורים רשומים</p>'}</section></div>`+prFoot();
+}
+function prZmw(base){const end=addDays(base,6);
+  const C=[['עלות השחר','alot'],['הנץ','rise'],['סוף ק״ש מג״א','shmaM'],['סוף ק״ש גר״א','shmaG'],['סוף תפילה גר״א','tfG'],['חצות','chatzot'],['מנחה גדולה','mg'],['פלג המנחה','plag'],['שקיעה','set'],['צאת הכוכבים','tzeit']];
+  return prHead('זמני היום לשבוע',`📍 ${esc(LOC().name)} · ${prRange(base,end)}`)+`<table class="wk"><tr><th>יום</th>${C.map(c=>`<th>${c[0]}</th>`).join('')}</tr>${[...Array(7)].map((_,i)=>{const d=addDays(base,i),z=zmanim(d),hol=holidaysOn(d).filter(x=>x!=='ראש חודש');
+    return `<tr class="${d.getDay()===6?'sh':''}"><td><b>${DAYNAMES[d.getDay()]}</b><div class="n">${hebDate(d,1)} · ${gStr(d).slice(0,-5)}</div>${d.getDay()===5?`<div class="n">🕯️ ${hm(z.candle)}</div>`:''}${hol.length?`<div class="n">${esc(hol[0])}</div>`:''}</td>${C.map(c=>`<td class="tm">${hm(z[c[1]])}</td>`).join('')}</tr>`}).join('')}</table>`+prFoot();
+}
+function prMonth(base){
+  const ms=monthStart(base),hp=hebParts(ms);const days=[];for(let i=0;i<31;i++){const x=addDays(ms,i);if(i>0&&hebParts(x).d===1)break;days.push(x)}
+  let cells='';for(let i=0;i<ms.getDay();i++)cells+='<td class="e"></td>';
+  days.forEach((x,i)=>{const p=hebParts(x),items=holidaysOn(x).map(h=>'✡️ '+h).concat(hillulotOn(x).map(h=>'🕯️ '+h.name),moladEvents(x).map(m=>m.em+' '+m.t),pinsOn(x).map(q=>'📌 '+q.title));
+    cells+=`<td class="${x.getDay()===6?'sh':''}"><div class="dh"><b>${heDay(p.d)}</b><span>${x.getDate()}/${x.getMonth()+1}</span></div>${items.slice(0,4).map(t=>`<div class="it">${esc(t)}</div>`).join('')}</td>`;
+    if(x.getDay()===6&&i<days.length-1)cells+='</tr><tr>'});
+  return prHead(`חודש ${HM[hp.m]} ${heYear(hp.y)}`,prRange(days[0],days[days.length-1]))+`<table class="cal"><tr>${['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'].map(d=>`<th>${d}</th>`).join('')}</tr><tr>${cells}</tr></table>`+prFoot();
+}
+const PR_CSS=`@page{size:A4 portrait;margin:12mm}*{box-sizing:border-box}body{font-family:'Assistant',Arial,sans-serif;direction:rtl;color:#1d2733;margin:0;font-size:12.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+header{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#16294a,#2f5585);color:#fff;border-radius:12px;padding:12px 16px;margin-bottom:12px}header img{width:58px;height:58px;border-radius:12px}header h1{margin:0;font-family:'Frank Ruhl Libre',serif;font-size:22pt;color:#f3d78e}header .sub{font-size:10.5pt;opacity:.92}header>div:nth-child(2){flex:1}.brand{font-weight:800;font-size:11pt;color:#f3d78e}
+h2{font-size:13.5pt;color:#24456b;border-bottom:2px solid #c49a2c;padding-bottom:3px;margin:12px 0 6px}h3{font-size:11pt;margin:8px 0 3px;color:#8a6a10}
+table{width:100%;border-collapse:collapse;margin-bottom:6px}td,th{padding:4px 6px;border-bottom:1px solid #e6e2d9;text-align:right;vertical-align:top}th{background:#24456b;color:#fff;font-size:10.5pt}tr:nth-child(even) td{background:#f7f4ec}
+.tm{font-weight:800;color:#24456b;white-space:nowrap;font-variant-numeric:tabular-nums;width:1%}.tm.s{font-size:10pt;white-space:normal;width:auto}.n{font-size:9.5pt;color:#5b6573}.n i{font-style:normal;color:#8a6a10}tr.z td{color:#8a6a10}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.notes{white-space:pre-line;background:#faf3df;border:1px solid #ead9a6;border-radius:8px;padding:8px 10px;font-size:10.5pt;margin:6px 0}
+.big td,.big th{font-size:13pt;padding:7px 8px}.blessing{text-align:center;font-family:'Frank Ruhl Libre',serif;font-size:20pt;color:#8a6a10;margin:18px 0}
+.zrow{display:flex;gap:6px;margin-bottom:8px}.zrow span{flex:1;text-align:center;background:#eef3f8;border-radius:8px;padding:5px}.zrow small{display:block;font-size:9pt;color:#5b6573}
+.wk td,.wk th{font-size:9.5pt;padding:4px 3px;text-align:center}.wk td:first-child{text-align:right;width:17%}tr.sh td{background:#faf3df!important}
+.cal{table-layout:fixed}.cal td{height:92px;border:1px solid #d9d4c7;padding:3px;background:#fff!important}.cal td.sh{background:#faf3df!important}.cal td.e{background:#f3f3f3!important}.dh{display:flex;justify-content:space-between}.dh b{font-size:13pt;color:#24456b}.dh span{font-size:8.5pt;color:#5b6573}.it{font-size:7.8pt;line-height:1.25;margin-top:2px}
+footer{margin-top:14px;padding-top:6px;border-top:1px solid #c49a2c;text-align:center;font-size:9pt;color:#5b6573}`;
+function printBuild(){
+  const t=document.querySelector('input[name=prT]:checked').value,base=fromIso($('#prD').value||iso(new Date()));
+  const body=t==='shul'?prShul($('#prS').value,base):t==='shab'?prShab(base):t==='day'?prDay(base):t==='zmw'?prZmw(base):prMonth(base);
+  const land=t==='zmw'||t==='month';
+  const doc=`<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet"><style>${PR_CSS}${land?'@page{size:A4 landscape}':''}</style></head><body>${body}</body></html>`;
+  closeModal();
+  const W=land?1123:794;
+  modal(`<div class="pr-wrap" id="prWrap"><iframe id="prF" style="width:${W}px;height:${land?794:1123}px"></iframe></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1;min-height:52px" onclick="$('#prF').contentWindow.focus();$('#prF').contentWindow.print()">🖨️ הדפסה / שמירה כ-PDF</button><button class="btn ghost" onclick="printCenter('${t}')">↩️ שינוי</button></div>
+  <div class="muted" style="margin-top:6px">💡 בחלון ההדפסה אפשר לבחור מדפסת, או "שמירה כ-PDF" ולשלוח בוואטסאפ.</div>`,'🖨️ תצוגה מקדימה');
+  const f=$('#prF');f.srcdoc=doc;
+  const fit=()=>{const w=$('#prWrap');if(!w)return;const k=w.clientWidth/W;f.style.transform=`scale(${k})`;w.style.height=(land?794:1123)*k+'px'};setTimeout(fit,30);
+  f.onload=()=>{fit();try{const h=f.contentDocument.body.scrollHeight;if(!land&&h>1123){f.style.height=h+'px';$('#prWrap').style.height=h*($('#prWrap').clientWidth/W)+'px'}}catch(e){}};
+}
+
+/* ===== 🔔 התראות למנהל ===== */
+const AW={ib:0,req:0};
+function adminWatch(k,q){
+  if(ROLE?.type!=='admin')return;
+  if(!AW[k]){AW[k]=1;const n=k==='ib'?ibAdminNew():reqCnt();if(n)setTimeout(()=>adminPop(k,n,null),1200);return}
+  const add=q.docChanges().filter(c=>c.type==='added'&&!c.doc.metadata.hasPendingWrites).map(c=>c.doc.data()).filter(m=>k==='req'||m.unA);
+  if(add.length)adminPop(k,add.length,add[0]);
+}
+function adminPop(k,n,m){
+  const ib=k==='ib',title=ib?`📮 ${n>1?n+' הודעות חדשות':'הודעה חדשה'} בתיבה`:`📥 ${n>1?n+' בקשות הצטרפות':'בקשת הצטרפות חדשה'}`;
+  const body=m?(ib?`${m.name||'משתמש'}: ${(m.text||'').slice(0,90)}`:(m.data?.name||'בית כנסת חדש')):'לחצו לצפייה';
+  try{navigator.vibrate&&navigator.vibrate([180,80,180])}catch(e){}
+  try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.frequency.setValueAtTime(1175,a.currentTime+.15);o.stop(a.currentTime+.3)}catch(e){}
+  if(document.hidden&&'Notification'in window&&Notification.permission==='granted'&&navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,icon:'icon-192.png',badge:'icon-192.png',tag:'adm-'+k,data:{url:location.href.split('#')[0]}})).catch(()=>{});
+  let b=$('#admPop');if(!b){b=document.createElement('div');b.id='admPop';document.body.appendChild(b)}
+  b.innerHTML=`<div class="adm-pop" onclick="this.parentNode.innerHTML='';go('${ib?'inbox':'reqs'}')"><b>${esc(title)}</b><span>${esc(body)}</span><small>לחצו לפתיחה ›</small><button aria-label="סגירה" onclick="event.stopPropagation();this.closest('#admPop').innerHTML=''">✕</button></div>`;
+  clearTimeout(AW.t);AW.t=setTimeout(()=>{if(b)b.innerHTML=''},15000);
+}
+/* שליחת התראה למנהל גם כשהאפליקציה סגורה – דרך ממסר Google Apps Script (חינמי) */
+function relayAdmin(kind,title,body){const u=S.settings.relay;if(!u||!/^https:\/\/script\.google\.com\//.test(u))return;
+  try{fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind,title:String(title).slice(0,80),body:String(body).slice(0,160)})}).catch(()=>{})}catch(e){}}
 /* ===== 📮 תיבת הודעות למנהל ===== */
 const IB_CAT=[['idea','💡','הצעה / רעיון'],['req','🙏','בקשה'],['info','➕','להוסיף / לתקן מידע'],['bug','🐞','תקלה באפליקציה'],['other','💬','אחר']];
 const ibCat=k=>IB_CAT.find(c=>c[0]===k)||IB_CAT[4];
 function ibListen(u){
   if(!C.ok)return;['ibMine','ibAll'].forEach(k=>{if(C.unsub[k]){C.unsub[k]();delete C.unsub[k]}});const F=C.F;
-  if(ROLE&&ROLE.type==='admin')C.unsub.ibAll=F.onSnapshot(F.query(col('inbox'),F.orderBy('dt','desc'),F.limit(300)),q=>{S.ibAll=q.docs.map(d=>({...d.data(),id:d.id}));softRender()},e=>console.warn(e));
+  if(ROLE&&ROLE.type==='admin')C.unsub.ibAll=F.onSnapshot(F.query(col('inbox'),F.orderBy('dt','desc'),F.limit(300)),q=>{S.ibAll=q.docs.map(d=>({...d.data(),id:d.id}));adminWatch('ib',q);softRender()},e=>console.warn(e));
   C.unsub.ibMine=F.onSnapshot(F.query(col('inbox'),F.where('uid','==',u.uid)),q=>{S.ibMine=q.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>b.dt-a.dt);softRender()},e=>console.warn(e));
 }
 const ibAdminNew=()=>(S.ibAll||[]).filter(m=>m.unA).length;
@@ -1837,7 +1958,7 @@ function ibAdminV(){
 async function ibSend(){
   if(!needCloud())return;const t=$('#ibT').value.trim();if(t.length<3)return toast('נא לכתוב הודעה');const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת');
   const name=$('#ibN').value.trim(),phone=$('#ibP').value.trim();U.name=name||U.name;U.phone=phone;saveU();
-  try{await C.F.addDoc(col('inbox'),{uid,name,phone,cat:$('#ibC .chip.on').dataset.k,text:t,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});$('#ibT').value='';toast('ההודעה נשלחה למנהל 📨 תודה!')}catch(e){cerr(e)}
+  try{await C.F.addDoc(col('inbox'),{uid,name,phone,cat:$('#ibC .chip.on').dataset.k,text:t,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});$('#ibT').value='';relayAdmin('inbox','📮 הודעה חדשה מ'+(name||'משתמש'),t);toast('ההודעה נשלחה למנהל 📨 תודה!')}catch(e){cerr(e)}
 }
 async function ibReply(id,by){
   const el=$('#ibr_'+id);const t=el&&el.value.trim();if(!t)return;
