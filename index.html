@@ -540,7 +540,7 @@ function admHome(){
     return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
-    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}</div></div>`}
+    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
   return'';
 }
@@ -782,7 +782,7 @@ function board(){
   const L=launchOn();
   return `<h2>📌 לוח מודעות</h2>
   ${L?`<div class="launch"><div class="l1">🎉 מבצע השקה 🎉</div><div class="l2">3 החודשים הראשונים – פרסום <b>חינם</b>!</div><div class="l3">עסקים, שיעורים, שמחות, אירועים ומודעות קהילה · בתוקף עד ${hebDate(LAUNCH_END,1)} (${gStr(LAUNCH_END)})</div></div>`:''}
-  <button class="btn" style="width:100%;margin-bottom:12px" onclick="adForm()">📝 בקשה לפרסום מודעה${L?' – חינם':''}</button>
+  <button class="btn" style="width:100%;margin-bottom:12px" onclick="adForm()">${ROLE?.type==='admin'?'📝 מודעה חדשה – מתפרסמת מיד':'📝 בקשה לפרסום מודעה'+(L?' – חינם':'')}</button>
   ${ROLE?.type==='admin'&&pend.length?`<h3>⏳ ממתינות לאישור (${pend.length})</h3>${pend.map(adCard).join('')}<h3>מפורסמות</h3>`:''}
   ${ok.map(adMini).join('')||'<div class="empty-msg">אין מודעות כרגע</div>'}`;
 }
@@ -799,7 +799,7 @@ function adForm(){
   <label class="f">להציג עד תאריך (לא חובה)</label><input class="inp" type="date" id="au">
   ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${ROLE.sid===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
   ${ROLE?'':termsBox('adT')}
-  <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">שליחה לאישור</button>`,'בקשת פרסום');
+  <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">${ROLE?'📌 פרסום עכשיו':'שליחה לאישור'}</button>`,ROLE?'📝 מודעה חדשה':'בקשת פרסום');
 }
 //@sendAd
 //@adSt
