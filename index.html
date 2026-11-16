@@ -1145,9 +1145,11 @@ async function micStart(){const R=window.SpeechRecognition||window.webkitSpeechR
   catch(e){S2('🔒 צריך לאשר גישה למיקרופון. בהגדרות הטלפון ← אפליקציות ← Chrome ← הרשאות ← מיקרופון ← לאפשר. אחר כך: בכרום ← ⋮ ← הגדרות ← הגדרות אתרים ← מיקרופון ← לאפשר לאתר');return}
   const r=new R();_rec=r;r.lang='he-IL';r.interimResults=true;r.continuous=false;r.maxAlternatives=1;let got='',done=false;
   r.onstart=()=>{S2('🎙️ מקשיב… דברו עכשיו');$('#micB')?.classList.add('on')};
-  r.onresult=e=>{let t='';for(const x of e.results)t+=x[0].transcript;got=t;const el=$('#micT');if(el)el.textContent='"'+t+'"';if(e.results[e.results.length-1].isFinal&&!done){done=true;try{r.stop()}catch(x){}voiceAnswer(t)}};
+  let tmr=null;const fin=()=>{if(done||!got.trim())return;done=true;clearTimeout(tmr);try{r.stop()}catch(x){}voiceAnswer(got.trim())};
+  r.onresult=e=>{let t='';for(const x of e.results)t+=x[0].transcript;got=t;const el=$('#micT');if(el)el.textContent='"'+t+'"';
+    clearTimeout(tmr);if(e.results[e.results.length-1].isFinal)tmr=setTimeout(fin,400);else tmr=setTimeout(fin,1100)};
   r.onerror=e=>{const m={'not-allowed':'🔒 צריך לאשר גישה למיקרופון: הגדרות הטלפון ← אפליקציות ← Chrome ← הרשאות ← מיקרופון','service-not-allowed':'הזיהוי הקולי חסום בטלפון – ודאו שאפליקציית Google מותקנת ופעילה','no-speech':'לא שמעתי כלום – לחצו שוב ודברו','audio-capture':'לא נמצא מיקרופון','network':'צריך חיבור לאינטרנט לזיהוי קולי','language-not-supported':'עברית לא נתמכת בזיהוי – אפשר להקליד'}[e.error]||('לא הצלחתי ('+e.error+') – נסו שוב או הקלידו');S2(m);$('#micB')?.classList.remove('on')};
-  r.onend=()=>{$('#micB')?.classList.remove('on');_rec=null;if(!done&&got){done=true;voiceAnswer(got)}else if(!done&&$('#micS')&&/מקשיב/.test($('#micS').textContent))S2('לא שמעתי – לחצו על המיקרופון ונסו שוב')};
+  r.onend=()=>{$('#micB')?.classList.remove('on');_rec=null;clearTimeout(tmr);if(!done&&got.trim()){done=true;voiceAnswer(got.trim())}else if(!done&&$('#micS')&&/מקשיב/.test($('#micS').textContent))S2('לא שמעתי – לחצו על המיקרופון ונסו שוב')};
   try{r.start()}catch(e){S2('לא הצלחתי להפעיל את המיקרופון – אפשר להקליד')}
 }
 function voiceAnswer(q){let a;const z=zmanim(new Date());
