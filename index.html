@@ -216,6 +216,7 @@ footer a{color:var(--muted)}
 .inst-n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
 body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px;padding:10px}
 .mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
+.share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -522,6 +523,7 @@ function home(){
     ${qa('☀️','זמני היום',(()=>{const z=zmanim(new Date());return z.set?'שקיעה '+hm(z.set):''})(),"go('zmanim')")}
   </div>
   ${ads.length?`<h2 style="margin-top:16px">📌 לוח מודעות</h2>${ads.map(adMini).join('')}<button class="btn ghost" style="width:100%" onclick="go('board')">לכל המודעות</button>`:''}
+  ${shareAppCard()}
   `;
 }
 /* המניין הקרוב ביותר – מכל בתי הכנסת */
@@ -639,7 +641,7 @@ function acts(){
 function ytCard(){return `<a class="yt-card" href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener"><svg viewBox="0 0 52 52" width="38" height="38" aria-hidden="true"><circle cx="26" cy="26" r="26" fill="#FF0000"/><polygon points="21,16.5 37.5,26 21,35.5" fill="#fff"/></svg><div style="flex:1"><b>ערוץ גאולה וישועה</b><span>שירים וניגונים ביוטיוב</span></div><span>‹</span></a>`}
 function more(){
   const it=(em,t,act,sub='')=>`<div class="row" role="button" tabindex="0" onclick="${act}"><span class="em">${em}</span><div class="main">${t}${sub?`<div class="muted" style="font-weight:400">${sub}</div>`:''}</div><span>‹</span></div>`;
-  return `<h2>☰ עוד</h2><div class="card menu">
+  return `<h2>☰ עוד</h2>${shareAppCard()}<div class="card menu">
   ${it(ic('shiur','md'),'שיעורים ופעילויות',"go('acts')",'לפי קטגוריה ויום')}
   </div><h3 style="margin:14px 4px 8px">🙏 כלים אישיים למתפלל</h3><div class="card menu">
   ${it('🧭','מצפן תפילה',"go('compass')",'לאן לכוון בתפילה')}
@@ -1667,6 +1669,13 @@ async function mnyCancel(id){if(!confirm('לבטל את המניין? כל הנ�
 function mnyShare(id){const m=(S.mny||[]).find(x=>x.id===id);if(!m)return;const n=mnyCnt(m),pl=m.sid&&shul(m.sid)?shul(m.sid).name:m.place;
   const t=`🙋 *מארגנים מניין ל${m.t}!*\n🕰️ ${mnyWhen(m.at)}\n📍 ${pl}${m.note?'\n📝 '+m.note:''}\n\nכבר ${n} מתוך 10 – חסרים ${Math.max(0,10-n)}!\nלהצטרפות בלחיצה:\n${location.origin+location.pathname}?m=${id}`;
   if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
+/* ===== 📤 שיתוף האפליקציה ===== */
+function shareAppText(){return `📲 *${S.settings.appName||'אשריכם ישראל'}* – אפליקציית הקהילה של ארנונה ותלפיות!\n\n🕍 המניין הקרוב בכל רגע + ניווט\n📅 לוח שנה עברי, זמני היום והילולות\n📚 שיעורים, פעילויות ומודעות\n🔥 תיקון הכללי, תהילים מחולק ומצפן תפילה\n🙋 מארגנים מניין בלחיצה\n\nבחינם – להורדה:\n${APP_URL}\n\n▶️ ערוץ גאולה וישועה: ${YT_URL}`}
+function shareApp(){const t=shareAppText();if(navigator.share)navigator.share({title:S.settings.appName,text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
+function shareAppWa(){window.open('https://wa.me/?text='+encodeURIComponent(shareAppText()))}
+function copyAppLink(){(navigator.clipboard?navigator.clipboard.writeText(APP_URL):Promise.reject()).then(()=>toast('הקישור הועתק 📋')).catch(()=>prompt('העתיקו את הקישור:',APP_URL))}
+function shareAppCard(){return `<div class="card share-app"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">💝</span><div style="flex:1"><b>שתפו את האפליקציה</b><div class="muted">זכו את השכנים, המשפחה והחברים</div></div></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="shareApp()">📤 שיתוף</button><button class="btn sec" style="background:#25d366;color:#fff" onclick="shareAppWa()">💬 וואטסאפ</button><button class="btn ghost" onclick="copyAppLink()" aria-label="העתקת קישור">📋</button></div></div>`}
 /* ===== 🔔 התראות דחיפה – OneSignal ===== */
 const OS_APP='8adb46b8-0320-45d3-a852-bf0ae8d0e0fb';
 const PUSH={ok:false,on:false,sup:true};
