@@ -1,0 +1,23 @@
+{
+  "appId": "com.chaiproductions.ashreichem",
+  "appName": "אשריכם ישראל",
+  "webDir": "www",
+  "server": {
+    "url": "https://emona501-prog.github.io/ashreichem-israel/?app=android",
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#24456B"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 500,
+      "backgroundColor": "#24456B",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "SystemBars": {
+      "insetsHandling": "disable"
+    }
+  }
+}

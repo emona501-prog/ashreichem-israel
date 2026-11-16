@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="now" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_now">
+        <intent android:action="bp.w.now" android:targetPackage="com.chaiproductions.ashreichem" android:targetClass="com.chaiproductions.ashreichem.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="zm" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_zm">
+        <intent android:action="bp.w.zmanim" android:targetPackage="com.chaiproductions.ashreichem" android:targetClass="com.chaiproductions.ashreichem.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="shab" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_shab">
+        <intent android:action="bp.w.shabbat" android:targetPackage="com.chaiproductions.ashreichem" android:targetClass="com.chaiproductions.ashreichem.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="tik" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_tik">
+        <intent android:action="bp.w.tikkun" android:targetPackage="com.chaiproductions.ashreichem" android:targetClass="com.chaiproductions.ashreichem.MainActivity" />
+    </shortcut>
+</shortcuts>

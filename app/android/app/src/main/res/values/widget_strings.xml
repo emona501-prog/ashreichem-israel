@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_desc">אשריכם ישראל – המניין הקרוב: שחרית, מנחה וערבית בבתי הכנסת באזור, זמני היום ושבת</string>
+    <string name="sc_now">המניין הקרוב</string>
+    <string name="sc_zm">זמני היום</string>
+    <string name="sc_shab">שבת וחגים</string>
+    <string name="sc_tik">תיקון הכללי</string>
+</resources>
