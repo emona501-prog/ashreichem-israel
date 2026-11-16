@@ -1603,7 +1603,7 @@ async function doneCh(bid,n){
       const up={['ch.'+n]:ch[n]};const cnt=Object.values(ch).filter(c=>c.st==='d').length;let done=false;if(cnt>=150&&!b.doneAt){up.doneAt=Date.now();done=true}tx.update(r,up);return{done,b:{...b,id:bid,ch}}});
   }catch(e){return cerr(e)}
   U.thMine=(U.thMine||0)+1;if(!U.th.includes(n))U.th.push(n);saveU();
-  if(fin&&fin.done){try{await F.setDoc(dref('pub','th2'),{total:F.increment(1)},{merge:true});if(fin.b.auto)await F.addDoc(col('th2'),{title:fin.b.title,ded:fin.b.ded||'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){}
+  if(fin&&fin.done){try{await F.setDoc(dref('pub','th2'),{total:F.increment(1)},{merge:true});if(fin.b.auto&&!fin.b.once)await F.addDoc(col('th2'),{title:fin.b.title,ded:fin.b.ded||'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){}
     closeModal();S.th2.total=(S.th2.total||0)+1;celebrate(fin.b);return}
   const b=fin?fin.b:bookOf(bid);const nx=nextFree(b);
   modal(`<div style="text-align:center;font-size:3rem">✅</div><div style="text-align:center;font-weight:800;font-size:1.2rem">תזכו למצוות! פרק ${heNum(n)} סומן</div>
