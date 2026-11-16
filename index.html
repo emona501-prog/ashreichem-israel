@@ -476,7 +476,7 @@ function resolveTm(t,dt){
   if(!isRel(t))return t||'';const r=parseRel(t);if(!r)return'';
   const z=zAt(dt||new Date());const base=z[r.b];if(!base)return'';
   const d=addM(base,(r.s==='-'?-1:1)*r.n);const ms=d.getTime();
-  const q=r.b==='rt'?new Date(Math.ceil(ms/6e4)*6e4):r.b==='tzeit'?new Date(Math.round(ms/6e4)*6e4):new Date(Math.floor(ms/6e4)*6e4);return hm(q);
+  const q=r.b==='rt'?new Date(Math.ceil(ms/6e4)*6e4):new Date(Math.floor(ms/6e4)*6e4);return hm(q);
 }
 function dateForDay(day,from){const b=from?new Date(from):new Date();b.setHours(12,0,0,0);return addDays(b,(day-b.getDay()+7)%7)}
 function nextDateIn(dk){const ds=DAYSETS[dk]?.d||[0,1,2,3,4,5,6];const t=new Date();t.setHours(12,0,0,0);for(let i=0;i<7;i++){const x=addDays(t,i);if(ds.includes(x.getDay()))return x}return t}
