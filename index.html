@@ -35,7 +35,7 @@ body.dark .top{background:#18324f}
 .topbar{display:flex;align-items:center;gap:10px;padding:10px 14px 8px}
 .topbar h1{margin:0;font-size:clamp(1.05rem,5.2vw,1.25rem);font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar .hdate{font-size:.74rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.iconbtn{background:rgba(255,255,255,.14);border:0;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.15rem;cursor:pointer;flex:none}
+.iconbtn{background:rgba(255,255,255,.14);border:0;color:#fff;width:40px;height:40px;border-radius:12px;font-size:1.15rem;cursor:pointer;flex:none}
 .ticker{background:var(--acc);color:#1c1400;overflow:hidden;white-space:nowrap;font-weight:700;font-size:.92rem;height:34px;display:flex;align-items:center;cursor:pointer}
 .ticker .lbl{background:#1c1400;color:var(--acc);padding:0 10px;height:100%;display:flex;align-items:center;flex:none;font-size:.82rem;z-index:2}
 .ticker .track{display:inline-block;padding-inline-start:100%;animation:run var(--tk,30s) linear infinite}
@@ -225,6 +225,8 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 body.dark .ib-b.me{background:#22344a}
 .cmp-loc{background:#fdf3e4;border-color:#f0c98a}.cmp-loc.ok{background:#e5f4ec;border-color:#a7d7b9;display:flex;align-items:center;gap:10px}
 body.dark .cmp-loc{background:var(--card)}
+.cmp-hbtn{background:rgba(196,154,44,.35)!important;font-size:1.3rem!important}
+.topbar{gap:8px}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -237,6 +239,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
       <h1 id="appName">אשריכם ישראל</h1>
       <div class="hdate" id="hdate"></div>
     </div>
+    <button class="iconbtn cmp-hbtn" aria-label="מצפן תפילה" onclick="go('compass')">🧭</button>
     <button class="iconbtn" aria-label="נגישות" onclick="openA11y()">♿</button>
     <button class="iconbtn" aria-label="כניסת גבאים" onclick="openLogin()">🔑</button>
   </div>
