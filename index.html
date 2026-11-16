@@ -33,7 +33,7 @@ a{color:var(--pri)}
 .top{position:sticky;top:0;z-index:20;background:var(--pri);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 body.dark .top{background:#18324f}
 .topbar{display:flex;align-items:center;gap:10px;padding:10px 14px 8px}
-.topbar h1{margin:0;font-size:1.25rem;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar h1{margin:0;font-size:clamp(1.05rem,5.2vw,1.25rem);font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar .hdate{font-size:.74rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .iconbtn{background:rgba(255,255,255,.14);border:0;color:#fff;width:42px;height:42px;border-radius:12px;font-size:1.15rem;cursor:pointer;flex:none}
 .ticker{background:var(--acc);color:#1c1400;overflow:hidden;white-space:nowrap;font-weight:700;font-size:.92rem;height:34px;display:flex;align-items:center;cursor:pointer}
@@ -1571,7 +1571,7 @@ const PUSH={ok:false,on:false,sup:true};
 window.OneSignalDeferred=window.OneSignalDeferred||[];
 if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
   try{
-    await OS.init({appId:OS_APP,serviceWorkerPath:'ashreichem-israel/sw.js',serviceWorkerParam:{scope:'/ashreichem-israel/'},notifyButton:{enable:false},welcomeNotification:{disable:false,title:'אשריכם ישראל',message:'תודה! מעכשיו תקבלו עדכונים מהקהילה 🙏'}});
+    await OS.init({appId:OS_APP,serviceWorkerPath:'ashreichem-israel/sw.js',serviceWorkerParam:{scope:'/ashreichem-israel/'},notifyButton:{enable:false},promptOptions:{slidedown:{prompts:[{type:'push',autoPrompt:true,text:{actionMessage:'רוצים לקבל עדכונים מהקהילה – שיעורים, הודעות וספרי תהילים? אפשר לבטל בכל עת.',acceptButton:'כן, להפעיל',cancelButton:'אחר כך'},delay:{pageViews:1,timeDelay:10}}]}},welcomeNotification:{disable:false,title:'אשריכם ישראל',message:'תודה! מעכשיו תקבלו עדכונים מהקהילה 🙏'}});
     PUSH.ok=true;PUSH.sup=OS.Notifications.isPushSupported();PUSH.on=OS.User.PushSubscription.optedIn;
     OS.User.PushSubscription.addEventListener('change',e=>{PUSH.on=!!(e.current&&e.current.optedIn);pushTags();softRender()});
     pushTags();softRender();
