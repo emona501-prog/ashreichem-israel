@@ -820,7 +820,7 @@ function heNum(n){const o=['','א','ב','ג','ד','ה','ו','ז','ח','ט'],t=['
 function remind(sid,kind,id,once){
   const s=shul(sid),x=s[kind].find(q=>q.id===id);const title=(x.t||x.title)+' · '+s.name;const nx=remNext(x);
   window._r={title,tm:x.tm,d:x.d,sid,_nx:nx?iso(nx.dt):''};const shown=dispTm(x)+(isRel(x.tm)?' ('+relLabel(x.tm)+')':'');
-  const relOk=S.settings.relay&&PUSH.on;
+  const relOk=RELAY()&&PUSH.on;
   modal(`<div style="text-align:center">${ic('alarm','big')}</div><b>${esc(title)}</b><div class="muted">${DAYSETS[x.d]?.l} · ${shown}${nx?` · הבא: ${iso(nx.dt)===iso(new Date())?'היום':'יום '+DAYNAMES[nx.dt.getDay()]} ${nx.tm}`:''}</div>
   <label class="f">כמה זמן לפני להזכיר?</label><div class="chips" id="rbC">${[5,10,15,30].map(v=>`<button class="chip ${v===10?'on':''}" data-v="${v}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${v===30?'חצי שעה':v+' דק׳'}</button>`).join('')}</div>
   <label class="f">כמה פעמים?</label><div class="chips" id="roC"><button class="chip ${once?'on':''}" data-v="1" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">רק הפעם הקרובה</button><button class="chip ${once?'':'on'}" data-v="0" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">קבוע – ${DAYSETS[x.d]?.l}</button></div>
@@ -1392,14 +1392,16 @@ function bulTxt(){const d=bulData(BUL.sat);const t=`🗞️ *עלון מידע �
 function remNext(x){const now=new Date();for(let i=0;i<8;i++){const dt=addDays(now,i);dt.setHours(12,0,0,0);if(!DAYSETS[x.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(x.tm,dt);if(!tm)continue;if(i===0&&toMin(tm)<=nowMin())continue;return{dt,tm}}return null}
 function remOcc(r,days){const o=[],now=Date.now();for(let i=0;i<=days;i++){const dt=addDays(new Date(),i);dt.setHours(12,0,0,0);if(r.once&&iso(dt)!==r.once)continue;if(!DAYSETS[r.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(r.tm,dt);if(!tm)continue;const[h,mi]=tm.split(':').map(Number);const at=new Date(dt);at.setHours(h,mi-r.before,0,0);if(at.getTime()>now+60000)o.push({key:r.id+'|'+iso(dt),at,tm})}return o}
 const osSub=()=>{try{return window.OneSignal?.User?.PushSubscription?.id||''}catch(e){return''}};
-async function relayCall(o){const u=S.settings.relay;if(!u)return null;try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});const t=await r.text();try{return JSON.parse(t)}catch(e){return{raw:t}}}catch(e){try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)})}catch(e2){}return null}}
+async function relayCall(o){const u=RELAY();if(!u)return null;try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});const t=await r.text();try{return JSON.parse(t)}catch(e){return{raw:t}}}catch(e){try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)})}catch(e2){}return null}}
 let _remSyncing=false;
-async function remSync(){if(_remSyncing||!S.settings.relay||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
+async function remSync(){if(_remSyncing||!RELAY()||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
   try{U.sched=U.sched||{};const want={};U.rem.forEach(r=>remOcc(r,2).forEach(o=>want[o.key]={r,o}));
     for(const[k,{r,o}]of Object.entries(want)){if(U.sched[k])continue;const res=await relayCall({kind:'rem',sub,at:o.at.toISOString(),title:'⏰ '+r.title,body:`בשעה ${o.tm} · עוד ${r.before} דקות`});U.sched[k]={id:res?.id||'',at:o.at.getTime()}}
     for(const[k,v]of Object.entries(U.sched)){if(v.at<Date.now()-36e5){delete U.sched[k];continue}if(!want[k]&&v.at>Date.now()){if(v.id)await relayCall({kind:'cancel',id:v.id});delete U.sched[k]}}
     saveU()}finally{_remSyncing=false}}
 /* ----- שיתוף מעוצב ----- */
+const RELAY_DEF='https://script.google.com/macros/s/AKfycbyW-72CmPNIq3csDx45e45xIocYW5bEXni145oaO52t7QFRxZabbvGmrE8kh-8WSKFGDQ/exec';
+const RELAY=()=>(S&&S.settings&&S.settings.relay)||RELAY_DEF;
 const APP_URL='https://emona501-prog.github.io/ashreichem-israel/';
 const YT_URL='https://youtube.com/@yeshurun148';
 const CITIES=[['ירושלים',31.778,35.235,40],['תל אביב',32.08,34.78,20],['בני ברק',32.083,34.833,20],['חיפה',32.8,34.99,30],['באר שבע',31.25,34.79,20],['צפת',32.965,35.496,20]];
@@ -1900,7 +1902,7 @@ function admin(){
   <div class="card"><h3>📲 התראות אליך כשמגיעה הודעה או בקשה</h3>
   <div class="muted">כשהאפליקציה פתוחה – קופצת לך הודעה עם צליל ורטט. כדי לקבל התראה <b>גם כשהאפליקציה סגורה</b>: 1) הפעילו התראות בטלפון הזה (עוד ← 🔔 התראות) כשאתם מחוברים כמנהל. 2) הדביקו כאן את כתובת הממסר (Google Apps Script) – פעם אחת בלבד.</div>
   <div class="muted" style="margin-top:4px">מצב בטלפון הזה: ${PUSH.on?'✅ התראות פעילות':'⚠️ התראות כבויות'}</div>
-  <label class="f">כתובת הממסר</label><input class="inp" id="srl" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(S.settings.relay||'')}">
+  <label class="f">כתובת הממסר</label><input class="inp" id="srl" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(RELAY()||'')}">
   <div class="btns" style="margin-top:8px"><button class="btn sm" onclick="saveRelay()">שמירה</button><button class="btn sec sm" onclick="relayTest()">🔔 שליחת התראת בדיקה</button><a class="btn ghost sm" style="text-decoration:none" href="https://github.com/emona501-prog/ashreichem-israel/blob/main/relay.gs" target="_blank" rel="noopener">📄 קוד הממסר</a></div></div>
   <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
   <a class="btn" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://dashboard.onesignal.com/apps/${OS_APP}/notifications/new" target="_blank" rel="noopener">✍️ כתיבת התראה חדשה</a></div>
@@ -2138,7 +2140,7 @@ function delHill(id){S.hillulot=S.hillulot.filter(x=>x.id!==id);saveConfig();clo
 function addNh(){const n=prompt('שם השכונה החדשה:');if(n&&n.trim()&&!S.neighborhoods.includes(n.trim())){S.neighborhoods.push(n.trim());saveConfig();render()}}
 function delNh(i){if(S.shuls.some(s=>s.nh===S.neighborhoods[i]))return toast('יש בתי כנסת בשכונה הזו – העבירו אותם קודם');S.neighborhoods.splice(i,1);saveConfig();render()}
 async function saveRelay(){const v=$('#srl').value.trim();if(v&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v))return toast('הכתובת צריכה להתחיל ב-https://script.google.com/macros/s/ ולהסתיים ב-/exec');S.settings.relay=v;await saveConfig();toast('נשמר ✔️');pushTags()}
-function relayTest(){if(!S.settings.relay)return toast('קודם שמרו את כתובת הממסר');relayAdmin('test','🔔 בדיקה – אשריכם ישראל','אם קיבלת את זה – ההתראות למנהל עובדות!');toast('נשלחה בדיקה – תגיע תוך כמה שניות (גם כשהאפליקציה סגורה)')}
+function relayTest(){if(!RELAY())return toast('קודם שמרו את כתובת הממסר');relayAdmin('test','🔔 בדיקה – אשריכם ישראל','אם קיבלת את זה – ההתראות למנהל עובדות!');toast('נשלחה בדיקה – תגיע תוך כמה שניות (גם כשהאפליקציה סגורה)')}
 async function saveSet(){
   Object.assign(S.settings,{appName:$('#sn').value.trim()||'אשריכם ישראל',adminPhone:$('#sw').value.trim(),tickerSpeed:+$('#ss').value||30});await saveConfig();
   const np=$('#sp').value.trim();if(np){if(np.length<6)return toast('סיסמת מנהל – לפחות 6 תווים');try{await C.A.updatePassword(C.auth.currentUser,np);$('#sp').value='';toast('סיסמת המנהל הוחלפה 🔒')}catch(e){return toast(e.code==='auth/requires-recent-login'?'צאו והיכנסו שוב, ואז החליפו סיסמה':'שגיאה בהחלפת הסיסמה')}}
@@ -2510,7 +2512,7 @@ function adminPop(k,n,m){
   clearTimeout(AW.t);AW.t=setTimeout(()=>{if(b)b.innerHTML=''},15000);
 }
 /* שליחת התראה למנהל גם כשהאפליקציה סגורה – דרך ממסר Google Apps Script (חינמי) */
-function relayAdmin(kind,title,body){const u=S.settings.relay;if(!u||!/^https:\/\/script\.google\.com\//.test(u))return;
+function relayAdmin(kind,title,body){const u=RELAY();if(!u||!/^https:\/\/script\.google\.com\//.test(u))return;
   try{fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind,title:String(title).slice(0,80),body:String(body).slice(0,160)})}).catch(()=>{})}catch(e){}}
 
 /* ===== 📜 תקנון ותנאי שימוש ===== */
