@@ -1417,6 +1417,7 @@ function admin(){
   const top=Object.entries(st.views).map(([id,v])=>[shul(id),v]).filter(x=>x[0]).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const pend=S.ads.filter(a=>a.st==='pend').length;
   return `<h2>🛡️ לוח ניהול</h2>
+  <div class="card" style="background:#e5f4ec"><b>📱 הטלפון הזה מוכר כטלפון המנהל</b><div class="muted">נשארים מחוברים תמיד – גם אחרי סגירת האפליקציה. מכאן עורכים כל בית כנסת (✏️ בדף שלו), מוסיפים בתי כנסת חדשים ומאשרים בקשות – בלי קודי גבאים ובלי להקליד סיסמה.</div></div>
   <div class="card"><h3>📊 סטטיסטיקה</h3><div class="stat"><div><b>${st.days[today]||0}</b>כניסות היום</div><div><b>${week}</b>השבוע</div><div><b>${st.visits}</b>סה״כ</div></div>
   ${top.length?`<h3 style="margin-top:12px">בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}`:''}
   <div class="muted" style="margin-top:8px">👥 משתמשים שונים (מכשירים): <b>${st.users||0}</b> · הנתונים מכל המכשירים</div><button class="btn ghost sm" style="margin-top:6px" onclick="loadStats()">🔄 רענון</button></div>
@@ -1545,7 +1546,7 @@ async function cloudInit(){
         else{try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists())role={type:'gabbai',sid:r.data().sid}}catch(e){}}
       }
       ROLE=role;ibListen(u);
-      if(role&&role.type==='admin'){listenAdmin();loadSecrets();loadStats()}else stopAdmin();
+      if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
       countVisit();softRender();
     });
@@ -1586,18 +1587,22 @@ function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc
 function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;Object.keys(o).forEach(k=>{if(k[0]==='_')delete o[k]});return o}
 
 /* ----- כניסה ----- */
+const ADEV='ash_admin_dev',isAdev=()=>{try{return localStorage.getItem(ADEV)==='1'}catch(e){return false}};
 function openLogin(){
-  if(ROLE)return toast('כבר מחוברים – אפשר לצאת בפס הירוק');
+  if(ROLE)return ROLE.type==='admin'?go('admin'):go('shul',{id:ROLE.sid});
+  const ad=isAdev();
   modal(`<div class="muted">כל גבאי מקבל קוד אישי לבית הכנסת שלו בלבד.</div>
-  <label class="f">בית הכנסת</label><select class="inp" id="lsid"><option value="">בחרו…</option>${S.shuls.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}<option value="__admin">🛡️ מנהל ראשי</option></select>
-  <label class="f">קוד כניסה</label><input class="inp" id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+  <label class="f">בית הכנסת</label><select class="inp" id="lsid"><option value="">בחרו…</option>${S.shuls.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}<option value="__admin" ${ad?'selected':''}>🛡️ מנהל ראשי</option></select>
+  <input type="text" id="lun" name="username" autocomplete="username" value="${ad?ADMIN_EMAIL:''}" style="position:absolute;opacity:0;height:0;width:0;pointer-events:none" tabindex="-1" aria-hidden="true">
+  <label class="f">קוד כניסה</label><input class="inp" id="pw" name="password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+  ${ad?'<div class="muted" style="margin-top:6px">📱 זה הטלפון של המנהל – אם שמרתם את הסיסמה בכרום, היא תתמלא לבד (בטביעת אצבע).</div>':''}
   <button class="btn" style="width:100%;margin-top:14px" onclick="login()">כניסה</button>`,'🔑 כניסת גבאים');
 }
 async function login(){
   if(!needCloud())return;const sid=$('#lsid').value,p=$('#pw').value.trim();if(!sid||!p)return toast('נא לבחור ולהקליד קוד');
   const A=C.A;let email;
   if(sid==='__admin')email=ADMIN_EMAIL;else{const s=shul(sid);if(!s||!s.login)return toast('לבית הכנסת הזה עוד לא הוגדר קוד – פנו למנהל');email=s.login}
-  try{await A.signInWithEmailAndPassword(C.auth,email,p);closeModal();toast('נכנסתם בהצלחה ✔️');setTimeout(()=>ROLE&&(ROLE.type==='admin'?go('admin'):go('shul',{id:ROLE.sid})),400)}
+  try{const un=$('#lun');if(un)un.value=email;await A.signInWithEmailAndPassword(C.auth,email,p);if(sid==='__admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}pwSave(email,p)}closeModal();toast(sid==='__admin'?'נכנסתם ✔️ הטלפון הזה זוכר אתכם – לא צריך להקליד שוב':'נכנסתם בהצלחה ✔️');setTimeout(()=>ROLE&&(ROLE.type==='admin'?go('admin'):go('shul',{id:ROLE.sid})),400)}
   catch(e){
     if(sid==='__admin'&&/invalid-credential|user-not-found/.test(e.code||'')){
       if(p.length<6)return toast('קוד שגוי');
@@ -1607,7 +1612,8 @@ async function login(){
     }else toast(/too-many/.test(e.code||'')?'יותר מדי ניסיונות – נסו שוב בעוד כמה דקות':'קוד שגוי');
   }
 }
-async function logout(){try{await C.A.signOut(C.auth)}catch(e){}ROLE=null;render();toast('יצאתם ממצב עריכה')}
+function pwSave(id,pw){try{if(window.PasswordCredential&&navigator.credentials)navigator.credentials.store(new PasswordCredential({id,password:pw,name:'מנהל – אשריכם ישראל'})).catch(()=>{})}catch(e){}}
+async function logout(){if(ROLE?.type==='admin'&&!confirm('לצאת מחשבון המנהל?\nהטלפון הזה מחובר קבוע – אין צורך לצאת. אחרי יציאה תצטרכו להקליד את הסיסמה שוב.'))return;try{await C.A.signOut(C.auth)}catch(e){}ROLE=null;render();toast('יצאתם ממצב עריכה')}
 
 /* ----- קודי גבאים (רק מנהל) ----- */
 async function setGabbaiCode(sid,code){
