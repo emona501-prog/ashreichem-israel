@@ -476,7 +476,7 @@ function resolveTm(t,dt){
   if(!isRel(t))return t||'';const r=parseRel(t);if(!r)return'';
   const z=zAt(dt||new Date());const base=z[r.b];if(!base)return'';
   const d=addM(base,(r.s==='-'?-1:1)*r.n);const ms=d.getTime();
-  const up=['tzeit','rt'].includes(r.b);const q=up?new Date(Math.ceil(ms/6e4)*6e4):new Date(Math.floor(ms/6e4)*6e4);return hm(q);
+  const q=r.b==='rt'?new Date(Math.ceil(ms/6e4)*6e4):r.b==='tzeit'?new Date(Math.round(ms/6e4)*6e4):new Date(Math.floor(ms/6e4)*6e4);return hm(q);
 }
 function dateForDay(day,from){const b=from?new Date(from):new Date();b.setHours(12,0,0,0);return addDays(b,(day-b.getDay()+7)%7)}
 function nextDateIn(dk){const ds=DAYSETS[dk]?.d||[0,1,2,3,4,5,6];const t=new Date();t.setHours(12,0,0,0);for(let i=0;i<7;i++){const x=addDays(t,i);if(ds.includes(x.getDay()))return x}return t}
@@ -950,7 +950,10 @@ function zmanim(dt,loc){
   const{lat,lng}=loc||LOC();const z={};
   z.rise=sunT(dt,lat,lng,90.833,1);z.set=sunT(dt,lat,lng,90.833,0);
   z.alot=sunT(dt,lat,lng,106.1,1);z.tzMga=sunT(dt,lat,lng,106.1,0);
-  z.tal=sunT(dt,lat,lng,101.5,1);z.tzeit=sunT(dt,lat,lng,98.5,0);
+  z.tal=sunT(dt,lat,lng,101.5,1);
+  /* צאת הכוכבים בחול: 6.45° (לוחות א״י, ר׳ טוקצ׳ינסקי) · בשבת ויו״ט – צאת השבת/החג: 8.5° (לחומרה) */
+  z.tzeitW=sunT(dt,lat,lng,96.45,0);z.out=sunT(dt,lat,lng,98.5,0);
+  z.tzeit=(dt.getDay()===6||holidaysOn(dt).some(t=>/^(ראש השנה|יום הכיפורים|סוכות|שמיני עצרת|פסח|שביעי של פסח|שבועות)/.test(t)))?z.out:z.tzeitW;
   if(!z.rise||!z.set)return z;
   const g=(z.set-z.rise)/12/6e4,m=(z.tzMga-z.alot)/12/6e4;
   Object.assign(z,{shmaM:addM(z.alot,3*m),shmaG:addM(z.rise,3*g),tfM:addM(z.alot,4*m),tfG:addM(z.rise,4*g),chatzot:addM(z.rise,6*g),
