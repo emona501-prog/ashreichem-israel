@@ -470,11 +470,11 @@ function missingOf(s){const m=[];if(!gabbaimOf(s).some(g=>telOk(g.phone)))m.push
 /* ===== ניווט ===== */
 function go(t,st){if(TAB==='compass'&&t!=='compass')stopCompass();TAB=t;ST=st||{};render();window.scrollTo(0,0)}
 function render(){
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny','inbox','gab'].includes(TAB)&&b.dataset.t==='more')));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny','inbox','gab','reqs'].includes(TAB)&&b.dataset.t==='more')));
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();
-  const V={gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -1246,8 +1246,8 @@ function editShul(id){
   drawEd(!id);
 }
 function drawEd(isNew){
-  const e=ED,adm=ROLE?.type==='admin';
-  modal(`
+  const e=ED,adm=ROLE?.type==='admin',rq=!!e._req;
+  modal(`${rq?`<div class="card hl" style="margin-bottom:6px">📝 ממלאים פעם אחת – והכל נבנה אוטומטית באפליקציה. <b>חובה:</b> שם, כתובת, טלפון גבאי וזמני תפילה.<br><span class="muted">💡 זמנים שתלויים בשקיעה – בוחרים "דק׳ לפני השקיעה" והמערכת מחשבת לבד כל יום. כבר מילאנו לכם דוגמה – רק לתקן.</span></div>`:''}${e._fromReq?`<div class="card hl" style="margin-bottom:6px">📥 בקשה מגבאי – בדקו, תקנו ושמרו. בשמירה בית הכנסת יעלה ויווצר קוד גבאי.</div>`:''}
   <label class="f">שם בית הכנסת</label><input class="inp" value="${esc(e.name)}" oninput="ED.name=this.value">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     <div><label class="f">שכונה</label><select class="inp" onchange="ED.nh=this.value">${S.neighborhoods.map(n=>`<option ${n===e.nh?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
@@ -1290,9 +1290,9 @@ function drawEd(isNew){
   <button class="btn sec sm" onclick="ED.events.push({id:uid(),title:'',c:'שיעור תורה',d:'wk',tm:'20:00',end:'',who:'',n:''});drawEd()">➕ הוספת שיעור / פעילות</button>
 
   <div class="btns" style="margin-top:20px;position:sticky;bottom:-26px;background:var(--card);padding:10px 0">
-    <button class="btn" style="flex:1" onclick="saveShul()">💾 שמירה</button>
+    <button class="btn" style="flex:1" onclick="${rq?'reqSubmit()':'saveShul()'}">${rq?'📤 שליחת הפרטים לאישור':e._fromReq?'✅ אישור והעלאה לאפליקציה':'💾 שמירה'}</button>
     ${adm&&!isNew&&shul(e.id)?`<button class="btn red" onclick="delShul('${e.id}')">מחיקת בית כנסת</button>`:''}
-  </div>`, shul(e.id)?'עריכה: '+e.name:'בית כנסת חדש',true);
+  </div>`, rq?'🕍 פרטי בית הכנסת שלך':shul(e.id)?'עריכה: '+e.name:'בית כנסת חדש',true);
 }
 //@saveShul
 //@delShul
@@ -1333,6 +1333,7 @@ function admin(){
   <label class="f">מהירות הפס הרץ (שניות לסיבוב)</label><input class="inp" id="ss" type="number" min="10" max="90" value="${S.settings.tickerSpeed||30}">
   <button class="btn" style="margin-top:10px" onclick="saveSet()">שמירת הגדרות</button></div>
 
+  <div class="card ${reqCnt()?'ib-new':''}" style="cursor:pointer" onclick="go('reqs')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📥</span><div style="flex:1"><h3 style="margin:0">בקשות הצטרפות של בתי כנסת ${ibBadge(reqCnt())}</h3><div class="muted">${reqCnt()?reqCnt()+' בתי כנסת ממתינים לאישור':'אין בקשות ממתינות'}</div></div><span>‹</span></div></div>
   <div class="card" style="cursor:pointer" onclick="go('inbox')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📮</span><div style="flex:1"><h3 style="margin:0">תיבת הודעות ממשתמשים ${ibBadge(ibAdminNew())}</h3><div class="muted">${ibAdminNew()?ibAdminNew()+' הודעות חדשות מחכות לך':'אין הודעות חדשות'}</div></div><span>‹</span></div></div>
   <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
   <a class="btn" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://dashboard.onesignal.com/apps/${OS_APP}/notifications/new" target="_blank" rel="noopener">✍️ כתיבת התראה חדשה</a></div>
@@ -1453,8 +1454,8 @@ function listenPublic(){
   C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
-function listenAdmin(){if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
-function stopAdmin(){if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
+function listenAdmin(){listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
+function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
 async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},views:w.exists()?w.data():{}};softRender()}catch(e){}}
 let _counted=false;
@@ -1471,7 +1472,7 @@ function loadPhotos(sid){
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
 }
 function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
-function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;return o}
+function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;Object.keys(o).forEach(k=>{if(k[0]==='_')delete o[k]});return o}
 
 /* ----- כניסה ----- */
 function openLogin(){
@@ -1526,6 +1527,7 @@ async function saveShul(){
   const doc=shulDoc(ED);if(!isNew&&shul(ED.id).login)doc.login=shul(ED.id).login;
   try{await C.F.setDoc(dref('shuls',ED.id),doc);}catch(e){return cerr(e)}
   if(ROLE?.type==='admin'&&code&&code!==oldCode){toast('יוצר קוד גבאי…');if(await setGabbaiCode(ED.id,code))toast('קוד הגבאי עודכן 🔑')}
+  if(ED._fromReq){const r=ED._fromReq,s={...ED};closeModal();return reqDone(r,s.id,code,s)}
   closeModal();go('shul',{id:ED.id});toast('נשמר בהצלחה ✔️');
 }
 async function delShul(id){if(!confirm('למחוק את בית הכנסת וכל המידע שלו?')||!needCloud())return;try{await C.F.deleteDoc(dref('shuls',id));const o=C.secrets[id];if(o&&o.uid)await C.F.deleteDoc(dref('roles',o.uid))}catch(e){return cerr(e)}closeModal();go('shuls')}
@@ -1713,7 +1715,9 @@ function gabV(){return `<div class="gab-hero"><div style="font-size:3rem">🕍</
   <p class="muted" style="margin:0">"כָּל הַמְזַכֶּה אֶת הָרַבִּים – אֵין חֵטְא בָּא עַל יָדוֹ" (אבות ה׳ י״ח)</p></div>
   <div class="card"><h3>📋 מה מצופה מהגבאי?</h3>${stepList(['<b>לשלוח את החומרים</b> של בית הכנסת – זמנים, שיעורים, פעילויות וכתובת (בטופס למטה).','<b>לעדכן זמנים כל שבוע</b> – במיוחד זמנים שתלויים בשקיעה, שבתות וחגים. זמן שגוי עלול לגרום לאדם להפסיד מניין.','<b>לעדכן מיד כשמשהו משתנה</b> – ביטול שיעור, שינוי שעה, אירוע מיוחד.','<b>לפרסם הודעות ושמחות</b> – הכנסת ספר תורה, שיעור מיוחד, יארצייט – בלוח השנה ובפס העדכונים.'])}
   <div class="muted">💡 אחרי ההצטרפות תקבל <b>קוד גבאי אישי</b>, ותוכל לעדכן הכל לבד מהטלפון, בשניות – רק את בית הכנסת שלך.</div></div>
-  <div class="card"><h3>📤 שליחת פרטי בית הכנסת</h3>
+  <div class="card gab-main"><h3>📝 הדרך המהירה – ממלאים באפליקציה</h3><div class="muted" style="margin-bottom:10px">ממלאים טופס מסודר (זמנים, שיעורים, גבאים) – ובית הכנסת נבנה אוטומטית באפליקציה. המנהל רק מאשר, ואתם מקבלים קוד גבאי.</div>
+  <button class="btn" style="width:100%;min-height:54px;font-size:1.1rem" onclick="reqStart()">📝 מילוי פרטי בית הכנסת</button></div>
+  <div class="card"><h3>💬 או – שליחה בוואטסאפ עם צילום הלוח</h3>
   <label class="f">שם בית הכנסת / הקהילה</label><input class="inp" id="gbS" maxlength="80">
   <label class="f">כתובת</label><input class="inp" id="gbA" maxlength="100">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">שם הגבאי</label><input class="inp" id="gbN" value="${esc(U.name||'')}" maxlength="40"></div><div><label class="f">טלפון</label><input class="inp" id="gbP" inputmode="tel" maxlength="15" value="${esc(U.phone||'')}"></div></div>
@@ -1729,6 +1733,60 @@ function gabSend(){
   const a=$('#gbA').value.trim(),u=$('#gbU').value.trim(),x=$('#gbX').value.trim(),p=$('#gbP').value.trim();
   const t=`שלום, אני ${n||'…'}, הגבאי של *${s}* 🕍\nאשמח לצרף את בית הכנסת לאפליקציית *${S.settings.appName||'אשריכם ישראל'}*.\n\n📍 כתובת: ${a||'—'}${u?'\n📖 נוסח: '+u:''}\n📞 טלפון: ${p||'—'}\n\n*מצורפים / יישלחו:*\n${mat.map(m=>'• '+m).join('\n')}${x?'\n\n*פרטים:*\n'+x:''}\n\nתודה רבה!`;
   window.open(`https://wa.me/${adminWa()}?text=`+encodeURIComponent(t));
+}
+/* ===== 📝 הרשמה עצמית של בית כנסת (גבאי ממלא – המנהל מאשר בלחיצה) ===== */
+function reqStart(){
+  if(!needCloud())return;
+  ED={id:'r'+uid(),_req:1,name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',access:'',gabbai:'',phone:'',notes:'',photos:[],
+    gabbaim:[{name:U.name||'',phone:U.phone||'',pub:true}],
+    prayers:[{id:uid(),t:'שחרית',d:'wk6',tm:'07:00',n:''},{id:uid(),t:'מנחה',d:'wk',tm:'@set-15',n:''},{id:uid(),t:'ערבית',d:'wk',tm:'@tzeit+0',n:''},
+      {id:uid(),t:'קבלת שבת',d:'fri',tm:'@candle+20',n:''},{id:uid(),t:'שחרית',d:'sat',tm:'08:00',n:''},{id:uid(),t:'מנחה',d:'sat',tm:'@set-40',n:''},{id:uid(),t:'ערבית',d:'mz',tm:'@tzeit+0',n:''}],
+    events:[]};
+  drawEd(true);
+}
+function reqValidate(){
+  const e=ED;e.gabbaim=(e.gabbaim||[]).filter(g=>(g.name||'').trim()||(g.phone||'').trim());
+  if(!e.name.trim())return'שם בית הכנסת';if(!(e.address||'').trim())return'כתובת';
+  if(!e.gabbaim.some(g=>telOk(g.phone)))return'טלפון של גבאי';if(!e.prayers.length)return'לפחות זמן תפילה אחד';return'';
+}
+async function reqSubmit(){
+  const miss=reqValidate();if(miss)return toast('חסר: '+miss);const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
+  const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
+  try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',data:shulDoc(ED)})}catch(e){return cerr(e)}
+  const nm=ED.name;closeModal();
+  modal(`<div style="text-align:center;font-size:3rem">🎉</div><h2 style="text-align:center">הפרטים נשלחו בהצלחה!</h2>
+  <p style="text-align:center">בית הכנסת <b>${esc(nm)}</b> ממתין לאישור המנהל. אחרי האישור הוא יופיע באפליקציה, ותקבל <b>קוד גבאי אישי</b> לעדכונים.</p>
+  <button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${adminWa()}?text='+encodeURIComponent('שלום, אני ${esc(g0.name||'')}, הגבאי של *${esc(nm).replace(/'/g,'')}* 🕍\\nמילאתי עכשיו את פרטי בית הכנסת באפליקציה ואשמח לאישור. תודה!'))">💬 להודיע למנהל בוואטסאפ (לא חובה)</button>
+  <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal();go('home')">סיום</button>`,'תודה רבה! 🙏');
+}
+function listenReqs(){if(C.unsub.reqs)return;const F=C.F;C.unsub.reqs=F.onSnapshot(F.query(col('shulReqs'),F.where('st','==','pend')),q=>{S.reqs=q.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>b.dt-a.dt);softRender()},e=>console.warn(e))}
+const reqCnt=()=>(S.reqs||[]).length;
+function reqsV(){
+  if(ROLE?.type!=='admin')return'<div class="empty-msg">אין הרשאה</div>';const L=S.reqs||[];
+  return `<button class="btn ghost sm" onclick="go('admin')">→ לוח ניהול</button><h2 style="margin-top:10px">📥 בקשות הצטרפות של בתי כנסת</h2>
+  <div class="muted" style="margin-bottom:10px">הגבאים מילאו את הפרטים בעצמם. בודקים, מתקנים אם צריך – ובלחיצה אחת בית הכנסת עולה לאפליקציה עם קוד גבאי.</div>
+  ${L.map(r=>{const d=r.data,gs=(d.gabbaim||[]);return `<div class="card"><h3 style="margin-bottom:2px">🕍 ${esc(d.name)}</h3>
+    <div class="muted">📍 ${esc(d.address||'')} · ${esc(d.nh||'')}${d.nusach?' · נוסח '+esc(d.nusach):''}</div>
+    <div class="muted">👤 ${gs.map(g=>esc(g.name)+' '+esc(g.phone)).join(' · ')}</div>
+    <div style="margin-top:6px"><span class="badge">🕰️ ${(d.prayers||[]).length} זמני תפילה</span> <span class="badge">📚 ${(d.events||[]).length} שיעורים/פעילויות</span> <span class="badge gold">${new Date(r.dt).toLocaleDateString('he-IL')}</span></div>
+    ${d.notes?`<div class="muted" style="margin-top:6px;white-space:pre-line">${esc(d.notes).slice(0,300)}</div>`:''}
+    <div class="btns" style="margin-top:10px"><button class="btn sm" onclick="reqApprove('${r.id}',1)">👁️ בדיקה, עריכה ואישור</button><button class="btn sec sm" onclick="reqApprove('${r.id}',0)">✅ אישור מהיר</button><button class="btn red sm" onclick="reqReject('${r.id}')">🗑️ דחייה</button></div></div>`}).join('')||'<div class="empty-msg">אין בקשות ממתינות 🎉</div>'}`;
+}
+function reqApprove(rid,edit){
+  const r=(S.reqs||[]).find(x=>x.id===rid);if(!r)return;
+  ED={...JSON.parse(JSON.stringify(r.data)),id:'s'+uid(),photos:[],code:String(Math.floor(100000+Math.random()*900000)),_fromReq:rid};
+  ED.prayers=(ED.prayers||[]).map(p=>({...p,id:p.id||uid()}));ED.events=(ED.events||[]).map(x=>({...x,id:x.id||uid()}));
+  if(edit)drawEd(true);else saveShul();
+}
+async function reqReject(rid){if(!confirm('לדחות את הבקשה?'))return;try{await C.F.updateDoc(dref('shulReqs',rid),{st:'no'})}catch(e){cerr(e)}}
+async function reqDone(rid,sid,code,s){
+  try{await C.F.updateDoc(dref('shulReqs',rid),{st:'ok',sid})}catch(e){}
+  const g=(s.gabbaim||[]).find(x=>telOk(x.phone));
+  const msg=`שלום ${g?g.name:''} 🙏\nבית הכנסת *${s.name}* עלה לאפליקציית *${S.settings.appName}*!\n\n🔑 קוד הגבאי שלך: *${code}*\nנכנסים דרך 🔑 למעלה ← בוחרים את בית הכנסת ← מקלידים את הקוד.\n\nתזכו למצוות על זיכוי הרבים!\n${APP_URL}`;
+  modal(`<div style="text-align:center;font-size:3rem">✅</div><h2 style="text-align:center">${esc(s.name)} עלה לאפליקציה!</h2>
+  <div class="card hl" style="text-align:center">🔑 קוד הגבאי: <b style="font-size:1.4rem">${code}</b></div>
+  ${g?`<button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${waNum(g.phone)}?text='+encodeURIComponent(${JSON.stringify(msg).replace(/"/g,'&quot;')}))">💬 שליחת הקוד לגבאי בוואטסאפ</button>`:''}
+  <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal();go('shul',{id:'${s.id}'})">צפייה בבית הכנסת</button>`,'אושר!');
 }
 /* ===== 📮 תיבת הודעות למנהל ===== */
 const IB_CAT=[['idea','💡','הצעה / רעיון'],['req','🙏','בקשה'],['info','➕','להוסיף / לתקן מידע'],['bug','🐞','תקלה באפליקציה'],['other','💬','אחר']];
