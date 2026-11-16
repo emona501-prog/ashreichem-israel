@@ -65,6 +65,15 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ch', 'doneAt']));
       allow delete: if isAdmin() || isGabbaiOf(resource.data.sid);
     }
+    // מארגנים מניין – כל משתמש פותח קריאה ומצטרף
+    match /minyanim/{id} {
+      allow read: if true;
+      allow create: if signed() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.at is number && request.resource.data.t is string;
+      allow update: if signed() && (resource.data.uid == request.auth.uid || isAdmin()
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['j']));
+      allow delete: if isAdmin();
+    }
     match /pub/{doc} {
       allow read: if true;
       allow write: if signed();

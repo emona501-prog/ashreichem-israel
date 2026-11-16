@@ -215,6 +215,7 @@ footer a{color:var(--muted)}
 .inst-steps li{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:14px;padding:12px}
 .inst-n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
 body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px;padding:10px}
+.mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -454,11 +455,11 @@ function missingOf(s){const m=[];if(!gabbaimOf(s).some(g=>telOk(g.phone)))m.push
 /* ===== ניווט ===== */
 function go(t,st){if(TAB==='compass'&&t!=='compass')stopCompass();TAB=t;ST=st||{};render();window.scrollTo(0,0)}
 function render(){
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2'].includes(TAB)&&b.dataset.t==='more')));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny'].includes(TAB)&&b.dataset.t==='more')));
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();
-  const V={tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
+  const V={mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -489,6 +490,7 @@ function home(){
   return `
   <h2>${greet()} 👋</h2>
   ${nearest()}
+  ${mnyHome()}
   ${thHomeCard()}
   ${PUSH.ok&&PUSH.sup&&!PUSH.on&&!U.pushDismiss?`<div class="card push-card" style="display:flex;align-items:center;gap:10px"><span style="font-size:1.6rem">🔔</span><div style="flex:1"><b>רוצים לקבל עדכונים מהקהילה?</b></div><button class="btn sm" onclick="pushToggle()">הפעלה</button><button class="iconbtn" style="background:var(--soft);color:var(--ink);width:34px;height:34px" aria-label="סגירה" onclick="U.pushDismiss=1;saveU();render()">✕</button></div>`:''}
   ${nhChips()}
@@ -642,6 +644,7 @@ function more(){
   </div><h3 style="margin:14px 4px 8px">🙏 כלים אישיים למתפלל</h3><div class="card menu">
   ${it('🧭','מצפן תפילה',"go('compass')",'לאן לכוון בתפילה')}
   ${it('☀️','זמני היום',"go('zmanim')",'הנץ, סוף זמן ק״ש, שקיעה ועוד')}
+  ${it('🙋','מארגנים מניין',"go('mny')",'מניין ספונטני – פותחים קריאה ומצטרפים')}
   ${it(ic('tehillim','md'),'תהילים מחולק',"go('th2')",'כל אחד פרק – ביחד מסיימים ספר')}
   ${it('📜','תהילים יומי',"go('thyomi')",'החלק של היום לפי ימי החודש')}
   ${it('🕯️','ממיר תאריכים ויארצייט',"go('conv')",'מועזי לעברי · מתי היארצייט')}
@@ -1412,6 +1415,7 @@ function listenPublic(){
   C.unsub.pins=F.onSnapshot(col('pins'),q=>{if(q.empty&&!S.cloud)return;S.pins=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
   C.unsub.ads=F.onSnapshot(F.query(col('ads'),F.where('st','==','ok')),q=>{if(q.empty&&!S.cloud)return;const pend=S.ads.filter(a=>a.st!=='ok'&&ROLE&&ROLE.type==='admin');S.ads=q.docs.map(d=>({...d.data(),id:d.id})).concat(pend);save();softRender()});
   C.unsub.th2=F.onSnapshot(col('th2'),q=>{if(q.empty&&!S.cloud)return;S.th2=S.th2||{books:[],total:0};S.th2.books=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
+  C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
 function listenAdmin(){if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
@@ -1601,6 +1605,68 @@ async function importPack(){
   for(const s of L){try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
   modal(`<p>✅ נוספו ${codes.length} בתי כנסת.</p><p><b>קודי הגבאים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">שליחה לכל גבאי בכפתור 💬 בלוח הניהול.</p>`,'הוספה הושלמה');
 }
+/* ===== 🙋 מארגנים מניין – מניין ספונטני ===== */
+const MNY_T=['מנחה','ערבית','שחרית','מנחה וערבית','תפילה אחרת'];
+const myUid=()=>C.auth&&C.auth.currentUser?C.auth.currentUser.uid:'';
+const mnyCnt=m=>Object.values(m.j||{}).reduce((a,x)=>a+(+x.c||1),0);
+function mnyList(){const now=Date.now();return(S.mny||[]).filter(m=>!m.cx&&m.at>now-45*6e4).sort((a,b)=>a.at-b.at)}
+function mnyWhen(at){const d=new Date(at),t=new Date();const dd=Math.round((new Date(d).setHours(12,0,0,0)-new Date(t).setHours(12,0,0,0))/864e5);
+  return(dd===0?'היום':dd===1?'מחר':'יום '+DAYNAMES[d.getDay()])+' · '+hm(d)}
+function mnyCard(m,full){
+  const n=mnyCnt(m),me=m.j&&m.j[myUid()],mine=m.uid===myUid(),ok=n>=10,past=m.at<Date.now(),df=Math.round((m.at-Date.now())/6e4);
+  const pl=m.sid&&shul(m.sid)?shul(m.sid).name:m.place;
+  return `<div class="card mny ${ok?'ok':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+    <div style="flex:1;min-width:0"><b style="font-size:1.1rem">${esc(m.t)} · ${hm(new Date(m.at))}</b><div class="muted">📍 ${esc(pl||'')}</div><div class="muted">${mnyWhen(m.at)}${!past&&df<180?` · <b style="color:var(--ok)">${diffTxt(df)}</b>`:past?' · <b>עכשיו</b>':''}</div></div>
+    <span class="badge ${ok?'soon':'gold'}" style="font-size:.95rem">${ok?'✅ יש מניין!':n+' מתוך 10'}</span></div>
+    <div class="pbar" style="margin:10px 0 6px"><i style="width:${Math.min(100,n*10)}%"></i></div>
+    ${full?`<div class="muted" style="font-size:.85rem">👥 ${Object.values(m.j||{}).map(x=>esc(x.n||'מתפלל')+(x.c>1?' +'+(x.c-1):'')).join(' · ')}</div>${m.note?`<div style="margin-top:4px">${esc(m.note)}</div>`:''}${m.ph?`<div class="muted">📞 מארגן: ${esc(m.on||'')} <a href="tel:${esc(m.ph)}">${esc(m.ph)}</a></div>`:''}`:''}
+    <div class="btns" style="margin-top:8px">
+      ${me?`<button class="btn ghost sm" onclick="mnyLeave('${m.id}')">✕ ביטול השתתפות</button>`:`<button class="btn sm" onclick="mnyJoin('${m.id}')">🙋 אני בא!</button>`}
+      <button class="btn sec sm" onclick="mnyShare('${m.id}')">💬 הזמנת חברים</button>
+      ${!full?`<button class="btn ghost sm" onclick="go('mny',{id:'${m.id}'})">פרטים</button>`:''}
+      ${(mine||ROLE?.type==='admin')&&full?`<button class="btn red sm" onclick="mnyCancel('${m.id}')">ביטול המניין</button>`:''}
+    </div></div>`;
+}
+function mnyHome(){const L=mnyList();
+  return `<div class="card mny-home"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">🙋 מארגנים מניין</h3><button class="btn sm" onclick="mnyForm()">➕ לארגן</button></div>
+  ${L.length?L.slice(0,2).map(m=>mnyCard(m,0)).join('')+(L.length>2?`<button class="btn ghost sm" style="width:100%" onclick="go('mny')">לכל ${L.length} המניינים ‹</button>`:''):`<div class="muted" style="margin-top:6px">צריכים מניין בשעה לא שגרתית? פותחים קריאה – והשכנים מצטרפים.</div>`}</div>`}
+function mnyV(){const L=mnyList();const one=ST.id&&L.find(m=>m.id===ST.id);
+  return `<h2>🙋 מארגנים מניין</h2><div class="muted" style="margin-bottom:10px">מניין ספונטני – כל אחד יכול לפתוח קריאה, ומי שבא לוחץ "אני בא". כשמגיעים ל־10 – יש מניין!</div>
+  <button class="btn" style="width:100%;min-height:52px;margin-bottom:12px" onclick="mnyForm()">➕ ארגון מניין חדש</button>
+  ${one?mnyCard(one,1):''}${L.filter(m=>m!==one).map(m=>mnyCard(m,1)).join('')||(!one?'<div class="empty-msg">אין כרגע מניינים פתוחים</div>':'')}
+  ${C.ok?'':'<div class="muted">⚠️ צריך חיבור לאינטרנט כדי לארגן מניין</div>'}`}
+function mnyForm(){
+  if(!needCloud())return;const n=new Date(Date.now()+30*6e4);const tm=hm(new Date(Math.ceil(n.getTime()/(5*6e4))*5*6e4));
+  modal(`<label class="f">איזו תפילה?</label><div class="chips" style="flex-wrap:wrap" id="mnT">${MNY_T.map((t,i)=>`<button class="chip ${i===0?'on':''}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${t}</button>`).join('')}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">מתי?</label><select class="inp" id="mnD"><option value="0">היום</option><option value="1">מחר</option></select></div><div><label class="f">שעה</label><input class="inp" type="time" id="mnTm" value="${tm}"></div></div>
+  <label class="f">איפה?</label><select class="inp" id="mnS" onchange="$('#mnP').style.display=this.value?'none':'block'"><option value="">מקום אחר (לכתוב)</option>${S.shuls.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+  <input class="inp" id="mnP" style="margin-top:6px" placeholder="לדוגמה: בית אבל ברחוב…, גן ציבורי…" maxlength="80">
+  <label class="f">הערה (לא חובה)</label><input class="inp" id="mnN" maxlength="120" placeholder="לדוגמה: לאמירת קדיש, יארצייט…">
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><div><label class="f">השם שלך</label><input class="inp" id="mnNm" value="${esc(U.name||'')}" maxlength="30"></div><div><label class="f">כמה אתם?</label><select class="inp" id="mnC">${[1,2,3,4,5,6].map(x=>`<option>${x}</option>`).join('')}</select></div></div>
+  <label class="f">טלפון לתיאום (לא חובה – יוצג למשתתפים)</label><input class="inp" id="mnPh" inputmode="tel" maxlength="15">
+  <button class="btn" style="width:100%;margin-top:14px" onclick="mnyCreate()">📢 פתיחת קריאה למניין</button>`,'🙋 ארגון מניין');
+}
+async function mnyCreate(){
+  const t=$('#mnT .chip.on').textContent,sid=$('#mnS').value,place=sid?'':$('#mnP').value.trim(),nm=$('#mnNm').value.trim();
+  if(!sid&&!place)return toast('נא לכתוב איפה');if(!nm)return toast('נא לכתוב שם');
+  const [hh,mm]=$('#mnTm').value.split(':');const d=new Date();d.setDate(d.getDate()+ +$('#mnD').value);d.setHours(+hh,+mm,0,0);
+  if(d.getTime()<Date.now()-5*6e4)return toast('השעה כבר עברה');
+  U.name=nm;saveU();const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת, נסו שוב');
+  const m={t,at:d.getTime(),sid,place,note:$('#mnN').value.trim(),uid,on:nm,ph:$('#mnPh').value.trim(),cr:Date.now(),cx:false,j:{[uid]:{n:nm,c:+$('#mnC').value}}};
+  try{const r=await C.F.addDoc(col('minyanim'),m);closeModal();toast('הקריאה נפתחה 📢 עכשיו מזמינים חברים');go('mny',{id:r.id});setTimeout(()=>mnyShare(r.id),600)}catch(e){cerr(e)}
+}
+function mnyJoin(id){
+  if(!needCloud())return;
+  modal(`<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><div><label class="f">השם שלך</label><input class="inp" id="mjN" value="${esc(U.name||'')}" maxlength="30"></div><div><label class="f">כמה אתם?</label><select class="inp" id="mjC">${[1,2,3,4,5,6].map(x=>`<option>${x}</option>`).join('')}</select></div></div>
+  <button class="btn" style="width:100%;margin-top:14px" onclick="mnyJoinGo('${id}')">🙋 אני בא!</button>`,'הצטרפות למניין');setTimeout(()=>$('#mjN')?.focus(),100);
+}
+async function mnyJoinGo(id){const nm=$('#mjN').value.trim();if(!nm)return toast('נא לכתוב שם');U.name=nm;saveU();const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת');
+  try{await C.F.updateDoc(dref('minyanim',id),{['j.'+uid]:{n:nm,c:+$('#mjC').value}});closeModal();const m=(S.mny||[]).find(x=>x.id===id);toast(m&&mnyCnt(m)+(+$('#mjC')?.value||1)>=10?'יש מניין! ✅':'נרשמת 🙋 תודה!');if(navigator.vibrate)navigator.vibrate(40)}catch(e){cerr(e)}}
+async function mnyLeave(id){try{await C.F.updateDoc(dref('minyanim',id),{['j.'+myUid()]:C.F.deleteField()});toast('ההשתתפות בוטלה')}catch(e){cerr(e)}}
+async function mnyCancel(id){if(!confirm('לבטל את המניין? כל הנרשמים יראו שהוא בוטל'))return;try{await C.F.updateDoc(dref('minyanim',id),{cx:true});toast('המניין בוטל')}catch(e){cerr(e)}}
+function mnyShare(id){const m=(S.mny||[]).find(x=>x.id===id);if(!m)return;const n=mnyCnt(m),pl=m.sid&&shul(m.sid)?shul(m.sid).name:m.place;
+  const t=`🙋 *מארגנים מניין ל${m.t}!*\n🕰️ ${mnyWhen(m.at)}\n📍 ${pl}${m.note?'\n📝 '+m.note:''}\n\nכבר ${n} מתוך 10 – חסרים ${Math.max(0,10-n)}!\nלהצטרפות בלחיצה:\n${location.origin+location.pathname}?m=${id}`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
 /* ===== 🔔 התראות דחיפה – OneSignal ===== */
 const OS_APP='8adb46b8-0320-45d3-a852-bf0ae8d0e0fb';
 const PUSH={ok:false,on:false,sup:true};
@@ -1631,7 +1697,7 @@ let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_in
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();autoInstallGuide();setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else autoInstallGuide()}setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
