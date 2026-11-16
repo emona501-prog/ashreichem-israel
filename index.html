@@ -224,6 +224,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .ic.bi{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin-inline-end:5px;filter:none}.ic.big{width:86px;height:86px;margin:0 auto}.ic.tl{width:40px;height:40px}.shb-ic .ic{width:54px;height:54px}.mic-pulse .ic{margin:0 auto 8px}
 .near-side{display:flex;flex-direction:column;gap:6px}.near-rem{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;color:#fff;font:inherit;font-size:.78rem;font-weight:700;padding:6px 8px;gap:2px}.near-rem .ic{filter:none}
 .bul-opt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}.bul-opt summary{font-weight:800;cursor:pointer}.bul-opt .chip{font-size:.85rem}
+.al-exp{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.9rem}.al-exp input{width:20px;height:20px}.al-pg{background:var(--card);border-radius:10px;padding:6px}.al-pgb{display:flex;gap:6px;align-items:center;margin-top:6px}.al-pgb b{flex:1}.pk-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:52vh;overflow:auto}.pk-p{border:3px solid transparent;border-radius:10px;background:#f1efe9;padding:4px;font:inherit;font-size:.78rem;display:flex;flex-direction:column;align-items:center;gap:2px}.pk-p canvas{width:100%;height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}.pk-p.on{border-color:#2e7d4f;background:#e5f4ec}.pk-p.on span::before{content:'✓ '}.pk-bar{position:sticky;bottom:-20px;background:var(--card);padding:10px 0;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .al-bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.al-bar i{display:block;height:100%;border-radius:99px}.al-row{align-items:center;gap:8px}.al-bt{display:flex;gap:4px;flex:none}.al-bt .btn{padding:6px 10px}.al-imgs{display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow:auto}.al-imgs img{width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .shb{display:flex;gap:12px;align-items:center;width:100%;text-align:right;font:inherit;border:0;border-radius:16px;padding:12px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1b2f55,#3b2a5c);color:#fff;box-shadow:0 6px 18px rgba(27,47,85,.25);cursor:pointer}.shb.chg{background:linear-gradient(135deg,#7a4a0f,#c4902c)}.shb-ic{font-size:2rem}.shb-x{display:flex;flex-direction:column;gap:2px;flex:1}.shb-x b{font-size:1.08rem;color:#f3d78e}.shb.chg .shb-x b{color:#fff4d6}.shb-x span{font-size:.92rem}.shb-x span b{font-size:inherit;color:#fff}.shb-x small{opacity:.8}.shb-tg{color:#f3d78e;font-size:.82rem!important}
 .say-row{display:flex;gap:8px;margin:-4px 0 12px}.say-row button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 6px;font:inherit;font-weight:700;color:var(--pri,#24456b)}
@@ -1130,8 +1131,11 @@ function voiceAnswer(q){let a;const z=zmanim(new Date());
 /* ===== 📰 עלוני שבת של בתי הכנסת (PDF או תמונות) – נשמרים ב-Firestore בחלקים ===== */
 const ALON_MAX=6*1024*1024,ALON_CH=800000,ALON_KEEP=3,ALON_KEEP_G=10;
 function alonKind(b){document.querySelectorAll('#alK .chip').forEach(c=>c.classList.toggle('on',c===b));const l=b.dataset.k==='link';$('#alFB').style.display=l?'none':'';$('#alLB').style.display=l?'':'none'}
-const alonsOf=sid=>(S.alon||[]).filter(a=>a.sid===sid).sort((a,b)=>b.dt-a.dt);
-const alonWeek=()=>{const sat=iso(nextSat(new Date()));return(S.alon||[]).filter(a=>a.sat===sat&&(shul(a.sid)||a.sid==='general')).sort((a,b)=>b.dt-a.dt)};
+const alonLive=a=>!a.exp||a.exp>Date.now();
+const alonsOf=sid=>(S.alon||[]).filter(a=>a.sid===sid&&alonLive(a)).sort((a,b)=>b.dt-a.dt);
+function alonExpAt(){const sat=nextSat(new Date());const z=zmanim(sat);return (z.tzeit?z.tzeit.getTime():sat.getTime()+20*36e5)+2*36e5}
+let _alCl=0;function alonCleanup(){if(_alCl||!C.ok||!ROLE)return;_alCl=1;(S.alon||[]).filter(a=>a.exp&&a.exp<=Date.now()&&canEdit(a.sid)).forEach(a=>alonRm(a).catch(()=>{}))}
+const alonWeek=()=>{const sat=iso(nextSat(new Date()));return(S.alon||[]).filter(a=>a.sat===sat&&alonLive(a)&&(shul(a.sid)||a.sid==='general')).sort((a,b)=>b.dt-a.dt)};
 const alonSrc=a=>a.sid==='general'?'עלון כללי':shul(a.sid)?.name||'';
 function alonCard(a,showShul){const s=shul(a.sid);return `<div class="row al-row"><div style="flex:none">${ic('alon','md')}</div><div class="main"><b>${esc(a.title)}</b><span class="muted">${showShul?esc(alonSrc(a))+' · ':''}${a.type==='link'?'🔗 קישור':a.type==='pdf'?'PDF · '+(a.size/1048576).toFixed(1)+'MB':a.pages+' עמ׳ · '+(a.size/1048576).toFixed(1)+'MB'} · ${gStr(new Date(a.dt))}</span></div>
   <div class="al-bt"><button class="btn sm" onclick="alonOpen('${a.id}','view')">פתיחה</button><button class="btn sec sm" onclick="alonOpen('${a.id}','share')" aria-label="שיתוף">${ic('share','bi')}</button>${canEdit(a.sid)?`<button class="btn red sm" onclick="alonDel('${a.id}')" aria-label="מחיקה">✕</button>`:''}</div></div>`}
@@ -1144,30 +1148,64 @@ function alonUp(sid){if(!needCloud())return;
   <label class="f">כותרת</label><input class="inp" id="alT" maxlength="60" value="${esc('עלון שבת '+parTitle(nextSat()))}">
   <div class="chips" id="alK" style="margin-top:10px"><button class="chip on" data-k="file" onclick="alonKind(this)">📎 קובץ</button><button class="chip" data-k="link" onclick="alonKind(this)">🔗 קישור (דרייב / אתר)</button></div>
   <div id="alFB"><label class="f">הקובץ</label><input class="inp" type="file" id="alF" accept="application/pdf,image/*" multiple>
-  <div class="muted" style="margin-top:4px">PDF עד 6MB (מומלץ עד 2MB). תמונות מוקטנות אוטומטית.</div></div>
+  <div class="muted" style="margin-top:4px">PDF עד 6MB (מומלץ עד 2MB). תמונות מוקטנות אוטומטית.<br>📄 <b>עלון כבד</b> (גם 100MB+)? בוחרים אותו – ותוכלו לסמן אילו עמודים לפרסם (חידות, הלכות…). רק העמודים שנבחרו עולים, מכווצים.</div>
+  <button class="btn ghost sm" style="margin-top:6px" onclick="alonPick('${sid}')">📄 בחירת עמודים מתוך PDF</button></div>
   <div id="alLB" style="display:none"><label class="f">קישור לעלון</label><input class="inp" id="alU" dir="ltr" placeholder="https://drive.google.com/…"><div class="muted" style="margin-top:4px">💡 קישור לא תופס מקום בשרת – הכי מומלץ לעלונים שכבר מתפרסמים ברשת. בגוגל דרייב: שיתוף ← "כל מי שיש לו את הקישור".</div></div>
+  <label class="al-exp"><input type="checkbox" id="alX" checked> 🗑️ למחוק אוטומטית במוצאי שבת (חוסך מקום בשרת)</label>
   <div id="alP" class="muted" style="margin-top:8px"></div>
   <button class="btn" id="alB" style="width:100%;margin-top:12px" onclick="alonSave('${sid}')">📤 העלאה</button>`,'📰 העלאת עלון');}
 const fileB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});
 async function alonSave(sid){
   const title=$('#alT').value.trim()||'עלון שבת',keep=sid==='general'?ALON_KEEP_G:ALON_KEEP;
   if($('#alK .chip.on').dataset.k==='link'){const url=$('#alU').value.trim();if(!/^https:\/\/\S+\.\S+/.test(url))return toast('הדביקו קישור שמתחיל ב-https://');
-    try{const ref=C.F.doc(col('alon'));await C.F.setDoc(ref,{sid,title,type:'link',url,pages:0,n:0,size:0,dt:Date.now(),sat:iso(nextSat(new Date()))});
+    try{const ref=C.F.doc(col('alon'));await C.F.setDoc(ref,{sid,title,type:'link',url,pages:0,n:0,size:0,dt:Date.now(),sat:iso(nextSat(new Date())),exp:$('#alX')?.checked?alonExpAt():0});
       for(const a of alonsOf(sid).filter(a=>a.id!==ref.id).slice(keep-1))await alonRm(a);closeModal();toast('הקישור לעלון פורסם ✔️')}catch(e){cerr(e)}return}
   const fs=[...($('#alF').files||[])];if(!fs.length)return toast('בחרו קובץ');
   const pdf=fs.find(f=>f.type==='application/pdf');let data,type,pages=1;const P=$('#alP'),B=$('#alB');B.disabled=true;P.textContent='מכין את הקובץ…';
   try{
-    if(pdf){if(pdf.size>ALON_MAX){B.disabled=false;return toast('הקובץ גדול מ-6MB – נסו לכווץ אותו או לפרסם כקישור')}
+    if(pdf){if(pdf.size>ALON_MAX){B.disabled=false;P.textContent='';return alonPick(sid,pdf)}
       if(pdf.size>2*1048576&&!confirm(`הקובץ שוקל ${(pdf.size/1048576).toFixed(1)}MB. קבצים כבדים צורכים יותר מהמכסה החינמית של השרת.\nמומלץ לכווץ (למשל באתר ilovepdf) או לפרסם כקישור.\n\nלהעלות בכל זאת?`)){B.disabled=false;P.textContent='';return}data=await fileB64(pdf);type='pdf'}
     else{const imgs=fs.filter(f=>/^image\//.test(f.type));if(!imgs.length){B.disabled=false;return toast('בחרו PDF או תמונות')}
       const arr=[];for(const f of imgs)arr.push(await shrinkQ(f,1700,.8));data=JSON.stringify(arr);type='img';pages=arr.length;if(data.length>ALON_MAX*1.37){B.disabled=false;return toast('התמונות גדולות מדי – נסו פחות עמודים')}}
-    const n=Math.ceil(data.length/ALON_CH),F=C.F;const ref=F.doc(col('alon'));const aid=ref.id;
-    for(let i=0;i<n;i++){P.textContent=`מעלה… ${Math.round(i/n*100)}%`;await F.setDoc(dref('alonParts',aid+'_'+i),{sid,aid,i,d:data.slice(i*ALON_CH,(i+1)*ALON_CH)})}
-    await F.setDoc(ref,{sid,title,type,pages,n,size:Math.round(data.length*.75),dt:Date.now(),sat:iso(nextSat(new Date()))});
-    const old=alonsOf(sid).filter(a=>a.id!==aid).slice(keep-1);for(const a of old)await alonRm(a);
+    await alonPut(sid,title,type,pages,data,$('#alX')?.checked,P,keep);
     closeModal();toast('העלון הועלה ✔️ כולם יכולים לראות אותו');
   }catch(e){B.disabled=false;P.textContent='';cerr(e)}
 }
+async function alonPut(sid,title,type,pages,data,auto,P,keep,names){const n=Math.ceil(data.length/ALON_CH),F=C.F;const ref=F.doc(col('alon'));const aid=ref.id;
+  for(let i=0;i<n;i++){if(P)P.textContent=`מעלה… ${Math.round(i/n*100)}%`;await F.setDoc(dref('alonParts',aid+'_'+i),{sid,aid,i,d:data.slice(i*ALON_CH,(i+1)*ALON_CH)})}
+  await F.setDoc(ref,{sid,title,type,pages,n,size:Math.round(data.length*.75),dt:Date.now(),sat:iso(nextSat(new Date())),exp:auto?alonExpAt():0,names:names||[]});
+  const old=alonsOf(sid).filter(a=>a.id!==aid).slice((keep||ALON_KEEP)-1);for(const a of old)await alonRm(a)}
+/* 📄 בחירת עמודים מתוך PDF כבד – הקובץ נפתח רק בטלפון של המעלה, ועולים לשרת רק העמודים שנבחרו */
+const PDFJS='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/';
+let PK=null;
+async function pdfLib(){if(window._pdfjs)return window._pdfjs;const m=await import(PDFJS+'pdf.min.mjs');m.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.mjs';return window._pdfjs=m}
+function alonPick(sid,file){const title=$('#alT')?.value||'עלון שבת '+parTitle(nextSat()),auto=$('#alX')?$('#alX').checked:true;
+  if(!file){const i=document.createElement('input');i.type='file';i.accept='application/pdf';i.onchange=()=>i.files[0]&&alonPick(sid,i.files[0]);i.click();return}
+  PK={sid,title,auto,file,sel:[],names:{},doc:null,n:0};
+  modal(`<div class="muted">📄 ${esc(file.name)} · ${(file.size/1048576).toFixed(0)}MB<br>סמנו את העמודים שהציבור יוכל לראות ולהדפיס (חידות, הלכות, סיפור לשבת…). אפשר לתת שם לכל עמוד.</div>
+  <label class="f">כותרת</label><input class="inp" id="pkT" maxlength="60" value="${esc(title)}">
+  <label class="al-exp"><input type="checkbox" id="pkX" ${auto?'checked':''}> 🗑️ למחוק אוטומטית במוצאי שבת</label>
+  <div id="pkS" class="muted" style="margin:8px 0">פותח את הקובץ…</div><div class="pk-g" id="pkG"></div>
+  <div class="pk-bar"><span id="pkC">לא נבחרו עמודים</span><button class="btn" id="pkB" disabled onclick="alonPickSave()">📤 פרסום העמודים שנבחרו</button></div>`,'📄 בחירת עמודים');
+  pickLoad();
+}
+async function pickLoad(){try{const L=await pdfLib();const buf=await PK.file.arrayBuffer();PK.doc=await L.getDocument({data:buf}).promise;PK.n=PK.doc.numPages;
+  $('#pkS').textContent=`${PK.n} עמודים · טוען תצוגה מקדימה…`;const g=$('#pkG');
+  for(let i=1;i<=PK.n;i++){g.insertAdjacentHTML('beforeend',`<button class="pk-p" id="pk${i}" onclick="pickTog(${i})"><canvas></canvas><span>עמוד ${i}</span></button>`)}
+  for(let i=1;i<=PK.n;i++){if(!$('#pkG'))return;const pg=await PK.doc.getPage(i),v=pg.getViewport({scale:1}),k=180/v.width,vp=pg.getViewport({scale:k}),c=$('#pk'+i+' canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;pg.cleanup()}
+  $('#pkS').textContent=`${PK.n} עמודים – לחצו על עמוד כדי לבחור אותו`}catch(e){console.warn(e);$('#pkS').textContent='לא הצלחתי לפתוח את הקובץ (צריך חיבור לאינטרנט בפעם הראשונה). נסו שוב או פרסמו כקישור.'}}
+function pickTog(i){const a=PK.sel,j=a.indexOf(i);if(j<0){if(a.length>=12)return toast('עד 12 עמודים בעלון');a.push(i)}else a.splice(j,1);a.sort((x,y)=>x-y);
+  document.querySelectorAll('.pk-p').forEach(b=>b.classList.toggle('on',a.includes(+b.id.slice(2))));
+  $('#pkC').innerHTML=a.length?`נבחרו ${a.length}: עמ׳ ${a.join(', ')} <button class="btn ghost sm" onclick="pickNames()">✏️ שמות לעמודים</button>`:'לא נבחרו עמודים';$('#pkB').disabled=!a.length}
+function pickNames(){const n=PK.sel.map(i=>prompt('שם לעמוד '+i+' (למשל: חידות לשבת). אפשר להשאיר ריק',PK.names[i]||'')).map(x=>(x||'').trim().slice(0,30));PK.sel.forEach((i,k)=>PK.names[i]=n[k]);toast('השמות נשמרו')}
+async function alonPickSave(){const B=$('#pkB'),S2=$('#pkS');B.disabled=true;const title=$('#pkT').value.trim()||PK.title,auto=$('#pkX').checked;
+  try{const arr=[];for(const[k,i]of PK.sel.entries()){S2.textContent=`מכין עמוד ${k+1} מתוך ${PK.sel.length}…`;const pg=await PK.doc.getPage(i),v=pg.getViewport({scale:1}),sc=1500/v.width,vp=pg.getViewport({scale:sc});
+      const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;
+      let q=.78,u=c.toDataURL('image/jpeg',q);while(u.length>900000&&q>.4){q-=.1;u=c.toDataURL('image/jpeg',q)}arr.push(u);pg.cleanup()}
+    const data=JSON.stringify(arr);if(data.length>ALON_MAX*1.37){B.disabled=false;return toast('העמודים כבדים מדי – בחרו פחות עמודים')}
+    await alonPut(PK.sid,title,'img',arr.length,data,auto,S2,PK.sid==='general'?ALON_KEEP_G:ALON_KEEP,PK.sel.map(i=>PK.names[i]||'עמוד '+i));
+    try{PK.doc.destroy()}catch(e){}PK=null;closeModal();toast(`פורסמו ${arr.length} עמודים ✔️ (${(data.length*.75/1048576).toFixed(1)}MB במקום הקובץ המלא)`,6000)}
+  catch(e){B.disabled=false;cerr(e)}}
 function shrinkQ(file,max,q){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.src=r.result};r.readAsDataURL(file)})}
 async function alonRm(a){const F=C.F;for(let i=0;i<a.n;i++)await F.deleteDoc(dref('alonParts',a.id+'_'+i)).catch(()=>{});await F.deleteDoc(dref('alon',a.id))}
 async function alonDel(id){const a=(S.alon||[]).find(x=>x.id===id);if(!a||!confirm('למחוק את העלון "'+a.title+'"?'))return;try{await alonRm(a);toast('העלון נמחק')}catch(e){cerr(e)}}
@@ -1188,14 +1226,15 @@ async function alonOpen(id,act){const a=(S.alon||[]).find(x=>x.id===id);if(!a)re
     <div class="muted" style="margin-top:10px">🖨️ להדפסה: פותחים את הקובץ ← תפריט ⋮ ← הדפסה (או "שיתוף" ← הדפסה).</div>`,'📰 העלון');return}
   const imgs=JSON.parse(d);
   if(act==='share')return alonShareFiles(imgs.map((u,i)=>new File([b64Blob(u)],fname.replace('.jpg',`-${i+1}.jpg`),{type:'image/jpeg'})),a);
-  ST.alonImgs=imgs;
-  modal(`<div class="al-imgs">${imgs.map(u=>`<img src="${u}" alt="עמוד מהעלון">`).join('')}</div>
-  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="alonPrintImgs('${esc(a.title)}')">${ic('printer','bi')}הדפסה</button><button class="btn sec" style="flex:1" onclick="alonOpen('${id}','share')">${ic('share','bi')}שיתוף</button></div>`,esc(a.title));
+  ST.alonImgs=imgs;ST.alonA=a;const nm=a.names||[];
+  modal(`${a.exp?`<div class="muted" style="margin-bottom:6px">⏳ זמין עד מוצאי שבת</div>`:''}<div class="al-imgs">${imgs.map((u,i)=>`<div class="al-pg"><img src="${u}" alt="עמוד מהעלון"><div class="al-pgb"><b>${esc(nm[i]||'עמוד '+(i+1))}</b><button class="btn sm" onclick="alonPrintImgs('${esc(a.title)}',${i})">${ic('printer','bi')}הדפסת העמוד</button><button class="btn sec sm" onclick="alonSharePage(${i})" aria-label="שיתוף העמוד">${ic('share','bi')}</button></div></div>`).join('')}</div>
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="alonPrintImgs('${esc(a.title)}')">${ic('printer','bi')}הדפסת הכול</button><button class="btn sec" style="flex:1" onclick="alonOpen('${id}','share')">${ic('share','bi')}שיתוף</button></div>`,esc(a.title));
 }
 async function alonShareFiles(files,a,url){const text=`📰 ${a.title} – ${alonSrc(a)}\nמתוך אפליקציית אשריכם ישראל: ${APP_URL}`;
   try{if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,title:a.title,text});return}}catch(e){if(e.name==='AbortError')return}
   if(url){const l=document.createElement('a');l.href=url;l.download=files[0].name;l.click();toast('הקובץ הורד – אפשר לשלוח אותו מהוואטסאפ')}else toast('השיתוף לא נתמך בטלפון הזה')}
-function alonPrintImgs(t){const imgs=ST.alonImgs||[];const doc=`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${t}</title><style>@page{size:A4;margin:8mm}body{margin:0}img{width:100%;display:block;page-break-after:always;break-after:page}img:last-child{page-break-after:auto}</style></head><body>${imgs.map(u=>`<img src="${u}">`).join('')}</body></html>`;
+function alonSharePage(i){const a=ST.alonA,u=(ST.alonImgs||[])[i];if(!u)return;alonShareFiles([new File([b64Blob(u)],((a.names||[])[i]||'עמוד '+(i+1))+'.jpg',{type:'image/jpeg'})],a)}
+function alonPrintImgs(t,only){const imgs=(ST.alonImgs||[]).filter((u,i)=>only==null||i===only);const doc=`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>${t}</title><style>@page{size:A4;margin:8mm}body{margin:0}img{width:100%;display:block;page-break-after:always;break-after:page}img:last-child{page-break-after:auto}</style></head><body>${imgs.map(u=>`<img src="${u}">`).join('')}</body></html>`;
   const f=document.createElement('iframe');f.style.cssText='position:fixed;width:0;height:0;border:0';document.body.appendChild(f);f.srcdoc=doc;f.onload=()=>{setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),60000)},300)}}
 function alonimV(){const g=alonsOf('general'),ad=ROLE?.type==='admin';const byS=S.shuls.map(s=>[s,alonsOf(s.id)]).filter(x=>x[1].length);
   return `<h2 style="display:flex;gap:8px;align-items:center">${ic('alon','md')} עלונים</h2><div class="muted" style="margin-bottom:10px">עלוני שבת לקריאה, שיתוף והדפסה – של בתי הכנסת ועלונים כלליים.</div>
@@ -1923,7 +1962,7 @@ const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
   C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
-  C.unsub.alon=F.onSnapshot(col('alon'),q=>{S.alon=q.docs.map(d=>({...d.data(),id:d.id}));softRender()},()=>{});
+  C.unsub.alon=F.onSnapshot(col('alon'),q=>{S.alon=q.docs.map(d=>({...d.data(),id:d.id}));softRender();setTimeout(alonCleanup,4000)},()=>{});
   C.unsub.shuls=F.onSnapshot(col('shuls'),q=>{if(q.empty&&!S.cloud)return;const old={};S.shuls.forEach(s=>old[s.id]=s);
     S.shuls=q.docs.map(d=>{const v=d.data();v.id=d.id;v.photos=(old[d.id]&&old[d.id].photos)||[];v.photoIds=(old[d.id]&&old[d.id].photoIds)||[];return v});S.cloud=1;save();softRender()});
   C.unsub.tick=F.onSnapshot(F.query(col('ticker'),F.orderBy('dt','desc'),F.limit(30)),q=>{if(q.empty&&!S.cloud)return;S.ticker=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
