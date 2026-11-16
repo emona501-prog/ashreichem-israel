@@ -1898,6 +1898,7 @@ function admin(){
 
   <div class="card ${reqCnt()?'ib-new':''}" style="cursor:pointer" onclick="go('reqs')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📥</span><div style="flex:1"><h3 style="margin:0">בקשות הצטרפות של בתי כנסת ${ibBadge(reqCnt())}</h3><div class="muted">${reqCnt()?reqCnt()+' בתי כנסת ממתינים לאישור':'אין בקשות ממתינות'}</div></div><span>‹</span></div></div>
   <div class="card" style="cursor:pointer" onclick="go('inbox')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📮</span><div style="flex:1"><h3 style="margin:0">תיבת הודעות ממשתמשים ${ibBadge(ibAdminNew())}</h3><div class="muted">${ibAdminNew()?ibAdminNew()+' הודעות חדשות מחכות לך':'אין הודעות חדשות'}</div></div><span>‹</span></div></div>
+  <div class="card"><label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" style="width:22px;height:22px" ${noCount()?'checked':''} onchange="setNoCount(this.checked)"><div><b>🚫 לא לספור את הכניסות שלי</b><div class="muted">הכניסות והצפיות מהמכשיר הזה לא ייכנסו לסטטיסטיקה. מסמנים בכל מכשיר שלך בנפרד (טלפון, מחשב).</div></div></label></div>
   <div class="card" id="alUse"><h3>📰 עלונים – שימוש במכסה החינמית</h3><div class="muted">טוען…</div></div>
   <div class="card"><h3>📲 התראות אליך כשמגיעה הודעה או בקשה</h3>
   <div class="muted">כשהאפליקציה פתוחה – קופצת לך הודעה עם צליל ורטט. כדי לקבל התראה <b>גם כשהאפליקציה סגורה</b>: 1) הפעילו התראות בטלפון הזה (עוד ← 🔔 התראות) כשאתם מחוברים כמנהל. 2) הדביקו כאן את כתובת הממסר (Google Apps Script) – פעם אחת בלבד.</div>
@@ -2030,14 +2031,16 @@ function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
 async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},views:w.exists()?w.data():{}};softRender()}catch(e){}}
 let _counted=false;
-function countVisit(){
+const NOCNT='ash_nocount',noCount=()=>{try{const v=localStorage.getItem(NOCNT);return v===null?isAdev():v==='1'}catch(e){return false}};
+function setNoCount(on){try{localStorage.setItem(NOCNT,on?'1':'0')}catch(e){}toast(on?'✔️ הכניסות מהמכשיר הזה לא ייספרו':'הכניסות מהמכשיר הזה ייספרו שוב');render()}
+function countVisit(){if(noCount())return;
   if(_counted||!C.ok)return;_counted=true;
   if(sessionStorage.getItem('kv2')==='1')return;sessionStorage.setItem('kv2','1');
   const F=C.F,t=iso(new Date());const o={total:F.increment(1),days:{[t]:F.increment(1)}};
   if(!U.counted){o.users=F.increment(1);U.counted=1;saveU()}
   F.setDoc(dref('stats','visits'),o,{merge:true}).catch(()=>{});
 }
-function countView(sid){if(!C.ok)return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
+function countView(sid){if(!C.ok||noCount())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
 function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
