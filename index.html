@@ -288,7 +288,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function seed(){
   return {
     settings:{appName:'אשריכם ישראל',adminPhone:'',tickerSpeed:30},
-    neighborhoods:['ארנונה – תלפיות'],
+    neighborhoods:['ארנונה – תלפיות','ארמון הנציב'],
     shuls:[
       {id:'horsha',name:'בית הכנסת החורשה',nh:'ארנונה – תלפיות',address:'רחוב הערבה 6, ירושלים',nusach:'',gabbai:'',phone:'',code:'6060',photos:[],
         notes:'זמנים לשבוע פרשת תולדות (ג׳–י׳ כסלו תשפ״ז) · הפטרה: משא דבר (מלאכי א׳)\n\n1. מבקשים מכל מי שנושא נשק להגיע עמו לתפילות בשבת ובימי החול.\n2. פרטי חשבון להעברה בנקאית – בנק לאומי, סניף 785, חשבון 1862600.\n3. ניתן להפקיד תרומות גם במעטפה בכספת, עם ציון שם התורם.\n4. טלפון סלולרי למקרי חירום נמצא בערכת הדפיברילטור.\n\nבתפילה לשלום חיילי צה״ל 🇮🇱',
@@ -1554,7 +1554,7 @@ async function cloudInit(){
 const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
-  C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
   C.unsub.shuls=F.onSnapshot(col('shuls'),q=>{if(q.empty&&!S.cloud)return;const old={};S.shuls.forEach(s=>old[s.id]=s);
     S.shuls=q.docs.map(d=>{const v=d.data();v.id=d.id;v.photos=(old[d.id]&&old[d.id].photos)||[];v.photoIds=(old[d.id]&&old[d.id].photoIds)||[];return v});S.cloud=1;save();softRender()});
   C.unsub.tick=F.onSnapshot(F.query(col('ticker'),F.orderBy('dt','desc'),F.limit(30)),q=>{if(q.empty&&!S.cloud)return;S.ticker=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
@@ -1564,7 +1564,8 @@ function listenPublic(){
   C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
-function listenAdmin(){listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
+function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}}
+function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
 function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
 async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},views:w.exists()?w.data():{}};softRender()}catch(e){}}
@@ -2107,7 +2108,7 @@ async function ibReply(id,by){
 async function ibSt(id,st){try{await C.F.updateDoc(dref('inbox',id),{st,unA:false})}catch(e){cerr(e)}}
 async function ibDel(id){if(!confirm('למחוק את ההודעה?'))return;try{await C.F.deleteDoc(dref('inbox',id));ST.open=''}catch(e){cerr(e)}}
 /* ===== 📤 שיתוף האפליקציה ===== */
-function shareAppText(){return `📲 *${S.settings.appName||'אשריכם ישראל'}* – אפליקציית הקהילה של ארנונה ותלפיות!\n\n🕍 המניין הקרוב בכל רגע + ניווט\n📅 לוח שנה עברי, זמני היום והילולות\n📚 שיעורים, פעילויות ומודעות\n🔥 תיקון הכללי, תהילים מחולק ומצפן תפילה\n🙋 מארגנים מניין בלחיצה\n\nבחינם – להורדה:\n${APP_URL}\n\n▶️ ערוץ גאולה וישועה: ${YT_URL}`}
+function shareAppText(){return `📲 *${S.settings.appName||'אשריכם ישראל'}* – אפליקציית הקהילה של ארנונה, תלפיות וארמון הנציב!\n\n🕍 המניין הקרוב בכל רגע + ניווט\n📅 לוח שנה עברי, זמני היום והילולות\n📚 שיעורים, פעילויות ומודעות\n🔥 תיקון הכללי, תהילים מחולק ומצפן תפילה\n🙋 מארגנים מניין בלחיצה\n\nבחינם – להורדה:\n${APP_URL}\n\n▶️ ערוץ גאולה וישועה: ${YT_URL}`}
 function shareApp(){const t=shareAppText();if(navigator.share)navigator.share({title:S.settings.appName,text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
 function shareAppWa(){window.open('https://wa.me/?text='+encodeURIComponent(shareAppText()))}
 function copyAppLink(){(navigator.clipboard?navigator.clipboard.writeText(APP_URL):Promise.reject()).then(()=>toast('הקישור הועתק 📋')).catch(()=>prompt('העתיקו את הקישור:',APP_URL))}
