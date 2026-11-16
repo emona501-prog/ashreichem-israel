@@ -11,8 +11,73 @@
   "background_color": "#24456b",
   "theme_color": "#24456b",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "המניין הקרוב",
+      "short_name": "מניין",
+      "url": "./?v=now",
+      "icons": [
+        {
+          "src": "sc-minyan.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "זמני היום",
+      "short_name": "זמנים",
+      "url": "./?v=zmanim",
+      "icons": [
+        {
+          "src": "sc-zmanim.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "שבת וחגים",
+      "short_name": "שבת",
+      "url": "./?v=shabbat",
+      "icons": [
+        {
+          "src": "sc-shabbat.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "תיקון הכללי",
+      "short_name": "תיקון",
+      "url": "./?v=tikkun",
+      "icons": [
+        {
+          "src": "sc-tikkun.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
