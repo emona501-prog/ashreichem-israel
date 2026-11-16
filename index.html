@@ -1074,8 +1074,11 @@ const PFX={'ב':'בְּ','ו':'וְ','ל':'לְ','ה':'הַ','ש':'שֶׁ','מ':
 const _SDK=Object.keys(SAYDICT).sort((a,b)=>b.length-a.length);
 const _SDRE=new RegExp('(^|[\\s,.;:!?()\\-–])([בולהשמכ]?)('+_SDK.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?=$|[\\s,.;:!?()\\-–])','g');
 const sayNikud=t=>t.replace(_SDRE,(m,a,p,w)=>{let v=SAYDICT[w];if(p){if(p!=='ה'&&v.startsWith('הַ'))v=v.slice(2);else if(p==='ה')v=v.replace(/^([בגדכפתשׁ]+)/,'$1');if(p!=='ה')v=v.replace(/^([בגדכפת][\u05B0-\u05BB]*)\u05BC/,'$1');v=PFX[p]+v}return a+v});
-const SAYFIX=[[/ק״ש/g,'קריאת שמע'],[/גר״א/g,'גרא'],[/ע״ש/g,'על שם'],[/מוהר״ן/g,'מוֹהֲרַ"ן'],[/מג״א/g,'מגן אברהם'],[/ר״ת/g,'רבנו תם'],[/מוצ״ש/g,'מוצאי שבת'],[/(\d) ש׳/g,'$1 שעות'],[/דק׳/g,'דקות'],[/[״׳]/g,''],[/–|·/g,', ']];
-const sayTm=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return t||'';const[h,m]=t.split(':').map(Number);return m?`${h} ו${m}`:`${h} בדיוק`};
+const SAYFIX=[[/ק״ש/g,'קריאת שמע'],[/גר״א/g,'גרא'],[/ע״ש/g,'על שם'],[/מוהר״ן/g,'מוֹהֲרַ"ן'],[/מג״א/g,'מגן אברהם'],[/ר״ת/g,'רבנו תם'],[/מוצ״ש/g,'מוצאי שבת'],[/(\d{1,2}):(\d{2}) ש׳/g,(x,h,m)=>sayDur(+h,+m)],[/(\d{1,3}) דק׳/g,(x,n)=>+n===1?'דקה':numW(+n)+' דקות'],[/דק׳/g,'דקות'],[/[״׳]/g,''],[/–|·/g,', ']];
+const NW=['אפס','אחת','שתיים','שלוש','ארבע','חמש','שש','שבע','שמונה','תשע','עשר','אחת עשרה','שתים עשרה','שלוש עשרה','ארבע עשרה','חמש עשרה','שש עשרה','שבע עשרה','שמונה עשרה','תשע עשרה'],NT=['','','עשרים','שלושים','ארבעים','חמישים'];
+const numW=n=>n<20?NW[n]:NT[Math.floor(n/10)]+(n%10?' ו'+NW[n%10]:'');
+const sayTm=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return t||'';const[h,m]=t.split(':').map(Number);const hw=h===0?'חצות':h===12?'שתים עשרה':numW(h);return m?`${hw} ו${numW(m)}`:`${hw} בדיוק`};
+const sayDur=(h,m)=>{const hw=h===1?'שעה':h===2?'שעתיים':numW(h)+' שעות';return m?`${hw} ו${m===1?'דקה':numW(m)+' דקות'}`:hw};
 const sayFix=s=>sayNikud(SAYFIX.reduce((a,[r,v])=>a.replace(r,v),s).replace(/(\d{1,2}):(\d{2})/g,(x)=>sayTm(x)));
 let SAYING=false;
 function speak(t){if(!('speechSynthesis'in window))return toast('הטלפון לא תומך בהקראה');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(sayFix(t));u.lang='he-IL';
