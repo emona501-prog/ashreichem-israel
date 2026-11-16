@@ -223,6 +223,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
 .ic.bi{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin-inline-end:5px;filter:none}.ic.big{width:86px;height:86px;margin:0 auto}.ic.tl{width:40px;height:40px}.shb-ic .ic{width:54px;height:54px}.mic-pulse .ic{margin:0 auto 8px}
 .near-side{display:flex;flex-direction:column;gap:6px}.near-rem{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;color:#fff;font:inherit;font-size:.78rem;font-weight:700;padding:6px 8px;gap:2px}.near-rem .ic{filter:none}
+.bul-opt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}.bul-opt summary{font-weight:800;cursor:pointer}.bul-opt .chip{font-size:.85rem}
 .al-bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.al-bar i{display:block;height:100%;border-radius:99px}.al-row{align-items:center;gap:8px}.al-bt{display:flex;gap:4px;flex:none}.al-bt .btn{padding:6px 10px}.al-imgs{display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow:auto}.al-imgs img{width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .shb{display:flex;gap:12px;align-items:center;width:100%;text-align:right;font:inherit;border:0;border-radius:16px;padding:12px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1b2f55,#3b2a5c);color:#fff;box-shadow:0 6px 18px rgba(27,47,85,.25);cursor:pointer}.shb.chg{background:linear-gradient(135deg,#7a4a0f,#c4902c)}.shb-ic{font-size:2rem}.shb-x{display:flex;flex-direction:column;gap:2px;flex:1}.shb-x b{font-size:1.08rem;color:#f3d78e}.shb.chg .shb-x b{color:#fff4d6}.shb-x span{font-size:.92rem}.shb-x span b{font-size:inherit;color:#fff}.shb-x small{opacity:.8}.shb-tg{color:#f3d78e;font-size:.82rem!important}
 .say-row{display:flex;gap:8px;margin:-4px 0 12px}.say-row button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 6px;font:inherit;font-weight:700;color:var(--pri,#24456b)}
@@ -522,7 +523,7 @@ function setNh(n){U.nh=n;saveU();pushTags();render()}
 function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
     return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
-    ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון השבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
+    ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
     <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
@@ -716,6 +717,7 @@ function more(){
   ${it(ic('yahrzeit','md'),'הילולות צדיקים',"go('hill')",'היום והקרובות')}
   ${it('📌','לוח מודעות',"go('board')",'מודעות קהילה · בקשת פרסום')}
   ${it('🕍','גבאי? הצטרפו לאפליקציה',"go('gab')",'שליחת פרטי בית הכנסת וקבלת קוד גבאי')}
+  ${it(ic('alon','md'),'עלון מידע לשבת',"bulletin()",'בונים עלון אישי – תפילות, שיעורים, ילדים – לשיתוף והדפסה')}
   ${it(ic('alon','md'),'עלונים',"go('alonim')",'עלוני שבת של בתי הכנסת ועלונים כלליים')}
   ${it(ic('printer','md'),'הדפסת לוחות',"printCenter()",'זמנים, שבת, בית כנסת, סיכום יום ולוח חודש')}
   ${it('📮','תיבת הודעות למנהל'+ibBadge(ROLE&&ROLE.type==='admin'?ibAdminNew():ibUserNew()),"go('inbox')",'רעיונות, בקשות, מידע להוסיף ותקלות')}
@@ -1069,7 +1071,7 @@ function shabbatV(){
     <div class="sb-tiles">${tile('candle','הדלקת נרות',hm(zf.candle),'40 דק׳ לפני השקיעה')}${tile('sunset','שקיעה ביום שישי',hm(zf.set),'')}${tile('havdala','צאת השבת',hm(zs.tzeit),'')}${tile('stars','רבנו תם',hm(zs.rt),'')}</div>
     <div class="zm-loc">📍 ${esc(LOC().name)}${ST.sat?` · <button class="zm-lnk" onclick="ST.sat='';render()">חזרה לשבת הקרובה</button>`:''}</div>
   </div>
-  <button class="shb chg" style="background:linear-gradient(135deg,#1f5a3d,#3d8a5c)" onclick="bulletin('${iso(sat)}')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלון שבת לוואטסאפ</b><span>תמונה מעוצבת עם כל זמני השבת של כל בתי הכנסת – לשליחה לקבוצות ‹</span></div></button>
+  <button class="shb chg" style="background:linear-gradient(135deg,#1f5a3d,#3d8a5c)" onclick="bulletin('${iso(sat)}')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>🗞️ עלון מידע לשבת</b><span>בוחרים מה להכניס – תפילות, שיעורים, ילדים, בתי כנסת – ומשתפים או מדפיסים ‹</span></div></button>
   <div class="sb-acts"><button class="btn" onclick="zmShare('shab','${iso(f)}')">${ic('share','bi')}שיתוף</button><button class="btn sec" onclick="printCenter('shab');$('#prD')&&($('#prD').value='${iso(f)}')">${ic('printer','bi')}הדפסה</button><button class="btn sec" onclick="sayToggle(()=>shabSay(fromIso('${iso(sat)}')))">${ic('speaker','bi')}הקראה</button></div>
   ${ch.length?`<h3 style="margin:14px 0 6px;display:flex;gap:6px;align-items:center">${ic('magen','sm')} חגים ומועדים קרובים</h3>${ch.map(c=>`<div class="card sb-ch"><div class="sb-chh"><span class="sb-che">${ic(chagIc(c.h),'md')}</span><div><b>${esc(c.h.join(' · '))}</b><div class="muted">יום ${DAYNAMES[c.x.getDay()]} · ${hebDate(c.x)} · ${gStr(c.x)}</div></div></div>${c.rows.map(r=>`<div class="row"><div class="main"><b>${esc(r[0])}</b></div><div class="time" style="font-size:1.05rem">${esc(r[1])}</div></div>`).join('')}</div>`).join('')}`:''}
   <div class="card"><h3>⏰ זמני השבת</h3>${[['סוף זמן ק״ש – מג״א',zs.shmaM],['סוף זמן ק״ש – גר״א',zs.shmaG],['סוף זמן תפילה – גר״א',zs.tfG],['חצות היום',zs.chatzot],['מנחה גדולה',zs.mg],['מנחה קטנה',zs.mk],['שקיעה',zs.set]].map(([t,v])=>`<div class="row"><div class="main"><b>${t}</b></div><div class="time">${hm(v)}</div></div>`).join('')}</div>
@@ -1207,25 +1209,40 @@ function alonWeekSec(){const L=alonWeek();if(!L.length)return'';return `<div cla
 /* ===== 🗞️ עלון שבת אוטומטי (תמונה לוואטסאפ) ===== */
 let BUL={t:0,sat:null};const _icImg={};
 const icImg=k=>{if(!_icImg[k]){const i=new Image();i.src=IC[k];_icImg[k]=i}return _icImg[k]};
-function bulData(sat){const f=addDays(sat,-1),zf=zmanim(f),zs=zmanim(sat),cand=toMin(hm(zf.candle)),out=toMin(hm(zs.tzeit));
+const BUL_DEF={times:1,pray:1,ev:1,extra:1,cats:[],shuls:[]};
+const bulOpt=()=>Object.assign({},BUL_DEF,U.bulOpt||{});
+function bulData(sat){const o=bulOpt(),f=addDays(sat,-1),zf=zmanim(f),zs=zmanim(sat),cand=toMin(hm(zf.candle)),out=toMin(hm(zs.tzeit));
   const grp=L=>{const m={};L.forEach(p=>{(m[p.t]=m[p.t]||[]).includes(p.tm)||(m[p.t]=m[p.t]||[]).push(p.tm)});return Object.entries(m).map(([t,a])=>t+' '+a.join(' · '))};
-  const sh=S.shuls.filter(inNh).map(s=>{const P=k=>(s.prayers||[]).filter(p=>p.t!=='זמן'&&DAYSETS[p.d]?.d.includes(k===5?5:6)).map(p=>({t:p.t,d:p.d,tm:resolveTm(p.tm,k===5?f:sat)})).filter(p=>p.tm).sort((a,b)=>toMin(a.tm)-toMin(b.tm));
+  const sh=S.shuls.filter(s=>o.shuls.length?o.shuls.includes(s.id):inNh(s)).map(s=>{const P=k=>(s.prayers||[]).filter(p=>p.t!=='זמן'&&DAYSETS[p.d]?.d.includes(k===5?5:6)).map(p=>({t:p.t,d:p.d,tm:resolveTm(p.tm,k===5?f:sat)})).filter(p=>p.tm).sort((a,b)=>toMin(a.tm)-toMin(b.tm));
     const fr=P(5).filter(p=>toMin(p.tm)>=cand-100),sa=P(6),mz=sa.filter(p=>p.d==='mz'||toMin(p.tm)>=out-5),sd=sa.filter(p=>!mz.includes(p));
-    const L=[];[['ערב שבת',fr],['שבת',sd],['מוצ״ש',mz]].forEach(([k,a])=>{if(a.length)grp(a).forEach((t,i)=>L.push([i?'':k,t]))});return{n:s.name,L}}).filter(x=>x.L.length);
+    const L=[];if(o.pray)[['ערב שבת',fr],['שבת',sd],['מוצ״ש',mz]].forEach(([k,a])=>{if(a.length)grp(a).forEach((t,i)=>L.push([i?'':k,t]))});
+    if(o.ev){const E=k=>(s.events||[]).filter(e=>DAYSETS[e.d]?.d.includes(k)&&(!o.cats.length||o.cats.includes(e.c))).map(e=>({...e,tm:resolveTm(e.tm,k===5?f:sat)})).filter(e=>e.tm);
+      const ev=[...E(5).filter(e=>toMin(e.tm)>=cand-30),...E(6)].sort((a,b)=>(a.d==='fri'||DAYSETS[a.d]?.d.includes(5)&&!DAYSETS[a.d]?.d.includes(6)?0:1)-(b.d==='fri'||DAYSETS[b.d]?.d.includes(5)&&!DAYSETS[b.d]?.d.includes(6)?0:1)||toMin(a.tm)-toMin(b.tm));
+      const kids=ev.filter(e=>e.c==='ילדים'),sh2=ev.filter(e=>e.c!=='ילדים');const tx=e=>`${e.tm} ${e.title}${e.who?' – '+e.who:''}`;
+      sh2.forEach((e,i)=>L.push([i?'':'שיעורים',tx(e)]));kids.forEach((e,i)=>L.push([i?'':'ילדים',tx(e)]))}
+    return{n:s.name,L}}).filter(x=>x.L.length);
   const mv=MOLAD().find(e=>{const q=mevOf(e);return q&&iso(q)===iso(sat)});const hil=[];for(let i=-1;i<6;i++)hillulotOn(addDays(sat,i)).forEach(h=>hil.push(h.name));
-  return{f,sat,zf,zs,par:parTitle(sat),nm:shabNames(sat),sh,mv,hil:hil.slice(0,4),al:alonWeek()}}
+  return{o,f,sat,zf,zs,par:parTitle(sat),nm:shabNames(sat),sh,mv:o.extra?mv:null,hil:o.extra?hil.slice(0,4):[],al:o.extra?alonWeek():[]}}
 function bulletin(satIso){BUL.sat=satIso?fromIso(satIso):nextSat(new Date());BUL.t=U.bulT||0;['shab2','candle','havdala','stars','shul','alon','moon'].forEach(icImg);
   modal(`<div class="chips" style="justify-content:center">${SH_TH.map((t,i)=>`<button class="chip ${i===BUL.t?'on':''}" onclick="BUL.t=U.bulT=${i};saveU();drawBul();this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))"><span class="sh-dot" style="background:linear-gradient(135deg,${t.bg[0]},${t.bg[1]})"></span>${t.n}</button>`).join('')}</div>
+  <details class="bul-opt" ${U.bulOpen?'open':''} ontoggle="U.bulOpen=this.open;saveU()"><summary>⚙️ מה להכניס לעלון? <span class="muted">(בחירה חופשית)</span></summary><div id="bulOpt">${bulOptHtml()}</div></details>
   <canvas id="shCv" class="sh-cv"></canvas>
   <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="doShare(1)">${ic('share','bi')}שיתוף לוואטסאפ</button><button class="btn sec" onclick="doShare(0)">⬇️ שמירה</button><button class="btn ghost" onclick="bulTxt()">💬 כטקסט</button></div>
-  <div class="muted" style="margin-top:6px;text-align:center">העלון נבנה אוטומטית מכל זמני בתי הכנסת שבאפליקציה</div>`,'🗞️ עלון שבת לוואטסאפ');
+  <div class="btns" style="margin-top:6px"><button class="btn sec" style="flex:1" onclick="bulPrint(0)">${ic('printer','bi')}הדפסה צבעונית</button><button class="btn sec" style="flex:1" onclick="bulPrint(1)">🖨️ שחור-לבן (חסכוני)</button></div>
+  <div class="muted" style="margin-top:6px;text-align:center">העלון נבנה אוטומטית מהזמנים שבאפליקציה – לפי מה שבחרתם</div>`,'🗞️ עלון מידע לשבת');
   const d=bulData(BUL.sat);SH.c={title:'שבת '+d.par,date:hebDate(d.f)+' · '+gStr(d.f)};
   (document.fonts?Promise.all([document.fonts.load("700 60px 'Frank Ruhl Libre'"),document.fonts.load("700 30px Assistant")]).catch(()=>{}):Promise.resolve()).then(()=>setTimeout(drawBul,80));
 }
+function bulOptHtml(){const o=bulOpt();const ch=(on,lbl,act)=>`<button class="chip ${on?'on':''}" onclick="${act}">${on?'✓ ':''}${lbl}</button>`;
+  return `<div class="f" style="margin-top:6px">תוכן</div><div class="chips" style="flex-wrap:wrap">${ch(o.times,'🕯️ כניסה ויציאה',"bulSet('times')")}${ch(o.pray,'🕰️ זמני תפילות',"bulSet('pray')")}${ch(o.ev,'📚 שיעורים ופעילויות',"bulSet('ev')")}${ch(o.extra,'🌙 מברכים, הילולות ועלונים',"bulSet('extra')")}</div>
+  ${o.ev?`<div class="f">איזה פעילויות</div><div class="chips" style="flex-wrap:wrap">${ch(!o.cats.length,'הכול',"bulArr('cats','')")}${CATS.map(c=>ch(o.cats.includes(c),c==='ילדים'?'🧒 ילדים':c,`bulArr('cats','${c}')`)).join('')}</div>`:''}
+  <div class="f">בתי כנסת</div><div class="chips" style="flex-wrap:wrap">${ch(!o.shuls.length,'כל בתי הכנסת',"bulArr('shuls','')")}${S.shuls.map(x=>ch(o.shuls.includes(x.id),esc(x.name),`bulArr('shuls','${x.id}')`)).join('')}</div>`}
+function bulSet(k){const o=bulOpt();o[k]=o[k]?0:1;U.bulOpt=o;saveU();$('#bulOpt').innerHTML=bulOptHtml();drawBul()}
+function bulArr(k,v){const o=bulOpt();if(!v)o[k]=[];else{const a=o[k].slice(),i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);o[k]=a}U.bulOpt=o;saveU();$('#bulOpt').innerHTML=bulOptHtml();drawBul()}
 function drawBul(){const cv=$('#shCv');if(!cv)return;const d=bulData(BUL.sat),T=SH_TH[BUL.t],W=1080,SER="'Frank Ruhl Libre',serif",SAN="Assistant,sans-serif";
   const m=document.createElement('canvas').getContext('2d');m.direction='rtl';
   // מדידת גובה
-  const fs=d.sh.length>8?28:d.sh.length>5?31:34,lh=fs*1.42;let H=760;
+  const nl=d.sh.reduce((a,s)=>a+s.L.length,0),fs=nl>30?27:nl>18?30:34,lh=fs*1.42;let H=d.o.times?760:520;
   d.sh.forEach(s=>{H+=58;s.L.forEach(([k,v])=>{m.font=`600 ${fs}px ${SAN}`;H+=Math.max(1,wrapT(m,v,W-330).length)*lh+4});H+=22});
   if(d.mv)H+=110;if(d.hil.length)H+=70;if(d.al.length)H+=70;H+=300;H=Math.max(H,1350);
   cv.width=W;cv.height=H;const x=cv.getContext('2d');x.direction='rtl';x.textAlign='center';
@@ -1233,23 +1250,24 @@ function drawBul(){const cv=$('#shCv');if(!cv)return;const d=bulData(BUL.sat),T=
   x.strokeStyle=T.ac;x.globalAlpha=.55;x.lineWidth=3;x.strokeRect(30,30,W-60,H-60);x.globalAlpha=.25;x.strokeRect(44,44,W-88,H-88);x.globalAlpha=1;
   const im=(k,cx,cy,s)=>{const i=icImg(k);if(i.complete&&i.naturalWidth)x.drawImage(i,cx-s/2,cy-s/2,s,s)};
   let y=70;im('shab2',W/2,y+70,140);y+=160;
-  x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText('🗞️ עלון השבת של '+(S.settings.appName||'אשריכם ישראל'),W/2,y);y+=78;
+  x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText('🗞️ עלון מידע לשבת · '+(S.settings.appName||'אשריכם ישראל'),W/2,y);y+=78;
   x.fillStyle=T.ac;x.font=`900 ${d.par.length>16?64:78}px ${SER}`;x.fillText('שבת '+d.par,W/2,y);y+=50;
   if(d.nm.length){x.fillStyle=T.ink;x.font=`700 30px ${SAN}`;x.fillText('✦ '+d.nm.join(' · ')+' ✦',W/2,y);y+=44}
   x.fillStyle=T.sub;x.font=`600 30px ${SAN}`;x.fillText(hebDate(d.sat)+' · '+gStr(d.sat),W/2,y);y+=40;
   // שלוש קופסאות זמנים
   const bx=[[ 'candle','הדלקת נרות',hm(d.zf.candle)],['havdala','צאת השבת',hm(d.zs.tzeit)],['stars','רבנו תם',hm(d.zs.rt)]],bw=290,gap=30,bx0=(W-3*bw-2*gap)/2;
-  bx.forEach(([k,t,v],i)=>{const X=W-bx0-bw-(i*(bw+gap));x.fillStyle=T.band;x.beginPath();x.roundRect?x.roundRect(X,y,bw,200,24):x.rect(X,y,bw,200);x.fill();x.strokeStyle=T.ac;x.globalAlpha=.5;x.lineWidth=2;x.stroke();x.globalAlpha=1;
+  if(d.o.times){bx.forEach(([k,t,v],i)=>{const X=W-bx0-bw-(i*(bw+gap));x.fillStyle=T.band;x.beginPath();x.roundRect?x.roundRect(X,y,bw,200,24):x.rect(X,y,bw,200);x.fill();x.strokeStyle=T.ac;x.globalAlpha=.5;x.lineWidth=2;x.stroke();x.globalAlpha=1;
     im(k,X+bw/2,y+52,70);x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText(t,X+bw/2,y+118);x.fillStyle=T.ink;x.font=`800 58px ${SAN}`;x.fillText(v,X+bw/2,y+180)});
-  y+=200;x.fillStyle=T.sub;x.font=`500 22px ${SAN}`;x.fillText('📍 '+LOC().name+' · הדלקת נרות 40 דק׳ לפני השקיעה · יש להחמיר 2–3 דק׳',W/2,y+36);y+=80;
+  y+=200;x.fillStyle=T.sub;x.font=`500 22px ${SAN}`;x.fillText('📍 '+LOC().name+' · הדלקת נרות 40 דק׳ לפני השקיעה · יש להחמיר 2–3 דק׳',W/2,y+36);y+=80}else y+=30;
+  const secT=d.o.pray&&d.o.ev?'תפילות ופעילויות בבתי הכנסת':d.o.pray?'תפילות השבת בבתי הכנסת':d.o.ev?(d.o.cats.length===1?(d.o.cats[0]==='ילדים'?'פעילויות לילדים':d.o.cats[0]):'שיעורים ופעילויות בשבת'):'';
   // בתי הכנסת
   const orn=yy=>{x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(W/2-300,yy);x.lineTo(W/2-150,yy);x.moveTo(W/2+150,yy);x.lineTo(W/2+300,yy);x.stroke()};
-  x.fillStyle=T.ac;x.font=`800 40px ${SER}`;{const tw=x.measureText('תפילות השבת בבתי הכנסת').width/2+24;x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(110,y-12);x.lineTo(W/2-tw,y-12);x.moveTo(W/2+tw,y-12);x.lineTo(W-110,y-12);x.stroke()}x.fillText('תפילות השבת בבתי הכנסת',W/2,y+2);y+=50;
+  if(secT){x.fillStyle=T.ac;x.font=`800 40px ${SER}`;{const tw=x.measureText(secT).width/2+24;x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(110,y-12);x.lineTo(W/2-tw,y-12);x.moveTo(W/2+tw,y-12);x.lineTo(W-110,y-12);x.stroke()}x.fillText(secT,W/2,y+2);y+=50}
   d.sh.forEach((s,j)=>{x.textAlign='right';x.fillStyle=T.ac;x.font=`800 ${fs+8}px ${SER}`;x.fillText('🕍 '+s.n,W-90,y+fs+4);y+=58;
     s.L.forEach(([k,v])=>{x.fillStyle=T.sub;x.font=`700 ${fs-4}px ${SAN}`;x.fillText(k,W-100,y+fs);x.fillStyle=T.ink;x.font=`600 ${fs}px ${SAN}`;
       const L=wrapT(x,v,W-330);L.forEach((l,i)=>x.fillText(l,W-240,y+fs+i*lh));y+=Math.max(1,L.length)*lh+4});
     y+=10;if(j<d.sh.length-1){x.strokeStyle=T.band;x.lineWidth=2;x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke()}y+=12;x.textAlign='center'});
-  if(!d.sh.length){x.fillStyle=T.sub;x.font=`600 30px ${SAN}`;x.fillText('עוד לא הוזנו זמני שבת לבתי הכנסת',W/2,y+40);y+=80}
+  if(!d.sh.length&&secT){x.fillStyle=T.sub;x.font=`600 30px ${SAN}`;x.fillText('לא נמצאו פריטים לפי הבחירה',W/2,y+40);y+=80}
   y+=20;x.textAlign='center';
   if(d.mv){im('moon',W/2,y+28,52);x.fillStyle=T.ink;x.font=`800 32px ${SER}`;x.fillText('שבת מברכים חודש '+d.mv.m+' · ראש חודש יום '+d.mv.rcd,W/2,y+90);y+=110}
   if(d.hil.length){x.fillStyle=T.sub;x.font=`600 27px ${SAN}`;x.fillText('🕯️ הילולות השבוע: '+d.hil.join(' · '),W/2,y+30);y+=70}
@@ -1259,8 +1277,27 @@ function drawBul(){const cv=$('#shCv');if(!cv)return;const d=bulData(BUL.sat),T=
   x.fillText('📲 כל הזמנים מתעדכנים באפליקציה: '+APP_URL.replace('https://','').replace(/\/$/,''),W/2,H-96);
   x.fillStyle='#ff4040';x.font=`700 24px ${SAN}`;x.fillText('▶ ערוץ גאולה וישועה ביוטיוב · youtube.com/@yeshurun148',W/2,H-62);
 }
-function bulTxt(){const d=bulData(BUL.sat);const t=`🕯️ *שבת ${d.par}*${d.nm.length?'\n✦ '+d.nm.join(' · '):''}\n${hebDate(d.sat)}\n\n🕯️ הדלקת נרות: *${hm(d.zf.candle)}*\n✨ צאת השבת: *${hm(d.zs.tzeit)}*\n🌌 רבנו תם: *${hm(d.zs.rt)}*\n\n`+
-  d.sh.map(s=>`🕍 *${s.n}*\n`+s.L.map(([k,v])=>`${k}: ${v}`).join('\n')).join('\n\n')+(d.mv?`\n\n🌙 שבת מברכים חודש ${d.mv.m}`:'')+`\n\nשבת שלום ומבורך!\n📲 ${APP_URL}`;
+function bulPrint(bw){const d=bulData(BUL.sat);
+  const body=prHead('עלון מידע לשבת – שבת '+d.par,`${hebDate(d.sat)} · ${gStr(d.sat)}${d.nm.length?' · '+d.nm.join(' · '):''}`)+
+  (d.o.times?`<div class="zrow"><span><small>🕯️ הדלקת נרות</small><b>${hm(d.zf.candle)}</b></span><span><small>🌇 שקיעה ביום שישי</small><b>${hm(d.zf.set)}</b></span><span><small>✨ צאת השבת</small><b>${hm(d.zs.tzeit)}</b></span><span><small>🌌 רבנו תם</small><b>${hm(d.zs.rt)}</b></span></div>`:'')+
+  `<div class="${d.sh.length>2?'cols':''}">`+d.sh.map(s=>`<div class="blk"><h2>🕍 ${esc(s.n)}</h2><table>${s.L.map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table></div>`).join('')+`</div>`+
+  (d.sh.length?'':'<p style="text-align:center">לא נמצאו פריטים לפי הבחירה</p>')+
+  (d.mv?`<div class="notes">🌙 שבת מברכים חודש ${esc(d.mv.m)} · ראש חודש יום ${esc(d.mv.rcd)} · ${esc(molFix(d.mv.com))}</div>`:'')+
+  (d.hil.length?`<div class="notes">🕯️ הילולות השבוע: ${esc(d.hil.join(' · '))}</div>`:'')+
+  `<div class="blessing">שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!</div>`+prFoot();
+  prShow(body,{bw,back:"bulletin('"+iso(d.sat)+"')"})}
+function prShow(body,o){o=o||{};const land=!!o.land,W=land?1123:794;
+  const doc=`<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet"><style>${PR_CSS}${PR_BUL}${o.bw?PR_BW:''}${land?'@page{size:A4 landscape}':''}</style></head><body>${body}</body></html>`;
+  closeModal();
+  modal(`<div class="pr-wrap" id="prWrap"><iframe id="prF" style="width:${W}px;height:${land?794:1123}px"></iframe></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1;min-height:52px" onclick="$('#prF').contentWindow.focus();$('#prF').contentWindow.print()">🖨️ הדפסה / שמירה כ-PDF</button>${o.back?`<button class="btn ghost" onclick="${o.back}">↩️ חזרה</button>`:''}</div>
+  <div class="muted" style="margin-top:6px">💡 בחלון ההדפסה אפשר לבחור מדפסת, או "שמירה כ-PDF" ולשלוח בוואטסאפ.${o.bw?' מצב שחור-לבן חוסך דיו – בלי רקעים צבעוניים.':''}</div>`,'🖨️ תצוגה מקדימה');
+  const f=$('#prF');f.srcdoc=doc;const fit=()=>{const w=$('#prWrap');if(!w)return;const k=w.clientWidth/W;f.style.transform=`scale(${k})`;w.style.height=(land?794:1123)*k+'px'};setTimeout(fit,30);
+  f.onload=()=>{fit();try{const h=f.contentDocument.body.scrollHeight;if(!land&&h>1123){f.style.height=h+'px';$('#prWrap').style.height=h*($('#prWrap').clientWidth/W)+'px'}}catch(e){}}}
+const PR_BUL=`.blk{break-inside:avoid;margin-bottom:6px}.blk table td{padding:3px 6px}.blk td.k{font-weight:800;color:#8a6a10;white-space:nowrap;width:1%}.zrow b{display:block;font-size:17pt;font-variant-numeric:tabular-nums}`;
+const PR_BW=`body{color:#000}header{background:none!important;color:#000;border:2px solid #000}header h1,.brand{color:#000!important}header .sub{opacity:1}h2{color:#000;border-color:#000}h3,.blk td.k,.n i,tr.z td{color:#000!important}th{background:#fff!important;color:#000!important;border-bottom:2px solid #000}tr:nth-child(even) td{background:none!important}td{border-color:#999}.tm{color:#000}.zrow span{background:none;border:1.5px solid #000}.zrow small,.n,footer{color:#333}.notes{background:none;border:1px dashed #000}.blessing{color:#000}footer{border-color:#000}`;
+function bulTxt(){const d=bulData(BUL.sat);const t=`🗞️ *עלון מידע לשבת – שבת ${d.par}*${d.nm.length?'\n✦ '+d.nm.join(' · '):''}\n${hebDate(d.sat)}\n\n`+(d.o.times?`🕯️ הדלקת נרות: *${hm(d.zf.candle)}*\n✨ צאת השבת: *${hm(d.zs.tzeit)}*\n🌌 רבנו תם: *${hm(d.zs.rt)}*\n\n`:'')+
+  d.sh.map(s=>`🕍 *${s.n}*\n`+s.L.map(([k,v])=>k?`*${k}:* ${v}`:`   ${v}`).join('\n')).join('\n\n')+(d.mv?`\n\n🌙 שבת מברכים חודש ${d.mv.m}`:'')+`\n\nשבת שלום ומבורך!\n📲 ${APP_URL}`;
   if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
 /* ===== ⏰ תזכורות: התראה מקומית + תזמון דרך הממסר (מגיע גם כשהאפליקציה סגורה) ===== */
 function remNext(x){const now=new Date();for(let i=0;i<8;i++){const dt=addDays(now,i);dt.setHours(12,0,0,0);if(!DAYSETS[x.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(x.tm,dt);if(!tm)continue;if(i===0&&toMin(tm)<=nowMin())continue;return{dt,tm}}return null}
