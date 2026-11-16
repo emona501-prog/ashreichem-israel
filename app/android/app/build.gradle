@@ -30,7 +30,8 @@ android {
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // בלי המפתח (בנייה לבדיקה בלבד) – חתימת בדיקה רגילה
+            signingConfig System.getenv("KEYSTORE_PATH") ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
