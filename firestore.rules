@@ -74,6 +74,15 @@ service cloud.firestore {
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['j']));
       allow delete: if isAdmin();
     }
+    // תיבת הודעות למנהל – כל משתמש רואה רק את הפניות שלו
+    match /inbox/{id} {
+      allow create: if signed() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string && request.resource.data.text.size() < 2000;
+      allow read: if isAdmin() || (signed() && resource.data.uid == request.auth.uid);
+      allow update: if isAdmin() || (signed() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rep', 'unA', 'unU', 'st']));
+      allow delete: if isAdmin();
+    }
     match /pub/{doc} {
       allow read: if true;
       allow write: if signed();

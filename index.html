@@ -217,6 +217,12 @@ footer a{color:var(--muted)}
 body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px;padding:10px}
 .mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
 .share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
+.ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
+.ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
+.ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ib-b{max-width:88%;padding:8px 12px;border-radius:14px;background:var(--soft)}.ib-b small{display:block;color:var(--muted);font-size:.72rem;margin-top:2px}
+.ib-b.me{align-self:flex-start;background:#e4ecf5}.ib-b.them{align-self:flex-end;background:var(--gold-soft)}.ib-b.adm{border:1px solid #ead9a6}
+body.dark .ib-b.me{background:#22344a}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -456,11 +462,11 @@ function missingOf(s){const m=[];if(!gabbaimOf(s).some(g=>telOk(g.phone)))m.push
 /* ===== ניווט ===== */
 function go(t,st){if(TAB==='compass'&&t!=='compass')stopCompass();TAB=t;ST=st||{};render();window.scrollTo(0,0)}
 function render(){
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny'].includes(TAB)&&b.dataset.t==='more')));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny','inbox'].includes(TAB)&&b.dataset.t==='more')));
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();
-  const V={mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
+  const V={inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -471,7 +477,8 @@ function renderTicker(){
 }
 function renderRole(){
   const miss=ROLE&&ROLE.type==='gabbai'&&shul(ROLE.sid)?missingOf(shul(ROLE.sid)):[];
-  $('#rolebar').innerHTML=(!ROLE?'':`<div class="rolebar"><span>${ROLE.type==='admin'?'🛡️ מחובר כמנהל ראשי':'✏️ גבאי: '+esc(shul(ROLE.sid)?.name)}</span><span class="btns"><button onclick="${ROLE.type==='admin'?"go('admin')":`go('shul',{id:'${ROLE.sid}'})`}">${ROLE.type==='admin'?'לוח ניהול':'הבית כנסת שלי'}</button><button onclick="logout()">יציאה</button></span></div>`)+(miss.length?`<button class="missbar" onclick="editShul('${ROLE.sid}')">⚠️ חסרים פרטים בבית הכנסת שלך: <b>${miss.join(', ')}</b> – לחצו להשלמה</button>`:'');
+  const ibN=ROLE&&ROLE.type==='admin'?ibAdminNew():ibUserNew();
+  $('#rolebar').innerHTML=(ibN&&!(ROLE&&ROLE.type==='admin')?`<button class="missbar" style="background:#cfe3f7;color:#0f2a48" onclick="go('inbox')">📮 קיבלת תשובה מהמנהל – לחצו לקריאה</button>`:'')+(!ROLE?'':`<div class="rolebar"><span>${ROLE.type==='admin'?'🛡️ מחובר כמנהל ראשי'+(ibN?` · <a href="#" style="color:#fff" onclick="go('inbox');return false">📮 ${ibN} חדשות</a>`:''):'✏️ גבאי: '+esc(shul(ROLE.sid)?.name)}</span><span class="btns"><button onclick="${ROLE.type==='admin'?"go('admin')":`go('shul',{id:'${ROLE.sid}'})`}">${ROLE.type==='admin'?'לוח ניהול':'הבית כנסת שלי'}</button><button onclick="logout()">יציאה</button></span></div>`)+(miss.length?`<button class="missbar" onclick="editShul('${ROLE.sid}')">⚠️ חסרים פרטים בבית הכנסת שלך: <b>${miss.join(', ')}</b> – לחצו להשלמה</button>`:'');
 }
 function nhChips(){
   return `<div class="chips" role="group" aria-label="בחירת שכונה"><button class="chip ${!U.nh?'on':''}" onclick="setNh('')">כל האזור</button>${S.neighborhoods.map(n=>`<button class="chip ${U.nh===n?'on':''}" onclick="setNh('${esc(n)}')">${esc(n)}</button>`).join('')}</div>`;
@@ -653,6 +660,7 @@ function more(){
   </div><div class="card menu">
   ${it('🕯️','הילולות צדיקים',"go('hill')",'היום והקרובות')}
   ${it('📌','לוח מודעות',"go('board')",'מודעות קהילה · בקשת פרסום')}
+  ${it('📮','תיבת הודעות למנהל'+ibBadge(ROLE&&ROLE.type==='admin'?ibAdminNew():ibUserNew()),"go('inbox')",'רעיונות, בקשות, מידע להוסיף ותקלות')}
   ${it('📢','כל העדכונים',"go('updates')")}
   ${it('⭐','האזור האישי שלי',"go('mine')",'מועדפים · תזכורות · תהילים')}
   ${it('♿','נגישות ותצוגה',"openA11y()",'גודל טקסט · ניגודיות · מצב לילה')}
@@ -1301,6 +1309,7 @@ function admin(){
   <label class="f">מהירות הפס הרץ (שניות לסיבוב)</label><input class="inp" id="ss" type="number" min="10" max="90" value="${S.settings.tickerSpeed||30}">
   <button class="btn" style="margin-top:10px" onclick="saveSet()">שמירת הגדרות</button></div>
 
+  <div class="card" style="cursor:pointer" onclick="go('inbox')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📮</span><div style="flex:1"><h3 style="margin:0">תיבת הודעות ממשתמשים ${ibBadge(ibAdminNew())}</h3><div class="muted">${ibAdminNew()?ibAdminNew()+' הודעות חדשות מחכות לך':'אין הודעות חדשות'}</div></div><span>‹</span></div></div>
   <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
   <a class="btn" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://dashboard.onesignal.com/apps/${OS_APP}/notifications/new" target="_blank" rel="noopener">✍️ כתיבת התראה חדשה</a></div>
   <div class="card"><h3>☁️ שרת</h3><div class="muted" style="margin-bottom:8px">מצב: ${C.ok?'✅ מחובר':'⚠️ לא מחובר'}${S.cloud?'':' · השרת עדיין ריק'}</div><div class="btns">${S.cloud?'':'<button class="btn sm" onclick="firstUpload()">🚀 העלאה ראשונה של הנתונים לשרת</button>'}<button class="btn sec sm" onclick="exportData()">⬇️ הורדת גיבוי</button></div></div>`;
@@ -1400,7 +1409,7 @@ async function cloudInit(){
         if(u.email===ADMIN_EMAIL)role={type:'admin'};
         else{try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists())role={type:'gabbai',sid:r.data().sid}}catch(e){}}
       }
-      ROLE=role;
+      ROLE=role;ibListen(u);
       if(role&&role.type==='admin'){listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
       countVisit();softRender();
@@ -1669,6 +1678,64 @@ async function mnyCancel(id){if(!confirm('לבטל את המניין? כל הנ�
 function mnyShare(id){const m=(S.mny||[]).find(x=>x.id===id);if(!m)return;const n=mnyCnt(m),pl=m.sid&&shul(m.sid)?shul(m.sid).name:m.place;
   const t=`🙋 *מארגנים מניין ל${m.t}!*\n🕰️ ${mnyWhen(m.at)}\n📍 ${pl}${m.note?'\n📝 '+m.note:''}\n\nכבר ${n} מתוך 10 – חסרים ${Math.max(0,10-n)}!\nלהצטרפות בלחיצה:\n${location.origin+location.pathname}?m=${id}`;
   if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
+/* ===== 📮 תיבת הודעות למנהל ===== */
+const IB_CAT=[['idea','💡','הצעה / רעיון'],['req','🙏','בקשה'],['info','➕','להוסיף / לתקן מידע'],['bug','🐞','תקלה באפליקציה'],['other','💬','אחר']];
+const ibCat=k=>IB_CAT.find(c=>c[0]===k)||IB_CAT[4];
+function ibListen(u){
+  if(!C.ok)return;['ibMine','ibAll'].forEach(k=>{if(C.unsub[k]){C.unsub[k]();delete C.unsub[k]}});const F=C.F;
+  if(ROLE&&ROLE.type==='admin')C.unsub.ibAll=F.onSnapshot(F.query(col('inbox'),F.orderBy('dt','desc'),F.limit(300)),q=>{S.ibAll=q.docs.map(d=>({...d.data(),id:d.id}));softRender()},e=>console.warn(e));
+  C.unsub.ibMine=F.onSnapshot(F.query(col('inbox'),F.where('uid','==',u.uid)),q=>{S.ibMine=q.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>b.dt-a.dt);softRender()},e=>console.warn(e));
+}
+const ibAdminNew=()=>(S.ibAll||[]).filter(m=>m.unA).length;
+const ibUserNew=()=>(S.ibMine||[]).filter(m=>m.unU).length;
+function ibBadge(n){return n?`<span class="ib-badge">${n}</span>`:''}
+function ibThread(m,side){
+  return `<div class="ib-th"><div class="ib-b ${side==='admin'?'them':'me'}"><div>${esc(m.text)}</div><small>${new Date(m.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div>
+  ${(m.rep||[]).map(r=>{const mine=(side==='admin')===(r.by==='admin');return `<div class="ib-b ${mine?'me':'them'} ${r.by==='admin'?'adm':''}">${r.by==='admin'&&side!=='admin'?'<b>🛡️ המנהל:</b> ':''}<div style="white-space:pre-line">${esc(r.t)}</div><small>${new Date(r.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div>`}).join('')}</div>`;
+}
+function ibV(){
+  if(ROLE&&ROLE.type==='admin'&&ST.view!=='mine')return ibAdminV();
+  const L=S.ibMine||[];
+  setTimeout(()=>{L.filter(m=>m.unU).forEach(m=>C.F.updateDoc(dref('inbox',m.id),{unU:false}).catch(()=>{}))},800);
+  return `<h2>📮 תיבת הודעות למנהל</h2><div class="muted" style="margin-bottom:10px">יש לכם רעיון, בקשה, מידע להוסיף או תקלה? כתבו כאן – ההודעה מגיעה ישירות למנהל האפליקציה, והתשובה תופיע כאן.</div>
+  <div class="card"><label class="f">נושא</label><div class="chips" style="flex-wrap:wrap" id="ibC">${IB_CAT.map((c,i)=>`<button class="chip ${i===0?'on':''}" data-k="${c[0]}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${c[1]} ${c[2]}</button>`).join('')}</div>
+  <label class="f">ההודעה</label><textarea class="inp" id="ibT" maxlength="1500" placeholder="כתבו כאן…" style="min-height:110px"></textarea>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">שם (לא חובה)</label><input class="inp" id="ibN" value="${esc(U.name||'')}" maxlength="40"></div><div><label class="f">טלפון (לא חובה)</label><input class="inp" id="ibP" inputmode="tel" maxlength="15" value="${esc(U.phone||'')}"></div></div>
+  <button class="btn" style="width:100%;margin-top:12px" onclick="ibSend()">📨 שליחה למנהל</button></div>
+  ${L.length?`<h3>הפניות שלי</h3>${L.map(m=>{const c=ibCat(m.cat);return `<div class="card ${m.unU?'ib-new':''}"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${c[1]} ${c[2]}</b><span class="badge ${m.st==='done'?'soon':m.rep&&m.rep.length?'':'gold'}">${m.st==='done'?'✅ טופל':m.rep&&m.rep.length?'💬 נענה':'⏳ נשלח'}</span></div>
+    ${ibThread(m,'user')}${m.st!=='done'?`<div style="display:flex;gap:6px;margin-top:8px"><input class="inp" id="ibr_${m.id}" placeholder="להוסיף תגובה…" maxlength="800"><button class="btn sm" onclick="ibReply('${m.id}','user')">שליחה</button></div>`:''}</div>`}).join('')}`:''}
+  ${ROLE&&ROLE.type==='admin'?`<button class="btn ghost sm" onclick="go('inbox')">← חזרה לתיבת המנהל</button>`:''}`;
+}
+function ibAdminV(){
+  const f=ST.f||'new';const all=S.ibAll||[];
+  const L=all.filter(m=>f==='all'||(f==='new'?m.st!=='done':m.st==='done'));
+  setTimeout(()=>{all.filter(m=>m.unA&&ST.open===m.id).forEach(m=>C.F.updateDoc(dref('inbox',m.id),{unA:false}).catch(()=>{}))},600);
+  return `<h2>📮 תיבת הודעות – ניהול</h2>
+  <div class="stat" style="margin-bottom:10px"><div><b>${ibAdminNew()}</b>חדשות</div><div><b>${all.filter(m=>m.st!=='done').length}</b>פתוחות</div><div><b>${all.length}</b>סה״כ</div></div>
+  <div class="chips">${[['new','פתוחות'],['done','טופלו'],['all','הכל']].map(([k,l])=>`<button class="chip ${f===k?'on':''}" onclick="ST.f='${k}';render()">${l}</button>`).join('')}<button class="chip" onclick="go('inbox',{view:'mine'})">✍️ לשלוח הודעה</button></div>
+  ${L.map(m=>{const c=ibCat(m.cat),op=ST.open===m.id;return `<div class="card ${m.unA?'ib-new':''}">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;cursor:pointer" onclick="ST.open=${op?"''":`'${m.id}'`};render()">
+      <div style="flex:1;min-width:0"><b>${m.unA?'🔵 ':''}${c[1]} ${c[2]}</b><div class="muted">${esc(m.name||'אנונימי')} · ${new Date(m.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</div>${op?'':`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.text)}</div>`}</div>
+      <span class="badge ${m.st==='done'?'soon':'gold'}">${m.st==='done'?'✅':(m.rep||[]).length?'💬 '+m.rep.length:'חדש'}</span></div>
+    ${op?`${ibThread(m,'admin')}
+      ${m.phone?`<div class="btns" style="margin:6px 0"><a class="btn sec sm" href="tel:${esc(m.phone)}">📞 ${esc(m.phone)}</a><a class="btn sec sm" style="background:#25d366;color:#fff" href="https://wa.me/${waNum(m.phone)}" target="_blank" rel="noopener">💬 וואטסאפ</a></div>`:''}
+      <textarea class="inp" id="ibr_${m.id}" placeholder="תשובה לפונה (תופיע לו באפליקציה)…" maxlength="1500" style="min-height:70px;margin-top:6px"></textarea>
+      <div class="btns" style="margin-top:8px"><button class="btn sm" onclick="ibReply('${m.id}','admin')">📨 שליחת תשובה</button>
+      <button class="btn sec sm" onclick="ibSt('${m.id}','${m.st==='done'?'open':'done'}')">${m.st==='done'?'↩️ פתיחה מחדש':'✅ סימון כטופל'}</button>
+      <button class="btn red sm" onclick="ibDel('${m.id}')">🗑️</button></div>`:''}</div>`}).join('')||'<div class="empty-msg">אין הודעות כאן</div>'}`;
+}
+async function ibSend(){
+  if(!needCloud())return;const t=$('#ibT').value.trim();if(t.length<3)return toast('נא לכתוב הודעה');const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת');
+  const name=$('#ibN').value.trim(),phone=$('#ibP').value.trim();U.name=name||U.name;U.phone=phone;saveU();
+  try{await C.F.addDoc(col('inbox'),{uid,name,phone,cat:$('#ibC .chip.on').dataset.k,text:t,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});$('#ibT').value='';toast('ההודעה נשלחה למנהל 📨 תודה!')}catch(e){cerr(e)}
+}
+async function ibReply(id,by){
+  const el=$('#ibr_'+id);const t=el&&el.value.trim();if(!t)return;
+  const up={rep:C.F.arrayUnion({by,t,dt:Date.now()})};if(by==='admin'){up.unU=true;up.unA=false}else{up.unA=true;up.st='open'}
+  try{await C.F.updateDoc(dref('inbox',id),up);toast(by==='admin'?'התשובה נשלחה ✔️':'נשלח ✔️')}catch(e){cerr(e)}
+}
+async function ibSt(id,st){try{await C.F.updateDoc(dref('inbox',id),{st,unA:false})}catch(e){cerr(e)}}
+async function ibDel(id){if(!confirm('למחוק את ההודעה?'))return;try{await C.F.deleteDoc(dref('inbox',id));ST.open=''}catch(e){cerr(e)}}
 /* ===== 📤 שיתוף האפליקציה ===== */
 function shareAppText(){return `📲 *${S.settings.appName||'אשריכם ישראל'}* – אפליקציית הקהילה של ארנונה ותלפיות!\n\n🕍 המניין הקרוב בכל רגע + ניווט\n📅 לוח שנה עברי, זמני היום והילולות\n📚 שיעורים, פעילויות ומודעות\n🔥 תיקון הכללי, תהילים מחולק ומצפן תפילה\n🙋 מארגנים מניין בלחיצה\n\nבחינם – להורדה:\n${APP_URL}\n\n▶️ ערוץ גאולה וישועה: ${YT_URL}`}
 function shareApp(){const t=shareAppText();if(navigator.share)navigator.share({title:S.settings.appName,text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
