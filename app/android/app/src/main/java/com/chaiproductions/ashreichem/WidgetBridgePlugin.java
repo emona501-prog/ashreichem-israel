@@ -3,6 +3,8 @@ package com.chaiproductions.ashreichem;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.provider.Settings;
 import android.os.Build;
 
 import com.getcapacitor.JSObject;
@@ -45,6 +47,21 @@ public class WidgetBridgePlugin extends Plugin {
             AppWidgetManager mgr = AppWidgetManager.getInstance(ctx);
             if (Build.VERSION.SDK_INT >= 26 && mgr.isRequestPinAppWidgetSupported()) ok = mgr.requestPinAppWidget(new ComponentName(ctx, AshWidget.class), null, null);
         } catch (Exception e) { ok = false; }
+        r.put("ok", ok);
+        call.resolve(r);
+    }
+
+    /** פתיחת הגדרות "המרת טקסט לדיבור" של הטלפון – שם בוחרים קול (גבר / אישה) */
+    @PluginMethod
+    public void ttsSettings(PluginCall call) {
+        JSObject r = new JSObject(); boolean ok = false;
+        try {
+            Intent i = new Intent("com.android.settings.TTS_SETTINGS");
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i); ok = true;
+        } catch (Exception e) {
+            try { Intent i = new Intent(Settings.ACTION_SETTINGS); i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); getContext().startActivity(i); } catch (Exception e2) { }
+        }
         r.put("ok", ok);
         call.resolve(r);
     }
