@@ -951,8 +951,8 @@ function zmanim(dt,loc){
   z.rise=sunT(dt,lat,lng,90.833,1);z.set=sunT(dt,lat,lng,90.833,0);
   z.alot=sunT(dt,lat,lng,106.1,1);z.tzMga=sunT(dt,lat,lng,106.1,0);
   z.tal=sunT(dt,lat,lng,101.5,1);
-  /* צאת הכוכבים בחול: 6.45° (לוחות א״י, ר׳ טוקצ׳ינסקי) · בשבת ויו״ט – צאת השבת/החג: 8.5° (לחומרה) */
-  z.tzeitW=sunT(dt,lat,lng,96.45,0);z.out=sunT(dt,lat,lng,98.5,0);
+  /* צאת הכוכבים בחול: 6.45° (לוחות א״י, ר׳ טוקצ׳ינסקי) · צאת השבת/החג: 7.8° – כמו הלוחות המקובלים בירושלים (למשל 17:12 בפרשת ויצא) */
+  z.tzeitW=sunT(dt,lat,lng,96.45,0);z.out=sunT(dt,lat,lng,97.8,0);
   z.tzeit=(dt.getDay()===6||holidaysOn(dt).some(t=>/^(ראש השנה|יום הכיפורים|סוכות|שמיני עצרת|פסח|שביעי של פסח|שבועות)/.test(t)))?z.out:z.tzeitW;
   if(!z.rise||!z.set)return z;
   const g=(z.set-z.rise)/12/6e4,m=(z.tzMga-z.alot)/12/6e4;
@@ -989,7 +989,7 @@ function zmanimV(){
   ${moladCard()}
   ${special.map(s=>`<div class="card hl zm-sp"><span class="zm-spi">${s[0]}</span><div style="flex:1"><b>${s[1]}</b><div class="muted">${esc(s[3])}</div></div><div class="time" style="color:var(--acc)">${s[2]}</div></div>`).join('')}
   ${SEC.map(s=>`<div class="card zm-sec"><h3>${s[0]} ${s[1]}</h3>${s[2].map(x=>`<div class="row zm-row ${next&&x===next?'zm-on':''} ${isToday&&x[1]&&x[1]<nowD?'past':''}"><div class="main"><b>${x[0]}</b>${x[2]?`<span class="muted">${x[2]}</span>`:''}</div><div class="time">${hm(x[1])}</div></div>`).join('')}</div>`).join('')}
-  <div class="muted" style="padding:0 4px">שעה זמנית (גר״א): ${z.shaa?Math.round(z.shaa):'—'} דקות. הזמנים מחושבים לפי המיקום – יש להחמיר כ־2–3 דקות. לזמנים מדויקים להלכה יש להיעזר בלוח מוסמך.</div>`;
+  <div class="muted" style="padding:0 4px">שעה זמנית (גר״א): ${z.shaa?Math.round(z.shaa):'—'} דקות. הזמנים מחושבים לפי המיקום, כמו הלוחות המקובלים בארץ ישראל. לזמנים מדויקים להלכה יש להיעזר בלוח מוסמך.</div>`;
 }
 /* ----- מולד, ראש חודש, שבת מברכים וברכת הלבנה (נתונים: אתר ישיבה) ----- */
 let _ml=null;const MOLAD=()=>_ml||(_ml=JSON.parse($('#moladdata').textContent));
@@ -1096,7 +1096,7 @@ function shabbatV(){
   ${mv?`<div class="card"><h3 style="display:flex;gap:6px;align-items:center">${ic('moon','sm')} שבת מברכים חודש ${esc(mv.m)}</h3><div class="mol-ann">${esc(molFix(mv.com))}</div><div class="muted">ראש חודש: יום ${esc(mv.rcd)}</div></div>`:''}
   ${alonWeekSec()}
   <h3 style="margin:14px 0 6px">🕍 תפילות ושיעורים בבתי הכנסת</h3>${shulCards||'<div class="empty-msg">עוד לא הוזנו זמני שבת לבתי הכנסת</div>'}
-  <div class="muted" style="padding:4px">הזמנים מחושבים לפי המיקום – יש להחמיר כ־2–3 דקות.</div>`;
+  <div class="muted" style="padding:4px">הזמנים מחושבים לפי המיקום, כמו הלוחות המקובלים בארץ ישראל.</div>`;
 }
 /* ===== 🔊 הקראה בקול ושאלה קולית ===== */
 /* מילון הגייה: ניקוד מלא כדי שמנוע הדיבור יקרא נכון ("מִנְחָה" ולא "מְנַחֶה") */
@@ -1323,7 +1323,7 @@ function drawBul(){const cv=$('#shCv');if(!cv)return;const d=bulData(BUL.sat),T=
   const bx=[[ 'candle','הדלקת נרות',hm(d.zf.candle)],['havdala','צאת השבת',hm(d.zs.tzeit)],['stars','רבנו תם',hm(d.zs.rt)]],bw=290,gap=30,bx0=(W-3*bw-2*gap)/2;
   if(d.o.times){bx.forEach(([k,t,v],i)=>{const X=W-bx0-bw-(i*(bw+gap));x.fillStyle=T.band;x.beginPath();x.roundRect?x.roundRect(X,y,bw,200,24):x.rect(X,y,bw,200);x.fill();x.strokeStyle=T.ac;x.globalAlpha=.5;x.lineWidth=2;x.stroke();x.globalAlpha=1;
     im(k,X+bw/2,y+52,70);x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText(t,X+bw/2,y+118);x.fillStyle=T.ink;x.font=`800 58px ${SAN}`;x.fillText(v,X+bw/2,y+180)});
-  y+=200;x.fillStyle=T.sub;x.font=`500 22px ${SAN}`;x.fillText('📍 '+LOC().name+' · הדלקת נרות 40 דק׳ לפני השקיעה · יש להחמיר 2–3 דק׳',W/2,y+36);y+=80}else y+=30;
+  y+=200;x.fillStyle=T.sub;x.font=`500 22px ${SAN}`;x.fillText('📍 '+LOC().name+' · הדלקת נרות 40 דק׳ לפני השקיעה (מנהג ירושלים)',W/2,y+36);y+=80}else y+=30;
   const secT=d.o.pray&&d.o.ev?'תפילות ופעילויות בבתי הכנסת':d.o.pray?'תפילות השבת בבתי הכנסת':d.o.ev?(d.o.cats.length===1?(d.o.cats[0]==='ילדים'?'פעילויות לילדים':d.o.cats[0]):'שיעורים ופעילויות בשבת'):'';
   // בתי הכנסת
   const orn=yy=>{x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(W/2-300,yy);x.lineTo(W/2-150,yy);x.moveTo(W/2+150,yy);x.lineTo(W/2+300,yy);x.stroke()};
@@ -2392,7 +2392,7 @@ function printCenter(type,sid){
 }
 const prDateIn=(dk,base)=>{const ds=DAYSETS[dk]?.d||[0,1,2,3,4,5,6];for(let i=0;i<7;i++){const x=addDays(base,i);if(ds.includes(x.getDay()))return x}return base};
 function prHead(title,sub){return `<header><img src="${location.href.replace(/[^/]*$/,'')}icon-192.png" alt=""><div><h1>${esc(title)}</h1>${sub?`<div class="sub">${sub}</div>`:''}</div><div class="brand">${esc(S.settings.appName||'אשריכם ישראל')}</div></header>`}
-function prFoot(){return `<footer>📲 כל הזמנים באפליקציה: ${APP_URL.replace('https://','').replace(/\/$/,'')} &nbsp;·&nbsp; ▶ ערוץ גאולה וישועה ביוטיוב &nbsp;·&nbsp; הזמנים מחושבים – יש להחמיר 2–3 דקות</footer>`}
+function prFoot(){return `<footer>📲 כל הזמנים באפליקציה: ${APP_URL.replace('https://','').replace(/\/$/,'')} &nbsp;·&nbsp; ▶ ערוץ גאולה וישועה ביוטיוב &nbsp;·&nbsp; זמנים לפי הלוחות המקובלים</footer>`}
 const prRange=(a,b)=>`${hebDate(a,1)} – ${hebDate(b)} &nbsp;|&nbsp; ${gStr(a)} – ${gStr(b)}`;
 function prShul(sid,base){
   const s=shul(sid);if(!s)return'';const end=addDays(base,6);
