@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#24456b">
 <link rel="manifest" href="manifest.webmanifest">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -209,6 +210,7 @@ footer a{color:var(--muted)}
 .sh-cv{width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.2);margin-top:6px}
 .swt{display:inline-block;width:14px;height:14px;border-radius:50%;margin-inline-end:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.2)}
 .mol-ann{font-family:'Frank Ruhl Libre',serif;font-size:1.15rem;line-height:1.6;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.push-card{background:linear-gradient(135deg,#eef3f8,#faf3df)}body.dark .push-card{background:var(--card)}.push-card.on{background:#e5f4ec}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -468,7 +470,7 @@ function renderRole(){
 function nhChips(){
   return `<div class="chips" role="group" aria-label="בחירת שכונה"><button class="chip ${!U.nh?'on':''}" onclick="setNh('')">כל האזור</button>${S.neighborhoods.map(n=>`<button class="chip ${U.nh===n?'on':''}" onclick="setNh('${esc(n)}')">${esc(n)}</button>`).join('')}</div>`;
 }
-function setNh(n){U.nh=n;saveU();render()}
+function setNh(n){U.nh=n;saveU();pushTags();render()}
 
 /* ===== מסך הבית ===== */
 function home(){
@@ -484,6 +486,7 @@ function home(){
   <h2>${greet()} 👋</h2>
   ${nearest()}
   ${thHomeCard()}
+  ${PUSH.ok&&PUSH.sup&&!PUSH.on&&!U.pushDismiss?`<div class="card push-card" style="display:flex;align-items:center;gap:10px"><span style="font-size:1.6rem">🔔</span><div style="flex:1"><b>רוצים לקבל עדכונים מהקהילה?</b></div><button class="btn sm" onclick="pushToggle()">הפעלה</button><button class="iconbtn" style="background:var(--soft);color:var(--ink);width:34px;height:34px" aria-label="סגירה" onclick="U.pushDismiss=1;saveU();render()">✕</button></div>`:''}
   ${nhChips()}
   ${(()=>{const t=new Date(),hol=holidaysOn(t),pn=pinsOn(t),ad=adsOn(t),nt=notesOn(t);if(!hl.length&&!hol.length&&!pn.length&&!ad.length&&!nt.length)return'';
     return `<div class="card hl" style="cursor:pointer" onclick="openDay('${iso(t)}')"><h3 style="display:flex;align-items:center;gap:8px">${ic('cal','md')} היום בלוח</h3>
@@ -579,7 +582,7 @@ function shuls(){
     <button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
   </div>`).join('')||`<div class="empty-msg">לא נמצאו בתי כנסת</div>`}`;
 }
-function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
+function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();pushTags();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
 function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d013','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
 function shulPage(){
   const s=shul(ST.id);if(!s)return'<div class="empty-msg">בית הכנסת לא נמצא</div>';
@@ -706,7 +709,7 @@ function adForm(){
 /* ===== אזור אישי ===== */
 function mine(){
   const favs=S.shuls.filter(s=>U.favs.includes(s.id));
-  return `<h2>⭐ האזור האישי שלי</h2>
+  return `<h2>⭐ האזור האישי שלי</h2>${pushCard()}
   <div class="card"><h3>בתי הכנסת שלי</h3>${favs.map(s=>`<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>🕍</span><div class="main"><b>${esc(s.name)}</b></div><span>‹</span></div>`).join('')||'<div class="empty-msg">לחצו על ☆ ליד בית כנסת כדי להוסיף אותו לכאן</div>'}</div>
   <div class="card"><h3>🔔 התזכורות שלי</h3>${U.rem.map(r=>`<div class="row"><div class="time">${resolveTm(r.tm,nextDateIn(r.d))}</div><div class="main"><b>${esc(r.title)}</b><span class="muted">${DAYSETS[r.d]?.l} · ${r.before} דק׳ לפני</span></div><button class="btn red sm" onclick="U.rem=U.rem.filter(x=>x.id!=='${r.id}');saveU();render()">✕</button></div>`).join('')||'<div class="empty-msg">לחצו על 🔔 ליד תפילה או שיעור כדי לקבל תזכורת</div>'}</div>
   <div class="card"><h3>📜 מעקב תהילים אישי</h3><div class="muted" style="margin-bottom:8px">סמנו כל פרק שאמרתם · ${U.th.length}/150</div>
@@ -1289,6 +1292,8 @@ function admin(){
   <label class="f">מהירות הפס הרץ (שניות לסיבוב)</label><input class="inp" id="ss" type="number" min="10" max="90" value="${S.settings.tickerSpeed||30}">
   <button class="btn" style="margin-top:10px" onclick="saveSet()">שמירת הגדרות</button></div>
 
+  <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
+  <a class="btn" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://dashboard.onesignal.com/apps/${OS_APP}/notifications/new" target="_blank" rel="noopener">✍️ כתיבת התראה חדשה</a></div>
   <div class="card"><h3>☁️ שרת</h3><div class="muted" style="margin-bottom:8px">מצב: ${C.ok?'✅ מחובר':'⚠️ לא מחובר'}${S.cloud?'':' · השרת עדיין ריק'}</div><div class="btns">${S.cloud?'':'<button class="btn sm" onclick="firstUpload()">🚀 העלאה ראשונה של הנתונים לשרת</button>'}<button class="btn sec sm" onclick="exportData()">⬇️ הורדת גיבוי</button></div></div>`;
 }
 //@sendCode
@@ -1560,8 +1565,32 @@ async function importPack(){
   for(const s of L){try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
   modal(`<p>✅ נוספו ${codes.length} בתי כנסת.</p><p><b>קודי הגבאים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">שליחה לכל גבאי בכפתור 💬 בלוח הניהול.</p>`,'הוספה הושלמה');
 }
+/* ===== 🔔 התראות דחיפה – OneSignal ===== */
+const OS_APP='8adb46b8-0320-45d3-a852-bf0ae8d0e0fb';
+const PUSH={ok:false,on:false,sup:true};
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
+  try{
+    await OS.init({appId:OS_APP,serviceWorkerPath:'ashreichem-israel/sw.js',serviceWorkerParam:{scope:'/ashreichem-israel/'},notifyButton:{enable:false},welcomeNotification:{disable:false,title:'אשריכם ישראל',message:'תודה! מעכשיו תקבלו עדכונים מהקהילה 🙏'}});
+    PUSH.ok=true;PUSH.sup=OS.Notifications.isPushSupported();PUSH.on=OS.User.PushSubscription.optedIn;
+    OS.User.PushSubscription.addEventListener('change',e=>{PUSH.on=!!(e.current&&e.current.optedIn);pushTags();softRender()});
+    pushTags();softRender();
+  }catch(e){console.warn('push',e)}
+});
+function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');if(ROLE&&ROLE.type==='gabbai')t.gabbai=ROLE.sid;if(ROLE&&ROLE.type==='admin')t.admin='1';
+  const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
+function pushToggle(){
+  if(location.protocol!=='https:')return toast('ההתראות עובדות רק מהכתובת באינטרנט');
+  if(!PUSH.ok)return toast('שירות ההתראות עוד נטען – נסו שוב בעוד רגע');
+  if(!PUSH.sup)return toast('המכשיר או הדפדפן לא תומך בהתראות. באייפון – קודם מוסיפים את האפליקציה למסך הבית');
+  OneSignalDeferred.push(async OS=>{try{if(PUSH.on){await OS.User.PushSubscription.optOut();toast('ההתראות כובו')}else{if(Notification.permission==='granted')await OS.User.PushSubscription.optIn();else await OS.Notifications.requestPermission();}}catch(e){toast('לא הצלחנו להפעיל התראות')}PUSH.on=OS.User.PushSubscription.optedIn;pushTags();render()})
+}
+function pushCard(){
+  return `<div class="card push-card ${PUSH.on?'on':''}"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">${PUSH.on?'🔔':'🔕'}</span><div style="flex:1"><b>${PUSH.on?'ההתראות פעילות':'קבלו התראות מהקהילה'}</b><div class="muted">${PUSH.on?'תקבלו עדכונים חשובים גם כשהאפליקציה סגורה':'הודעות חשובות, שיעורים מיוחדים, ספר תהילים חדש ועוד – גם כשהאפליקציה סגורה'}</div></div></div>
+  <button class="btn ${PUSH.on?'ghost':''}" style="width:100%;margin-top:10px" onclick="pushToggle()">${PUSH.on?'כיבוי התראות':'🔔 הפעלת התראות'}</button></div>`
+}
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
-if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{}));
 let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e});
 /* ===== הפעלה ===== */
 (function start(){
