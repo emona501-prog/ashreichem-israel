@@ -1073,7 +1073,7 @@ const SAYDICT={'מנחה':'מִנְחָה','מנחה גדולה':'מִנְחָה
 const PFX={'ב':'בְּ','ו':'וְ','ל':'לְ','ה':'הַ','ש':'שֶׁ','מ':'מִ','כ':'כְּ'};
 const _SDK=Object.keys(SAYDICT).sort((a,b)=>b.length-a.length);
 const _SDRE=new RegExp('(^|[\\s,.;:!?()\\-–])([בולהשמכ]?)('+_SDK.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?=$|[\\s,.;:!?()\\-–])','g');
-const sayNikud=t=>t.replace(_SDRE,(m,a,p,w)=>{let v=SAYDICT[w];if(p){if(p!=='ה'&&v.startsWith('הַ'))v=v.slice(2);else if(p==='ה')v=v.replace(/^([בגדכפתשׁ]+)/,'$1');if(p!=='ה')v=v.replace(/^([בגדכפת])ּ/,'$1');v=PFX[p]+v}return a+v});
+const sayNikud=t=>t.replace(_SDRE,(m,a,p,w)=>{let v=SAYDICT[w];if(p){if(p!=='ה'&&v.startsWith('הַ'))v=v.slice(2);else if(p==='ה')v=v.replace(/^([בגדכפתשׁ]+)/,'$1');if(p!=='ה')v=v.replace(/^([בגדכפת][\u05B0-\u05BB]*)\u05BC/,'$1');v=PFX[p]+v}return a+v});
 const SAYFIX=[[/ק״ש/g,'קריאת שמע'],[/גר״א/g,'גרא'],[/ע״ש/g,'על שם'],[/מוהר״ן/g,'מוֹהֲרַ"ן'],[/מג״א/g,'מגן אברהם'],[/ר״ת/g,'רבנו תם'],[/מוצ״ש/g,'מוצאי שבת'],[/(\d) ש׳/g,'$1 שעות'],[/דק׳/g,'דקות'],[/[״׳]/g,''],[/–|·/g,', ']];
 const sayTm=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return t||'';const[h,m]=t.split(':').map(Number);return m?`${h} ו${m}`:`${h} בדיוק`};
 const sayFix=s=>sayNikud(SAYFIX.reduce((a,[r,v])=>a.replace(r,v),s).replace(/(\d{1,2}):(\d{2})/g,(x)=>sayTm(x)));
