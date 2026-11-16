@@ -222,6 +222,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
 .ic.bi{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin-inline-end:5px;filter:none}.ic.big{width:86px;height:86px;margin:0 auto}.ic.tl{width:40px;height:40px}.shb-ic .ic{width:54px;height:54px}.mic-pulse .ic{margin:0 auto 8px}
+.near-side{display:flex;flex-direction:column;gap:6px}.near-rem{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;color:#fff;font:inherit;font-size:.78rem;font-weight:700;padding:6px 8px;gap:2px}.near-rem .ic{filter:none}
 .al-bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.al-bar i{display:block;height:100%;border-radius:99px}.al-row{align-items:center;gap:8px}.al-bt{display:flex;gap:4px;flex:none}.al-bt .btn{padding:6px 10px}.al-imgs{display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow:auto}.al-imgs img{width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .shb{display:flex;gap:12px;align-items:center;width:100%;text-align:right;font:inherit;border:0;border-radius:16px;padding:12px 14px;margin-bottom:10px;background:linear-gradient(135deg,#1b2f55,#3b2a5c);color:#fff;box-shadow:0 6px 18px rgba(27,47,85,.25);cursor:pointer}.shb.chg{background:linear-gradient(135deg,#7a4a0f,#c4902c)}.shb-ic{font-size:2rem}.shb-x{display:flex;flex-direction:column;gap:2px;flex:1}.shb-x b{font-size:1.08rem;color:#f3d78e}.shb.chg .shb-x b{color:#fff4d6}.shb-x span{font-size:.92rem}.shb-x span b{font-size:inherit;color:#fff}.shb-x small{opacity:.8}.shb-tg{color:#f3d78e;font-size:.82rem!important}
 .say-row{display:flex;gap:8px;margin:-4px 0 12px}.say-row button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 6px;font:inherit;font-weight:700;color:var(--pri,#24456b)}
@@ -521,6 +522,7 @@ function setNh(n){U.nh=n;saveU();pushTags();render()}
 function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
     return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
+    ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון השבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
     <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
@@ -597,7 +599,7 @@ function nearest(){
         <span class="near-t">${esc(p.tm)}</span>
         <span class="near-x"><b>${esc(p.t)}</b><span>${esc(p.s.name)}</span>${p.n?`<small>${esc(p.n)}</small>`:''}</span>
       </button>
-      <a class="near-go" href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener" aria-label="ניווט ל${esc(p.s.name)}">🚗<span>נווט</span></a>
+      <div class="near-side"><a class="near-go" href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener" aria-label="ניווט ל${esc(p.s.name)}">🚗<span>נווט</span></a><button class="near-rem" onclick="remind('${p.s.id}','prayers','${p.id}',1)" aria-label="תזכורת">${ic('alarm','sm')}<span>תזכיר</span></button></div>
     </div>`}).join('')}
   </section>`;
 }
@@ -798,20 +800,28 @@ function thT(n){const i=U.th.indexOf(n);i<0?U.th.push(n):U.th.splice(i,1);saveU(
 function heNum(n){const o=['','א','ב','ג','ד','ה','ו','ז','ח','ט'],t=['','י','כ','ל','מ','נ','ס','ע','פ','צ'];let s='';if(n>=100){s+='ק';n-=100}if(n===15)return s+'טו';if(n===16)return s+'טז';s+=t[Math.floor(n/10)]+o[n%10];return s}
 
 /* ===== תזכורות / התראות ===== */
-function remind(sid,kind,id){
-  const s=shul(sid),x=s[kind].find(q=>q.id===id);const title=(x.t||x.title)+' · '+s.name;
-  window._r={title,tm:x.tm,d:x.d};const shown=dispTm(x)+(isRel(x.tm)?' ('+relLabel(x.tm)+')':'');
-  modal(`<b>${esc(title)}</b><div class="muted">${DAYSETS[x.d]?.l} · ${shown}</div>
-  <label class="f">כמה זמן לפני להזכיר?</label><select class="inp" id="rb"><option value="5">5 דקות</option><option value="10" selected>10 דקות</option><option value="15">15 דקות</option><option value="30">חצי שעה</option></select>
-  <button class="btn" style="width:100%;margin-top:14px" onclick="addRem()">הפעלת תזכורת 🔔</button>`,'תזכורת');
+function remind(sid,kind,id,once){
+  const s=shul(sid),x=s[kind].find(q=>q.id===id);const title=(x.t||x.title)+' · '+s.name;const nx=remNext(x);
+  window._r={title,tm:x.tm,d:x.d,sid,_nx:nx?iso(nx.dt):''};const shown=dispTm(x)+(isRel(x.tm)?' ('+relLabel(x.tm)+')':'');
+  const relOk=S.settings.relay&&PUSH.on;
+  modal(`<div style="text-align:center">${ic('alarm','big')}</div><b>${esc(title)}</b><div class="muted">${DAYSETS[x.d]?.l} · ${shown}${nx?` · הבא: ${iso(nx.dt)===iso(new Date())?'היום':'יום '+DAYNAMES[nx.dt.getDay()]} ${nx.tm}`:''}</div>
+  <label class="f">כמה זמן לפני להזכיר?</label><div class="chips" id="rbC">${[5,10,15,30].map(v=>`<button class="chip ${v===10?'on':''}" data-v="${v}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${v===30?'חצי שעה':v+' דק׳'}</button>`).join('')}</div>
+  <label class="f">כמה פעמים?</label><div class="chips" id="roC"><button class="chip ${once?'on':''}" data-v="1" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">רק הפעם הקרובה</button><button class="chip ${once?'':'on'}" data-v="0" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">קבוע – ${DAYSETS[x.d]?.l}</button></div>
+  <div class="muted" style="margin-top:8px">${relOk?'✅ ההתראה תגיע גם כשהאפליקציה סגורה.':'ℹ️ ההתראה מגיעה כשהאפליקציה פתוחה או ברקע'+(PUSH.on?'.':'. להתראה גם כשהיא סגורה – הפעילו התראות (עוד ← 🔔).')}</div>
+  <button class="btn" style="width:100%;margin-top:14px" onclick="addRem()">${ic('alarm','bi')}הפעלת תזכורת</button>`,'⏰ תזכורת');
 }
 function askNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission()}
-function addRem(){U.rem.push({id:uid(),...window._r,before:+$('#rb').value});saveU();closeModal();toast('התזכורת נשמרה 🔔');askNotif()}
-function notify(msg){if('Notification'in window&&Notification.permission==='granted')new Notification('תזכורת 🔔',{body:msg});toast('🔔 '+msg)}
+function addRem(){const r=window._r,once=$('#roC .chip.on').dataset.v==='1';if(once&&!r._nx)return toast('אין מועד קרוב לתפילה הזו');
+  U.rem.push({id:uid(),title:r.title,tm:r.tm,d:r.d,sid:r.sid,before:+$('#rbC .chip.on').dataset.v,once:once?r._nx:''});saveU();closeModal();toast(once?'⏰ אזכיר לך הפעם':'⏰ התזכורת הקבועה נשמרה');askNotif();remSync()}
+function notify(msg,sys=true){try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  if(sys&&'Notification'in window&&Notification.permission==='granted'){if(navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification('⏰ תזכורת',{body:msg,icon:'icon-192.png',tag:'rem-'+msg})).catch(()=>{try{new Notification('⏰ תזכורת',{body:msg})}catch(e){}});else try{new Notification('⏰ תזכורת',{body:msg})}catch(e){}}
+  toast('⏰ '+msg,6000)}
 function checkRem(){
   const d=new Date(),day=d.getDay(),nm=nowMin(),key=d.toDateString();
-  U.rem.forEach(r=>{if(!DAYSETS[r.d]?.d.includes(day))return;const tm=resolveTm(r.tm,d);if(!tm)return;const at=toMin(tm)-r.before;const k=r.id+key;
-    if(nm>=at&&nm<=toMin(tm)&&!U.fired[k]){U.fired[k]=1;saveU();notify(`${r.title} בשעה ${tm}`)}});
+  const today=iso(d);let ch=false;
+  U.rem.forEach(r=>{if(r.once&&r.once!==today)return;if(!DAYSETS[r.d]?.d.includes(day))return;const tm=resolveTm(r.tm,d);if(!tm)return;const at=toMin(tm)-r.before;const k=r.id+key;
+    if(nm>=at&&nm<=toMin(tm)&&!U.fired[k]){U.fired[k]=1;notify(`${r.title} בשעה ${tm}`,!(U.sched&&U.sched[r.id+'|'+today]));if(r.once)r._done=1;ch=true}});
+  if(U.rem.some(r=>r._done||(r.once&&r.once<today))){U.rem=U.rem.filter(r=>!r._done&&!(r.once&&r.once<today));ch=true}if(ch)saveU();
   notesOn(d).forEach(n=>{if(!n.tm)return;const k='n'+n.id;if(nm>=toMin(n.tm)-(n.before||0)&&nm<=toMin(n.tm)+5&&!U.fired[k]){U.fired[k]=1;saveU();notify(n.text+' · '+n.tm)}});
 }
 
@@ -1059,6 +1069,7 @@ function shabbatV(){
     <div class="sb-tiles">${tile('candle','הדלקת נרות',hm(zf.candle),'40 דק׳ לפני השקיעה')}${tile('sunset','שקיעה ביום שישי',hm(zf.set),'')}${tile('havdala','צאת השבת',hm(zs.tzeit),'')}${tile('stars','רבנו תם',hm(zs.rt),'')}</div>
     <div class="zm-loc">📍 ${esc(LOC().name)}${ST.sat?` · <button class="zm-lnk" onclick="ST.sat='';render()">חזרה לשבת הקרובה</button>`:''}</div>
   </div>
+  <button class="shb chg" style="background:linear-gradient(135deg,#1f5a3d,#3d8a5c)" onclick="bulletin('${iso(sat)}')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלון שבת לוואטסאפ</b><span>תמונה מעוצבת עם כל זמני השבת של כל בתי הכנסת – לשליחה לקבוצות ‹</span></div></button>
   <div class="sb-acts"><button class="btn" onclick="zmShare('shab','${iso(f)}')">${ic('share','bi')}שיתוף</button><button class="btn sec" onclick="printCenter('shab');$('#prD')&&($('#prD').value='${iso(f)}')">${ic('printer','bi')}הדפסה</button><button class="btn sec" onclick="sayToggle(()=>shabSay(fromIso('${iso(sat)}')))">${ic('speaker','bi')}הקראה</button></div>
   ${ch.length?`<h3 style="margin:14px 0 6px;display:flex;gap:6px;align-items:center">${ic('magen','sm')} חגים ומועדים קרובים</h3>${ch.map(c=>`<div class="card sb-ch"><div class="sb-chh"><span class="sb-che">${ic(chagIc(c.h),'md')}</span><div><b>${esc(c.h.join(' · '))}</b><div class="muted">יום ${DAYNAMES[c.x.getDay()]} · ${hebDate(c.x)} · ${gStr(c.x)}</div></div></div>${c.rows.map(r=>`<div class="row"><div class="main"><b>${esc(r[0])}</b></div><div class="time" style="font-size:1.05rem">${esc(r[1])}</div></div>`).join('')}</div>`).join('')}`:''}
   <div class="card"><h3>⏰ זמני השבת</h3>${[['סוף זמן ק״ש – מג״א',zs.shmaM],['סוף זמן ק״ש – גר״א',zs.shmaG],['סוף זמן תפילה – גר״א',zs.tfG],['חצות היום',zs.chatzot],['מנחה גדולה',zs.mg],['מנחה קטנה',zs.mk],['שקיעה',zs.set]].map(([t,v])=>`<div class="row"><div class="main"><b>${t}</b></div><div class="time">${hm(v)}</div></div>`).join('')}</div>
@@ -1193,6 +1204,75 @@ async function alonUsage(){const el=$('#alUse');if(!el||!C.ok)return;const L=S.a
   const eg=(mo.bytes||0)*1.37,G=1073741824,pc=x=>Math.min(100,Math.round(x*100));const bar=(v,max,l)=>`<div style="margin:8px 0 2px;display:flex;justify-content:space-between"><b>${l}</b><span><bdi>${(v/1048576).toFixed(0)}MB</bdi> מתוך <bdi>${(max/G).toFixed(0)}GB</bdi></span></div><div class="al-bar"><i style="width:${pc(v/max)}%;background:${v/max>.8?'#d93025':v/max>.5?'#e8a317':'#2e7d4f'}"></i></div>`;
   el.innerHTML=`<h3>📰 עלונים – שימוש במכסה החינמית</h3><div class="muted">${L.length} עלונים (${L.length-files.length} קישורים) · ${mo.opens||0} פתיחות החודש</div>${bar(tot,G,'אחסון')}${bar(eg,10*G,'תעבורה החודש')}<div class="muted" style="margin-top:6px">${eg/(10*G)>.7?'⚠️ מתקרבים למכסה – עדיף לפרסם עלונים כקישור עד סוף החודש.':'✅ הכול תקין.'} (הערכה – הנתון המדויק ב-Firebase ← Usage)</div>`}
 function alonWeekSec(){const L=alonWeek();if(!L.length)return'';return `<div class="card"><h3 style="display:flex;gap:6px;align-items:center">${ic('alon','sm')} עלוני השבוע</h3>${L.map(a=>alonCard(a,1)).join('')}<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="go('alonim')">לכל העלונים ‹</button></div>`}
+/* ===== 🗞️ עלון שבת אוטומטי (תמונה לוואטסאפ) ===== */
+let BUL={t:0,sat:null};const _icImg={};
+const icImg=k=>{if(!_icImg[k]){const i=new Image();i.src=IC[k];_icImg[k]=i}return _icImg[k]};
+function bulData(sat){const f=addDays(sat,-1),zf=zmanim(f),zs=zmanim(sat),cand=toMin(hm(zf.candle)),out=toMin(hm(zs.tzeit));
+  const grp=L=>{const m={};L.forEach(p=>{(m[p.t]=m[p.t]||[]).includes(p.tm)||(m[p.t]=m[p.t]||[]).push(p.tm)});return Object.entries(m).map(([t,a])=>t+' '+a.join(' · '))};
+  const sh=S.shuls.filter(inNh).map(s=>{const P=k=>(s.prayers||[]).filter(p=>p.t!=='זמן'&&DAYSETS[p.d]?.d.includes(k===5?5:6)).map(p=>({t:p.t,d:p.d,tm:resolveTm(p.tm,k===5?f:sat)})).filter(p=>p.tm).sort((a,b)=>toMin(a.tm)-toMin(b.tm));
+    const fr=P(5).filter(p=>toMin(p.tm)>=cand-100),sa=P(6),mz=sa.filter(p=>p.d==='mz'||toMin(p.tm)>=out-5),sd=sa.filter(p=>!mz.includes(p));
+    const L=[];[['ערב שבת',fr],['שבת',sd],['מוצ״ש',mz]].forEach(([k,a])=>{if(a.length)grp(a).forEach((t,i)=>L.push([i?'':k,t]))});return{n:s.name,L}}).filter(x=>x.L.length);
+  const mv=MOLAD().find(e=>{const q=mevOf(e);return q&&iso(q)===iso(sat)});const hil=[];for(let i=-1;i<6;i++)hillulotOn(addDays(sat,i)).forEach(h=>hil.push(h.name));
+  return{f,sat,zf,zs,par:parTitle(sat),nm:shabNames(sat),sh,mv,hil:hil.slice(0,4),al:alonWeek()}}
+function bulletin(satIso){BUL.sat=satIso?fromIso(satIso):nextSat(new Date());BUL.t=U.bulT||0;['shab2','candle','havdala','stars','shul','alon','moon'].forEach(icImg);
+  modal(`<div class="chips" style="justify-content:center">${SH_TH.map((t,i)=>`<button class="chip ${i===BUL.t?'on':''}" onclick="BUL.t=U.bulT=${i};saveU();drawBul();this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))"><span class="sh-dot" style="background:linear-gradient(135deg,${t.bg[0]},${t.bg[1]})"></span>${t.n}</button>`).join('')}</div>
+  <canvas id="shCv" class="sh-cv"></canvas>
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="doShare(1)">${ic('share','bi')}שיתוף לוואטסאפ</button><button class="btn sec" onclick="doShare(0)">⬇️ שמירה</button><button class="btn ghost" onclick="bulTxt()">💬 כטקסט</button></div>
+  <div class="muted" style="margin-top:6px;text-align:center">העלון נבנה אוטומטית מכל זמני בתי הכנסת שבאפליקציה</div>`,'🗞️ עלון שבת לוואטסאפ');
+  const d=bulData(BUL.sat);SH.c={title:'שבת '+d.par,date:hebDate(d.f)+' · '+gStr(d.f)};
+  (document.fonts?Promise.all([document.fonts.load("700 60px 'Frank Ruhl Libre'"),document.fonts.load("700 30px Assistant")]).catch(()=>{}):Promise.resolve()).then(()=>setTimeout(drawBul,80));
+}
+function drawBul(){const cv=$('#shCv');if(!cv)return;const d=bulData(BUL.sat),T=SH_TH[BUL.t],W=1080,SER="'Frank Ruhl Libre',serif",SAN="Assistant,sans-serif";
+  const m=document.createElement('canvas').getContext('2d');m.direction='rtl';
+  // מדידת גובה
+  const fs=d.sh.length>8?28:d.sh.length>5?31:34,lh=fs*1.42;let H=760;
+  d.sh.forEach(s=>{H+=58;s.L.forEach(([k,v])=>{m.font=`600 ${fs}px ${SAN}`;H+=Math.max(1,wrapT(m,v,W-330).length)*lh+4});H+=22});
+  if(d.mv)H+=110;if(d.hil.length)H+=70;if(d.al.length)H+=70;H+=300;H=Math.max(H,1350);
+  cv.width=W;cv.height=H;const x=cv.getContext('2d');x.direction='rtl';x.textAlign='center';
+  const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,T.bg[0]);g.addColorStop(1,T.bg[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.strokeStyle=T.ac;x.globalAlpha=.55;x.lineWidth=3;x.strokeRect(30,30,W-60,H-60);x.globalAlpha=.25;x.strokeRect(44,44,W-88,H-88);x.globalAlpha=1;
+  const im=(k,cx,cy,s)=>{const i=icImg(k);if(i.complete&&i.naturalWidth)x.drawImage(i,cx-s/2,cy-s/2,s,s)};
+  let y=70;im('shab2',W/2,y+70,140);y+=160;
+  x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText('🗞️ עלון השבת של '+(S.settings.appName||'אשריכם ישראל'),W/2,y);y+=78;
+  x.fillStyle=T.ac;x.font=`900 ${d.par.length>16?64:78}px ${SER}`;x.fillText('שבת '+d.par,W/2,y);y+=50;
+  if(d.nm.length){x.fillStyle=T.ink;x.font=`700 30px ${SAN}`;x.fillText('✦ '+d.nm.join(' · ')+' ✦',W/2,y);y+=44}
+  x.fillStyle=T.sub;x.font=`600 30px ${SAN}`;x.fillText(hebDate(d.sat)+' · '+gStr(d.sat),W/2,y);y+=40;
+  // שלוש קופסאות זמנים
+  const bx=[[ 'candle','הדלקת נרות',hm(d.zf.candle)],['havdala','צאת השבת',hm(d.zs.tzeit)],['stars','רבנו תם',hm(d.zs.rt)]],bw=290,gap=30,bx0=(W-3*bw-2*gap)/2;
+  bx.forEach(([k,t,v],i)=>{const X=W-bx0-bw-(i*(bw+gap));x.fillStyle=T.band;x.beginPath();x.roundRect?x.roundRect(X,y,bw,200,24):x.rect(X,y,bw,200);x.fill();x.strokeStyle=T.ac;x.globalAlpha=.5;x.lineWidth=2;x.stroke();x.globalAlpha=1;
+    im(k,X+bw/2,y+52,70);x.fillStyle=T.sub;x.font=`700 28px ${SAN}`;x.fillText(t,X+bw/2,y+118);x.fillStyle=T.ink;x.font=`800 58px ${SAN}`;x.fillText(v,X+bw/2,y+180)});
+  y+=200;x.fillStyle=T.sub;x.font=`500 22px ${SAN}`;x.fillText('📍 '+LOC().name+' · הדלקת נרות 40 דק׳ לפני השקיעה · יש להחמיר 2–3 דק׳',W/2,y+36);y+=80;
+  // בתי הכנסת
+  const orn=yy=>{x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(W/2-300,yy);x.lineTo(W/2-150,yy);x.moveTo(W/2+150,yy);x.lineTo(W/2+300,yy);x.stroke()};
+  x.fillStyle=T.ac;x.font=`800 40px ${SER}`;{const tw=x.measureText('תפילות השבת בבתי הכנסת').width/2+24;x.strokeStyle=T.ac;x.lineWidth=2;x.beginPath();x.moveTo(110,y-12);x.lineTo(W/2-tw,y-12);x.moveTo(W/2+tw,y-12);x.lineTo(W-110,y-12);x.stroke()}x.fillText('תפילות השבת בבתי הכנסת',W/2,y+2);y+=50;
+  d.sh.forEach((s,j)=>{x.textAlign='right';x.fillStyle=T.ac;x.font=`800 ${fs+8}px ${SER}`;x.fillText('🕍 '+s.n,W-90,y+fs+4);y+=58;
+    s.L.forEach(([k,v])=>{x.fillStyle=T.sub;x.font=`700 ${fs-4}px ${SAN}`;x.fillText(k,W-100,y+fs);x.fillStyle=T.ink;x.font=`600 ${fs}px ${SAN}`;
+      const L=wrapT(x,v,W-330);L.forEach((l,i)=>x.fillText(l,W-240,y+fs+i*lh));y+=Math.max(1,L.length)*lh+4});
+    y+=10;if(j<d.sh.length-1){x.strokeStyle=T.band;x.lineWidth=2;x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke()}y+=12;x.textAlign='center'});
+  if(!d.sh.length){x.fillStyle=T.sub;x.font=`600 30px ${SAN}`;x.fillText('עוד לא הוזנו זמני שבת לבתי הכנסת',W/2,y+40);y+=80}
+  y+=20;x.textAlign='center';
+  if(d.mv){im('moon',W/2,y+28,52);x.fillStyle=T.ink;x.font=`800 32px ${SER}`;x.fillText('שבת מברכים חודש '+d.mv.m+' · ראש חודש יום '+d.mv.rcd,W/2,y+90);y+=110}
+  if(d.hil.length){x.fillStyle=T.sub;x.font=`600 27px ${SAN}`;x.fillText('🕯️ הילולות השבוע: '+d.hil.join(' · '),W/2,y+30);y+=70}
+  if(d.al.length){x.fillStyle=T.sub;x.font=`600 27px ${SAN}`;x.fillText('📰 '+(d.al.length===1?'עלון שבת חדש':d.al.length+' עלוני שבת')+' – לקריאה והדפסה באפליקציה',W/2,y+30);y+=70}
+  x.fillStyle=T.ac;x.font=`800 54px ${SER}`;x.fillText('שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!',W/2,H-180);
+  x.fillStyle=T.band;x.fillRect(60,H-130,W-120,80);x.fillStyle=T.sub;x.font=`700 23px ${SAN}`;
+  x.fillText('📲 כל הזמנים מתעדכנים באפליקציה: '+APP_URL.replace('https://','').replace(/\/$/,''),W/2,H-96);
+  x.fillStyle='#ff4040';x.font=`700 24px ${SAN}`;x.fillText('▶ ערוץ גאולה וישועה ביוטיוב · youtube.com/@yeshurun148',W/2,H-62);
+}
+function bulTxt(){const d=bulData(BUL.sat);const t=`🕯️ *שבת ${d.par}*${d.nm.length?'\n✦ '+d.nm.join(' · '):''}\n${hebDate(d.sat)}\n\n🕯️ הדלקת נרות: *${hm(d.zf.candle)}*\n✨ צאת השבת: *${hm(d.zs.tzeit)}*\n🌌 רבנו תם: *${hm(d.zs.rt)}*\n\n`+
+  d.sh.map(s=>`🕍 *${s.n}*\n`+s.L.map(([k,v])=>`${k}: ${v}`).join('\n')).join('\n\n')+(d.mv?`\n\n🌙 שבת מברכים חודש ${d.mv.m}`:'')+`\n\nשבת שלום ומבורך!\n📲 ${APP_URL}`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
+/* ===== ⏰ תזכורות: התראה מקומית + תזמון דרך הממסר (מגיע גם כשהאפליקציה סגורה) ===== */
+function remNext(x){const now=new Date();for(let i=0;i<8;i++){const dt=addDays(now,i);dt.setHours(12,0,0,0);if(!DAYSETS[x.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(x.tm,dt);if(!tm)continue;if(i===0&&toMin(tm)<=nowMin())continue;return{dt,tm}}return null}
+function remOcc(r,days){const o=[],now=Date.now();for(let i=0;i<=days;i++){const dt=addDays(new Date(),i);dt.setHours(12,0,0,0);if(r.once&&iso(dt)!==r.once)continue;if(!DAYSETS[r.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(r.tm,dt);if(!tm)continue;const[h,mi]=tm.split(':').map(Number);const at=new Date(dt);at.setHours(h,mi-r.before,0,0);if(at.getTime()>now+60000)o.push({key:r.id+'|'+iso(dt),at,tm})}return o}
+const osSub=()=>{try{return window.OneSignal?.User?.PushSubscription?.id||''}catch(e){return''}};
+async function relayCall(o){const u=S.settings.relay;if(!u)return null;try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});const t=await r.text();try{return JSON.parse(t)}catch(e){return{raw:t}}}catch(e){try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)})}catch(e2){}return null}}
+let _remSyncing=false;
+async function remSync(){if(_remSyncing||!S.settings.relay||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
+  try{U.sched=U.sched||{};const want={};U.rem.forEach(r=>remOcc(r,2).forEach(o=>want[o.key]={r,o}));
+    for(const[k,{r,o}]of Object.entries(want)){if(U.sched[k])continue;const res=await relayCall({kind:'rem',sub,at:o.at.toISOString(),title:'⏰ '+r.title,body:`בשעה ${o.tm} · עוד ${r.before} דקות`});U.sched[k]={id:res?.id||'',at:o.at.getTime()}}
+    for(const[k,v]of Object.entries(U.sched)){if(v.at<Date.now()-36e5){delete U.sched[k];continue}if(!want[k]&&v.at>Date.now()){if(v.id)await relayCall({kind:'cancel',id:v.id});delete U.sched[k]}}
+    saveU()}finally{_remSyncing=false}}
 /* ----- שיתוף מעוצב ----- */
 const APP_URL='https://emona501-prog.github.io/ashreichem-israel/';
 const YT_URL='https://youtube.com/@yeshurun148';
@@ -2402,7 +2482,7 @@ if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
     await OS.init({appId:OS_APP,serviceWorkerPath:'ashreichem-israel/sw.js',serviceWorkerParam:{scope:'/ashreichem-israel/'},notifyButton:{enable:false},promptOptions:{slidedown:{prompts:[{type:'push',autoPrompt:true,text:{actionMessage:'רוצים לקבל עדכונים מהקהילה – שיעורים, הודעות וספרי תהילים? אפשר לבטל בכל עת.',acceptButton:'כן, להפעיל',cancelButton:'אחר כך'},delay:{pageViews:1,timeDelay:10}}]}},welcomeNotification:{disable:false,title:'אשריכם ישראל',message:'תודה! מעכשיו תקבלו עדכונים מהקהילה 🙏'}});
     PUSH.ok=true;PUSH.sup=OS.Notifications.isPushSupported();PUSH.on=OS.User.PushSubscription.optedIn;
     OS.User.PushSubscription.addEventListener('change',e=>{PUSH.on=!!(e.current&&e.current.optedIn);pushTags();softRender()});
-    pushTags();softRender();
+    pushTags();softRender();setTimeout(remSync,3000);
   }catch(e){console.warn('push',e)}
 });
 function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');if(ROLE&&ROLE.type==='gabbai')t.gabbai=ROLE.sid;if(ROLE&&ROLE.type==='admin')t.admin='1';
@@ -2423,7 +2503,7 @@ let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_in
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else autoInstallGuide()}setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else autoInstallGuide()}setInterval(()=>{checkRem();if(Date.now()-(window._rs||0)>6e5){window._rs=Date.now();remSync()}if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
