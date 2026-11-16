@@ -219,6 +219,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
 .adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
+#dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
 .ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
 .ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -398,7 +399,7 @@ const shul=id=>S.shuls.find(s=>s.id===id);
 const canEdit=sid=>ROLE&&(ROLE.type==='admin'||(ROLE.type==='gabbai'&&ROLE.sid===sid));
 const inNh=s=>!U.nh||s.nh===U.nh;
 function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener" style="word-break:break-all">$1</a>').replace(/\b(0\d{1,2}-?\d{3}-?\d{4})\b/g,'<a href="tel:$1">$1</a>').replace(/([\w.]+@[\w.]+\.\w+)/g,'<a href="mailto:$1">$1</a>')}
-function toast(m){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+function toast(m,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||2600)}
 /* ===== תאריך עברי ===== */
 const _hc={};
 function hebParts(date){const k=date.toDateString();if(_hc[k])return _hc[k];const p=new Intl.DateTimeFormat('en-u-ca-hebrew',{day:'numeric',month:'long',year:'numeric'}).formatToParts(date);const g=t=>p.find(x=>x.type===t)?.value;return _hc[k]={d:+g('day'),m:g('month'),y:+(g('year')||g('relatedYear'))}}
@@ -1142,6 +1143,7 @@ function th2V(){
   const act=T.books.filter(b=>!b.doneAt),fin=T.books.filter(b=>b.doneAt).sort((a,b)=>b.doneAt-a.doneAt);
   return `<h2>📖 תהילים מחולק</h2>
   <div class="muted" style="margin-bottom:10px">כל אחד לוקח פרק פנוי, קורא ומסמן – וביחד מסיימים ספר תהילים שלם.</div>
+  <button class="btn ded-btn" onclick="dedStart()">💝 להקדיש ספר תהילים – לרפואה, לעילוי נשמת, להצלחה</button>
   <div class="stat" style="margin-bottom:12px"><div><b>${T.total}</b>ספרים שסיימנו</div><div><b>${act.length}</b>ספרים פתוחים</div><div><b>${U.thMine||0}</b>פרקים שקראתי</div></div>
   ${act.map(b=>`<div class="card" style="cursor:pointer" onclick="go('th2',{b:'${b.id}'})"><h3 style="margin-bottom:2px">${esc(b.title)}</h3>${b.ded?`<div style="color:#8a6a10;font-weight:700">${esc(b.ded)}</div>`:''}${b.deadline?`<div class="muted">🎯 יעד: ${hebDate(fromIso(b.deadline),1)} (${gStr(fromIso(b.deadline))})</div>`:''}<div style="height:8px"></div>${thBar(b)}
     <button class="btn" style="width:100%;margin-top:10px" onclick="event.stopPropagation();takeNext('${b.id}')">📖 תנו לי פרק פנוי</button></div>`).join('')}
@@ -1159,6 +1161,7 @@ function thBook(b){
   <div class="card"><h3>או בחרו פרק פנוי</h3>
   <div class="th">${Array.from({length:150},(_,i)=>{const n=i+1,s=chSt(b,n);return `<button class="${cls[s]}" ${s==='done'||s==='taken'?'disabled':''} onclick="takeCh('${b.id}',${n})" aria-label="פרק ${n} – ${({free:'פנוי',done:'נקרא',taken:'בקריאה אצל מישהו',mine:'שלך'})[s]}">${heNum(n)}</button>`}).join('')}</div>
   <div class="legend"><span><i style="background:var(--card);border:1px solid var(--line)"></i>פנוי</span><span><i style="background:#e9c46a"></i>בקריאה עכשיו</span><span><i style="background:var(--pri2)"></i>שלך</span><span><i style="background:var(--ok)"></i>נקרא</span></div></div>
+  <button class="btn sec sm" style="width:100%;margin-bottom:10px" onclick="dedStart()">💝 להקדיש ספר תהילים משלכם</button>
   ${ROLE?.type==='admin'||(b.sid&&canEdit(b.sid))?`<button class="btn red sm" onclick="closeBook('${b.id}')">סגירת הספר</button>`:''}`;
 }
 function takeNext(bid){const b=bookOf(bid);const n=nextFree(b);if(!n)return toast('כל הפרקים כבר נלקחו – נסו שוב בעוד כמה דקות');takeCh(bid,n)}
@@ -1635,6 +1638,46 @@ async function addBook(){
 async function closeBook(bid){if(!confirm('לסגור את הספר הזה?')||!needCloud())return;try{await C.F.deleteDoc(dref('th2',bid))}catch(e){return cerr(e)}go('th2')}
 async function ensureBook(){if(!C.ok||!S.cloud)return;if((S.th2?.books||[]).some(b=>!b.doneAt))return;if(window._eb)return;window._eb=1;try{await C.F.addDoc(col('th2'),{title:'ספר תהילים קהילתי',ded:'',auto:true,deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}})}catch(e){window._eb=0}}
 
+
+/* ----- 💝 הקדשת ספר תהילים ע"י כל משתמש (משותף עם ברסלב PRO – אוסף th2) ----- */
+const DON={bit:'054-6137202',paybox:'https://links.payboxapp.com/BiD773Dwv7b'};
+let DED={amt:18,paid:false};
+function dedStart(){
+  if(!C.ok||!S.cloud)return toast('צריך חיבור לאינטרנט כדי לפתוח ספר');
+  DED={amt:18,paid:false};
+  modal(`<div class="ded-q"><b>"צְדָקָה תַּצִּיל מִמָּוֶת"</b><small>(משלי י, ב)</small></div>
+  <div class="ded-q"><b>"גְּדוֹלָה צְדָקָה שֶׁמְּקָרֶבֶת אֶת הַגְּאֻלָּה"</b><small>(בבא בתרא י.)</small></div>
+  <div class="ded-q"><b>"עַשֵּׂר תְּעַשֵּׂר – עַשֵּׂר בִּשְׁבִיל שֶׁתִּתְעַשֵּׁר"</b><small>(תענית ט.)</small></div>
+  <p style="margin:12px 0 8px;font-weight:700">כדי לפתוח ספר להקדשה – בחרו סכום צדקה, לזיכוי הרבים ולהחזקת האפליקציה:</p>
+  <div class="chips" id="dedA" style="flex-wrap:wrap">${[10,18,26].map(v=>`<button class="chip ${v===18?'on':''}" onclick="dedAmt(${v},this)">${v} ₪</button>`).join('')}<button class="chip" onclick="dedAmt(0,this)">סכום אחר</button></div>
+  <input class="inp" id="dedO" type="number" min="1" inputmode="numeric" placeholder="הקלידו סכום בש״ח" style="display:none;margin-top:8px" oninput="DED.amt=Math.max(0,Math.round(+this.value||0));dedLine()">
+  <div class="ded-sum" id="dedL"></div>
+  <div class="btns"><button class="btn" style="flex:1" onclick="dedBit()">📱 ביט</button><button class="btn" style="flex:1" onclick="dedPb()">💳 PayBox</button></div>
+  <button class="btn" id="dedGo" style="width:100%;margin-top:10px;background:var(--ok)" disabled onclick="dedForm()">✅ תרמתי – להמשך פתיחת הספר</button>
+  <div class="muted" id="dedH" style="text-align:center;margin-top:4px">הכפתור ייפתח אחרי מעבר לביט או ל-PayBox</div>`,'💝 הקדשת ספר תהילים');
+  dedLine();
+}
+function dedAmt(v,el){document.querySelectorAll('#dedA .chip').forEach(c=>c.classList.toggle('on',c===el));const o=$('#dedO');o.style.display=v?'none':'block';if(v)DED.amt=v;else{DED.amt=Math.round(+o.value||0);o.focus()}dedLine()}
+function dedLine(){const l=$('#dedL');if(l)l.innerHTML=DED.amt?`הסכום שבחרתם: <b>${DED.amt} ₪</b> – הקלידו אותו באפליקציית התשלום.`:'הקלידו את הסכום שתרצו לתרום'}
+function dedPaid(){DED.paid=true;const b=$('#dedGo');if(b)b.disabled=false;const h=$('#dedH');if(h)h.style.display='none'}
+async function dedBit(){if(!DED.amt)return toast('בחרו סכום');try{await navigator.clipboard.writeText(DON.bit)}catch(e){}
+  dedPaid();toast(`המספר ${DON.bit} הועתק 📋 פתחו את ביט והעבירו ${DED.amt} ₪`,6000)}
+function dedPb(){if(!DED.amt)return toast('בחרו סכום');dedPaid();window.open(DON.paybox,'_blank','noopener');toast(`בפייבוקס הקלידו ${DED.amt} ₪`,5000)}
+function dedForm(){
+  if(!DED.paid)return;
+  modal(`<label class="f">ההקדשה</label><div class="chips" id="dedK" style="flex-wrap:wrap">${['לרפואת','לעילוי נשמת','להצלחת','לזיווג הגון ל'].map((k,i)=>`<button class="chip ${i?'':'on'}" data-k="${k}" onclick="document.querySelectorAll('#dedK .chip').forEach(c=>c.classList.toggle('on',c===this))">${k}</button>`).join('')}</div>
+  <label class="f">שם *</label><input class="inp" id="dedN" maxlength="60" placeholder="פלוני בן פלונית">
+  <label class="f">שם הספר (לא חובה)</label><input class="inp" id="dedT" maxlength="50" placeholder="ספר תהילים">
+  <button class="btn" id="dedOpen" style="width:100%;margin-top:12px" onclick="dedOpen()">📖 פתיחת הספר</button>`,'💝 פרטי ההקדשה');
+}
+async function dedOpen(){
+  const n=$('#dedN').value.trim().slice(0,60);if(!n)return toast('נא לכתוב שם להקדשה');
+  const k=$('#dedK .chip.on').dataset.k,ded=k.endsWith(' ל')?k+n:k+' '+n,title=$('#dedT').value.trim().slice(0,50)||'ספר תהילים';
+  if(!C.ok)return toast('אין חיבור לשרת');const btn=$('#dedOpen');btn.disabled=true;
+  try{const r=await C.F.addDoc(col('th2'),{title,ded,auto:true,once:true,src:'ash',deadline:'',sid:'',created:Date.now(),doneAt:null,ch:{}});
+    closeModal();go('th2',{b:r.id});toast('הספר נפתח 📖 שתפו את הקישור כדי שעוד אנשים ישתתפו',6000)}
+  catch(e){btn.disabled=false;cerr(e)}
+}
 /* ===== חבילת בתי כנסת להוספה (מרשימת ארמון הנציב וארנונה) ===== */
 const NEW_SHULS=[
  {id:'nirnachshon',name:'ניר נחשון',address:'',nusach:'ספרדי ירושלמי',access:'לא נגיש – יש מדרגות',gabbaim:[{name:'שאול',phone:'052-2204028',pub:true}],notes:'',prayers:[],events:[]},
