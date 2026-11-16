@@ -539,6 +539,7 @@ function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
     return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
+    ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
     <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
@@ -2254,6 +2255,16 @@ const NEW_SHULS=[
  {id:'chabadarnona',name:'בית חב״ד ובית כנסת חב״ד ארנונה',address:'כפר עציון 8',nusach:'חב״ד',access:'',gabbaim:[{name:'הרב מענדי בריקמן',phone:'054-5922801',pub:true}],notes:'',prayers:[],events:[]},
  {id:'israelhatzair',name:'בית כנסת "ישראל הצעיר"',address:'אבשלום חביב 11',nusach:'אשכנז',access:'',gabbaim:[{name:'הרב שמואל שער',phone:'052-3904110',pub:true}],notes:'',
   prayers:[['שחרית','wk6','06:30',''],['ערבית','wk','21:00',''],['קבלת שבת','fri','@candle+25','מנחה וקבלת שבת'],['שחרית','sat','06:45','נוסח ספרד'],['שחרית','sat','08:30','נוסח אשכנז']],events:[]}
+ ,{id:'kehilatyaakov',name:'קהילת יעקב – בית הכנסת ובית המדרש המרכזי',address:'יהודה 2',nusach:'',access:'',gabbaim:[{name:'',phone:'',pub:true}],
+  notes:'בראשות הרה״ג דוד מימון שליט״א.\nהזמנים לפי שעון חורף.',
+  prayers:[['שחרית','wk6','05:45','מניין ראשון'],['שחרית','d023','07:00','מניין שני'],['שחרית','fri','07:00','מניין שני'],['שחרית','d14','07:30','מניין שני (שני וחמישי)'],
+   ['מנחה','wk','12:15','מנחה גדולה'],['מנחה','wk','16:15','מנחה קטנה'],['ערבית','wk','17:00',''],
+   ['מנחה','fri','@candle+19','ואחריה קבלת שבת ודברי תורה'],['ערבית','fri','@candle+59','ערבית של שבת'],
+   ['שחרית','sat','07:30','שחרית ומוסף'],['מנחה','sat','12:30','מנחה גדולה'],['מנחה','sat','@set-100','מנחה קטנה'],['ערבית','mz','@tzeit+0','ערבית של מוצאי שבת']],
+  events:[['חוק לישראל','שיעור תורה','wk6','06:45','','הרב יעקב לוי הי״ו',''],['תלמוד','שיעור תורה','wk','09:00','','הרב יוסף שוואטו הי״ו',''],
+   ['שיעור תורה','שיעור תורה','wk','16:40','','הרה״ג דוד מימון שליט״א','בין מנחה לערבית'],['הלכה בענייני דיומא','שיעור תורה','d2','20:00','','הרב כפיר אזולאי הי״ו',''],
+   ['שיר השירים','ציבורי','fri','@candle+6','','',''],['שיעור תורה','שיעור תורה','sat','13:00','','הרה״ג דוד מימון שליט״א',''],
+   ['תהילים לילדים','ילדים','sat','14:00','','',''],['שיעור תורה','שיעור תורה','sat','@tzeit-20','','הרב נדב דידי הי״ו','לפני ערבית של מוצ״ש']]}
 ].map(s=>({...s,nh:'ארנונה – תלפיות',photos:[],gabbai:s.gabbaim[0].name,phone:s.gabbaim[0].phone,
   prayers:s.prayers.map(p=>({id:uid(),t:p[0],d:p[1],tm:p[2],n:p[3]})),events:s.events.map(e=>({id:uid(),title:e[0],c:e[1],d:e[2],tm:e[3],end:e[4],who:e[5],n:e[6]}))}));
 const packPending=()=>NEW_SHULS.filter(s=>!shul(s.id));
