@@ -221,6 +221,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
+.adm-home{background:linear-gradient(135deg,#16294a,#2f5585);color:#fff}.adm-home h3{color:#f3d78e}.adm-home .muted{color:#cfdcec}.adq-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.adq{position:relative;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit}.adq span{font-size:1.5rem}.adq b{font-size:.82rem;line-height:1.2}.adq i{position:absolute;top:4px;left:6px;background:#d93025;color:#fff;border-radius:999px;font-style:normal;font-size:.72rem;min-width:18px;padding:0 5px}
 .ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
 .ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
 .ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -500,6 +501,16 @@ function nhChips(){
 function setNh(n){U.nh=n;saveU();pushTags();render()}
 
 /* ===== מסך הבית ===== */
+
+/* ----- ⚡ גישה מהירה למנהל במסך הראשי ----- */
+function admHome(){
+  if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
+    return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
+    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}</div></div>`}
+  if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
+  return'';
+}
+function admPick(){modal(S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="closeModal();editShul('${s.id}')"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}${missingOf(s).length?' · ⚠️ חסר: '+missingOf(s).join(', '):''}</span></div><span>✏️</span></button>`).join(''),'✏️ איזה בית כנסת לעדכן?')}
 function home(){
   const d=new Date().getDay(),nm=nowMin();
   const next=collect('prayers',d,p=>p.t!=='זמן').filter(p=>toMin(p.tm)>=nm-2).slice(0,4);
@@ -511,6 +522,7 @@ function home(){
   const todayEv=collect('events',d).filter(e=>toMin(e.tm)>=nm).length;
   return `
   <h2>${greet()} 👋</h2>
+  ${admHome()}
   ${nearest()}
   ${mnyHome()}
   ${gabHome()}
@@ -2074,7 +2086,7 @@ function ibV(){
   if(ROLE&&ROLE.type==='admin'&&ST.view!=='mine')return ibAdminV();
   const L=S.ibMine||[];
   setTimeout(()=>{L.filter(m=>m.unU).forEach(m=>C.F.updateDoc(dref('inbox',m.id),{unU:false}).catch(()=>{}))},800);
-  return `<h2>📮 תיבת הודעות למנהל</h2><div class="muted" style="margin-bottom:10px">יש לכם רעיון, בקשה, מידע להוסיף או תקלה? כתבו כאן – ההודעה מגיעה ישירות למנהל האפליקציה, והתשובה תופיע כאן.</div>
+  return `<h2>📮 תיבת הודעות למנהל</h2>${!ROLE?`<div class="card" style="background:#eef3f8"><b>🛡️ אתם המנהל?</b> <span class="muted">ההודעות שכולם שולחים מופיעות רק כשמחוברים כמנהל.</span><button class="btn sm" style="margin-top:8px;width:100%" onclick="openLogin()">כניסת מנהל – לראות את כל ההודעות</button></div>`:''}<div class="muted" style="margin-bottom:10px">יש לכם רעיון, בקשה, מידע להוסיף או תקלה? כתבו כאן – ההודעה מגיעה ישירות למנהל האפליקציה, והתשובה תופיע כאן.</div>
   <div class="card"><label class="f">נושא</label><div class="chips" style="flex-wrap:wrap" id="ibC">${IB_CAT.map((c,i)=>`<button class="chip ${i===0?'on':''}" data-k="${c[0]}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${c[1]} ${c[2]}</button>`).join('')}</div>
   <label class="f">ההודעה</label><textarea class="inp" id="ibT" maxlength="1500" placeholder="כתבו כאן…" style="min-height:110px"></textarea>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">שם (לא חובה)</label><input class="inp" id="ibN" value="${esc(U.name||'')}" maxlength="40"></div><div><label class="f">טלפון (לא חובה)</label><input class="inp" id="ibP" inputmode="tel" maxlength="15" value="${esc(U.phone||'')}"></div></div>
