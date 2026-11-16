@@ -220,6 +220,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
+.sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
 .ib-badge{display:inline-block;background:#d93025;color:#fff;border-radius:999px;font-size:.75rem;min-width:20px;padding:1px 6px;text-align:center;margin-inline-start:6px;vertical-align:2px}
 .ib-new{border-color:var(--pri2);box-shadow:0 0 0 2px rgba(58,101,150,.18)}
 .ib-th{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -444,7 +445,7 @@ function greet(){const h=new Date().getHours();return h<5?'לילה טוב':h<12
 const RELB={set:'השקיעה',tzeit:'צאת הכוכבים',rt:'צאת ר״ת',rise:'הנץ',plag:'פלג המנחה',candle:'הדלקת נרות'};
 const isRel=t=>typeof t==='string'&&t[0]==='@';
 function parseRel(t){const m=/^@(\w+)([+-])(\d+)$/.exec(t||'');return m?{b:m[1],s:m[2],n:+m[3]}:null}
-function minTxt(n){return n===60?'שעה':n===75?'שעה ורבע':n===90?'שעה וחצי':n===120?'שעתיים':n+' דק׳'}
+function minTxt(n){return({45:'שלושת רבעי שעה',60:'שעה',75:'שעה ורבע',90:'שעה וחצי',120:'שעתיים',150:'שעתיים וחצי',180:'שלוש שעות',210:'שלוש שעות וחצי',240:'ארבע שעות'})[n]||n+' דק׳'}
 function relLabel(t){const r=parseRel(t);if(!r)return'';const B=RELB[r.b]||r.b;if(!r.n)return r.b==='set'?'בשקיעה':B;return minTxt(r.n)+(r.s==='-'?' לפני ':' אחרי ')+B}
 const _zc={};
 function zAt(dt){const k=iso(dt);return _zc[k]||(_zc[k]=zmanim(dt,DEF_LOC))}
@@ -1251,6 +1252,96 @@ function tmCtl(arr,i,tm){
 }
 function setTmMode(arr,i,mode){const it=ED[arr][i];const r=parseRel(it.tm);if(mode==='fixed')it.tm=r?resolveTm(it.tm,nextDateIn(it.d)):(it.tm||'20:00');else it.tm='@'+mode.slice(0,-1)+mode.slice(-1)+(r?r.n:(mode==='set-'?20:0));drawEd()}
 function setTmVal(arr,i,v){const it=ED[arr][i];const r=parseRel(it.tm);if(!r)return;it.tm='@'+r.b+r.s+Math.max(0,parseInt(v)||0);const el=$('#tp_'+arr+'_'+i);if(el)el.textContent='היום: '+(resolveTm(it.tm,nextDateIn(it.d))||'—')}
+/* ===== ✨ הדבקה חכמה: טקסט חופשי (למשל הודעת וואטסאפ מהגבאי) ← תפילות ושיעורים ===== */
+const SP_KW=[['מנחה גדולה','p','מנחה','מנחה גדולה'],['מנחה קטנה','p','מנחה','מנחה קטנה'],['קבלת שבת','p','קבלת שבת',''],['שחרית','p','שחרית',''],['מנחה','p','מנחה',''],['ערבית','p','ערבית',''],['מעריב','p','ערבית',''],['מוסף','p','מוסף',''],
+  ['דף יומי','e','שיעור תורה','דף יומי'],['הדף היומי','e','שיעור תורה','הדף היומי'],['שיעור','e','שיעור תורה',''],['תהילים','e','תהילים',''],['הלכה יומית','e','שיעור תורה','הלכה יומית'],['ליל שישי','e','שיעור תורה','ליל שישי'],['אבות ובנים','e','ילדים','אבות ובנים']];
+const SP_NUM=[['שעתיים וחצי',150],['שעתיים ורבע',135],['שעתיים',120],['שלוש שעות',180],['שעה ושלושת רבעי',105],['שעה וחצי',90],['שעה ורבע',75],['שלושת רבעי שעה',45],['חצי שעה',30],['רבע שעה',15],['שעה',60],
+  ['ארבעים וחמש',45],['ארבעים',40],['שלושים וחמש',35],['שלושים',30],['עשרים וחמש',25],['עשרים',20],['חמש עשרה',15],['חמישה עשר',15],['עשר',10],['חמש',5]];
+const SP_BASE=[[/צאת השבת|יציאת השבת|יציאת שבת|מוצאי שבת|מוצ"ש|מוצש/,'tzeit'],[/צאת הכוכבים|צה"כ|צה״כ/,'tzeit'],[/רבנו תם|ר"ת|ר״ת/,'rt'],[/שקיעה|השקיעה|שקיעת החמה/,'set'],[/הנץ|נץ החמה|זריחה/,'rise'],[/פלג המנחה|פלג/,'plag'],[/הדלקת נרות|כניסת השבת|כניסת שבת/,'candle']];
+const spNorm=t=>t.replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
+function spSeason(){const m=new Date().getMonth()+1;return m>=4&&m<=10?'קיץ':'חורף'}
+function spTime(c,kind){ // מחזיר {tm} או {ref,sgn,n}
+  const ss=c.match(/בחורף[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?קיץ[^\d]*(\d{1,2}[:.]\d{2})/)||c.match(/בקיץ[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?חורף[^\d]*(\d{1,2}[:.]\d{2})/);
+  if(ss){const w=c.indexOf('בחורף')<c.indexOf('קיץ');const win=w?ss[1]:ss[2],sum=w?ss[2]:ss[1];return{tm:spHM(spSeason()==='קיץ'?sum:win,kind),note:`בחורף ${spHM(win,kind)} · בקיץ ${spHM(sum,kind)}`}}
+  const dm=c.match(/(לפני|אחרי|לאחר|אחר)\s+(.*)$/);
+  let rel=null;
+  if(dm){let n=0;const pre=c.slice(0,dm.index);const d=pre.match(/(\d{1,3})\s*(דקות|דק'|דק|ד')/);if(d)n=+d[1];else{const h=pre.match(/(\d)\s*שעות?/);if(h)n=+h[1]*60;else for(const[w,v]of SP_NUM)if(pre.includes(w)){n=v;break}}
+    if(n){const after=dm[2],sgn=dm[1]==='לפני'?'-':'+';let best=null;
+      SP_BASE.forEach(([re,b])=>{const m=after.match(re);if(m&&(best===null||m.index<best.i))best={i:m.index,b}});
+      SP_KW.forEach(([k])=>{const i=after.indexOf(k);if(i>=0&&(best===null||i<best.i||(i===best.i&&k.length>(best.k||'').length)))best={i,k}});
+      if(best)rel=best.k?{ref:best.k,sgn,n}:{tm:'@'+best.b+sgn+n};}}
+  if(rel)return rel;
+  for(const[re,b]of SP_BASE){const m=c.match(new RegExp('(עם|ב|בזמן|מיד ב|מיד עם)\\s*('+re.source+')'));if(m)return{tm:'@'+b+'+0'}}
+  const f=c.match(/(\d{1,2})[:.](\d{2})/);if(f)return{tm:spHM(f[0],kind)};
+  return{};
+}
+function spHM(s,kind){let[h,m]=s.split(/[:.]/).map(Number);if(['מנחה','ערבית','קבלת שבת'].includes(kind)&&h<11)h+=12;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+function spDay(ctx,c,kind){
+  if(/מוצ"ש|מוצש|מוצאי שבת/.test(c)&&kind==='ערבית')return'mz';
+  if(/ערב שבת|יום שישי|בשישי/.test(c))return'fri';
+  if(/בשבת|שבת קודש/.test(c))return'sat';
+  if(ctx==='wk6'&&kind==='ערבית')return'wk';
+  if(ctx==='wk6'&&kind==='שחרית')return'wk6';
+  return ctx;
+}
+function smartParse(txt){
+  const out=[],notes=[];let ctx='wk6';
+  spNorm(txt).split(/\n+/).map(l=>l.trim()).filter(Boolean).forEach((line,ln)=>{
+    if(/^(שבת|בשבת|שבת קודש)(?=[\s,.:]|$)/.test(line)||/^זמני (ה)?שבת/.test(line))ctx='sat';
+    else if(/ימות החול|ימי החול|בחול(?=[\s,.:]|$)|^חול(?=[\s,.:]|$)|כל יום/.test(line))ctx='wk6';
+    else if(/^(ערב שבת|יום שישי|שישי)(?=[\s,.:]|$)/.test(line))ctx='fri';
+    else if(/^(מוצ"ש|מוצאי שבת)/.test(line))ctx='mz';
+    // מציאת תחילת קטעים (מילת מפתח שלא קודמת לה "לפני/אחרי")
+    const hits=[];SP_KW.forEach(([k,...r])=>{let i=-1;while((i=line.indexOf(k,i+1))>=0){const before=line.slice(Math.max(0,i-7),i);if(/(לפני|אחרי|לאחר|אחר)\s*$/.test(before))continue;if(hits.some(h=>i>=h.i&&i<h.i+h.k.length))continue;hits.push({i,k,r})}});
+    hits.sort((a,b)=>a.i-b.i||b.k.length-a.k.length);const H=hits.filter((h,j)=>!hits.some((g,jj)=>jj!==j&&h.i>=g.i&&h.i<g.i+g.k.length&&g.k.length>h.k.length));
+    if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת|שבת( קודש)?|מוצאי שבת|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני התפילה)/.test(line)&&line.length>3)notes.push(line);return}
+    H.forEach((h,j)=>{
+      let c=line.slice(h.i,j+1<H.length?H[j+1].i:line.length).replace(/\s*(תפילת|תפלת|ו)\s*$/,'').trim();
+      let ct=c;if(j===0){const pre=line.slice(0,h.i).trim();if(pre&&/לפני|אחרי|לאחר|\d/.test(pre))ct=pre+' '+c}
+      const[typ,kind,lbl]=h.r;const t=spTime(ct,kind);const d=spDay(ctx,ct,typ==='p'?kind:'');
+      const it={_ln:ln,typ,kind,lbl,d,c:ct,tm:t.tm||'',ref:t.ref,sgn:t.sgn,n:t.n,note:t.note||''};
+      if(typ==='e'){const who=c.match(/((?:ה)?רב|הרה"ג|הר"ר|רבי|מו"ר)\s+[^\d,.]+?(?=\s+(?:ב|בשעה|שעה|לפני|אחרי|תפילת)\b|$|[,.])/);it.who=who?who[0].trim():'';
+        let title=lbl||h.k;if(!lbl){const ws=c.split(' ');if(ws[1]&&!/^(עם|בשעה|שעה|לפני|אחרי|כ?שעתיים|ב?\d|בשבת|בחול|של)/.test(ws[1]))title=ws[0]+' '+ws[1];}
+        if(/ילדים/.test(c))it.kind='ילדים';if(title==='שיעור')title='שיעור תורה';it.title=title}
+      const all=!t.note&&!t.ref&&it.tm&&!isRel(it.tm)?[...ct.matchAll(/(\d{1,2})[:.](\d{2})/g)].map(m=>spHM(m[0],kind)):[];
+      if(all.length>1)all.forEach((tm,q)=>out.push({...it,tm,_m:q}));else out.push(it)});
+    // "מנחה וערבית 16:30" – פריט בלי זמן שצמוד לבא אחריו מקבל את אותו זמן
+    const L=out.filter(o=>o._ln===ln);for(let j=L.length-2;j>=0;j--)if(!L[j].tm&&!L[j].ref&&L[j].c.split(' ').length<=3&&L[j+1].tm){L[j].tm=L[j+1].tm;L[j].d=spDay(ctx,L[j+1].c,L[j].typ==='p'?L[j].kind:'')}
+  });
+  // פתרון הפניות: "שעה לפני מנחה קטנה"
+  out.forEach(it=>{if(!it.ref)return;const tgt=out.find(o=>o!==it&&(o.lbl===it.ref||o.kind===it.ref||(it.ref==='מנחה קטנה'&&o.lbl==='מנחה קטנה'))&&o.tm);
+    if(!tgt){it.tm='';return}const r=parseRel(tgt.tm),off=(it.sgn==='-'?-1:1)*it.n;
+    if(r){const tot=(r.s==='-'?-r.n:r.n)+off;it.tm='@'+r.b+(tot<0?'-':'+')+Math.abs(tot)}else{const[hh,mm]=tgt.tm.split(':').map(Number);const x=hh*60+mm+off;it.tm=String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
+    it.note=(it.note?it.note+' · ':'')+minTxt(it.n)+(it.sgn==='-'?' לפני ':' אחרי ')+it.ref});
+  return{items:out,notes};
+}
+let SP=null;
+function smartPaste(){
+  modal(`<div class="muted">מדביקים כאן את ההודעה מהגבאי (למשל מוואטסאפ) – והמערכת מזהה לבד תפילות, שיעורים, ימים וזמנים, כולל זמנים לפי השקיעה וצאת השבת. לפני ההוספה תראו בדיוק מה זוהה ותוכלו לבחור.</div>
+  <textarea class="inp" id="spT" style="min-height:220px;margin-top:8px" placeholder="לדוגמה:\nשחרית בשעה 5:20\nמנחה 20 דקות לפני השקיעה\nשבת שחרית 7:30"></textarea>
+  <button class="btn" style="width:100%;margin-top:10px" onclick="spRun()">✨ לזהות ולסדר</button>
+  <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="drawEd()">↩️ חזרה לעריכה</button>`,'✨ הדבקה חכמה');
+}
+function spRun(){const t=$('#spT').value;if(!t.trim())return toast('הדביקו טקסט');SP=smartParse(t);SP.raw=t;spPrev()}
+function spTmTxt(it){if(!it.tm)return'<span style="color:#b3261e">לא זוהה זמן</span>';return isRel(it.tm)?`${relLabel(it.tm)} <span class="muted">(השבוע: ${resolveTm(it.tm,nextDateIn(it.d))})</span>`:it.tm}
+function spPrev(){
+  const L=SP.items;
+  modal(`<div class="muted" style="margin-bottom:6px">זוהו <b>${L.length}</b> פריטים. סמנו מה להוסיף – אחר כך אפשר לתקן כל פריט כרגיל בעריכה.</div>
+  ${L.map((it,i)=>`<label class="sp-it"><input type="checkbox" ${it.tm?'checked':''} onchange="SP.items[${i}].off=!this.checked">
+    <div><b>${it.typ==='p'?'🕰️ '+esc(it.kind)+(it.lbl&&it.lbl!==it.kind?' · '+esc(it.lbl):''):'📚 '+esc(it.title)}</b> <span class="badge">${esc(DAYSETS[it.d]?.l||it.d)}</span>
+    <div>${spTmTxt(it)}${it.who?` · ${esc(it.who)}`:''}</div>${it.note?`<div class="muted">${esc(it.note)}</div>`:''}<div class="muted sp-src">"${esc(it.c)}"</div></div></label>`).join('')||'<div class="empty-msg">לא זוהו תפילות או שיעורים</div>'}
+  ${SP.notes.length?`<label class="sp-it"><input type="checkbox" id="spN" checked><div><b>📝 להוסיף להערות בית הכנסת</b>${SP.notes.map(n=>`<div class="muted">• ${esc(n)}</div>`).join('')}</div></label>`:''}
+  ${ED.prayers.length||ED.events.length?`<label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="spR"> למחוק את הזמנים הקיימים ולהחליף בחדשים (${ED.prayers.length} תפילות, ${ED.events.length} שיעורים)</label>`:''}
+  <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="spApply()">➕ הוספה לבית הכנסת</button><button class="btn ghost" onclick="smartPaste();$('#spT').value=SP.raw">↩️ תיקון הטקסט</button></div>`,'✨ זה מה שזיהינו');
+}
+function spApply(){
+  if($('#spR')&&$('#spR').checked){ED.prayers=[];ED.events=[]}
+  let np=0,ne=0;SP.items.filter(it=>!it.off&&it.tm).forEach(it=>{
+    if(it.typ==='p'){ED.prayers.push({id:uid(),t:PT.includes(it.kind)?it.kind:'אחר',d:it.d,tm:it.tm,n:[it.lbl&&it.lbl!==it.kind?it.lbl:'',it.note].filter(Boolean).join(' · ')});np++}
+    else{ED.events.push({id:uid(),title:it.title,c:CATS.includes(it.kind)?it.kind:'שיעור תורה',d:it.d,tm:it.tm,end:'',who:it.who||'',n:it.note||''});ne++}});
+  if($('#spN')&&$('#spN').checked&&SP.notes.length)ED.notes=(ED.notes?ED.notes.trim()+'\n':'')+SP.notes.join('\n');
+  drawEd();toast(`נוספו ${np} תפילות ו-${ne} שיעורים ✔️ בדקו ולחצו שמירה`,4000);
+}
 function editShul(id){
   if(id&&!canEdit(id))return;
   ED=id?JSON.parse(JSON.stringify(shul(id))):{id:'s'+uid(),name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',gabbai:'',phone:'',code:String(Math.floor(100000+Math.random()*900000)),notes:'',photos:[],prayers:[],events:[]};
@@ -1280,6 +1371,7 @@ function drawEd(isNew){
   <label class="f">הודעה קבועה / הערות</label><textarea class="inp" oninput="ED.notes=this.value">${esc(e.notes)}</textarea>
 
   <h3 style="margin-top:16px">🕰️ זמני תפילות</h3>
+  <button class="btn sp-btn" onclick="smartPaste()">✨ קיבלתם את הזמנים בהודעה? הדביקו – והמערכת תסדר לבד</button>
   ${e.prayers.map((p,i)=>`<div class="ed">
     <select class="inp" onchange="ED.prayers[${i}].t=this.value">${PT.map(x=>`<option ${x===p.t?'selected':''}>${x}</option>`).join('')}</select>
     <select class="inp" onchange="ED.prayers[${i}].d=this.value">${dsOpts(p.d)}</select>
