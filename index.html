@@ -239,6 +239,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .sb-tb{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.sb-tb th,.sb-tb td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:center}.sb-tb td:first-child,.sb-tb th:first-child{text-align:right;font-weight:700}
 .sb-sh{padding:10px 12px}.sb-shh{display:flex;justify-content:space-between;width:100%;background:none;border:0;font:inherit;font-size:1.02rem;padding:0 0 6px;color:var(--pri,#24456b);cursor:pointer}.sb-k{display:flex;gap:8px;padding:5px 0;border-top:1px dashed var(--line)}.sb-k>span{flex:none;width:72px;font-size:.8rem;color:var(--mut,#777);padding-top:2px}.sb-k>div{display:flex;flex-wrap:wrap;gap:4px 12px}.sb-p small{color:var(--mut,#777)}
 .sb-ch{padding:10px 12px}.sb-chh{display:flex;gap:10px;align-items:center;margin-bottom:4px}.sb-che{font-size:2rem}
+.mic-big{border:0;background:radial-gradient(circle,#fff 55%,#e8eef6);border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 14px rgba(0,0,0,.15)}.mic-big.on{animation:micp .8s infinite alternate;box-shadow:0 0 0 8px rgba(217,48,37,.25)}.mic-big .ic{width:84px;height:84px}
 .mic-pulse{font-size:3rem;animation:micp 1s infinite alternate}@keyframes micp{to{transform:scale(1.2)}}
 .adm-home{background:linear-gradient(135deg,#16294a,#2f5585);color:#fff}.adm-home h3{color:#f3d78e}.adm-home .muted{color:#cfdcec}.priv-foot{text-align:center;font-size:.75rem;color:var(--mut,#777);margin:14px 0 6px;cursor:pointer}.terms h3{font-size:1rem;margin:12px 0 4px;color:var(--brand,#16294a)}.terms h3:first-child{margin-top:0}.terms p{margin:0;line-height:1.65;font-size:.93rem}.terms-ok{display:flex;gap:8px;align-items:flex-start;font-size:.88rem;margin:12px 0 4px;width:100%;flex-basis:100%;line-height:1.45}.terms-ok input{width:20px;height:20px;flex:none;margin-top:1px}.terms-ok.need{color:#b3261e;font-weight:700}.terms-pop{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end}.terms-in{background:var(--bg,#f6f4ef);width:100%;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px}
 .adq-sp{width:100%;margin-top:10px;background:linear-gradient(135deg,#c49a2c,#f3d78e);color:#16294a;border:0;border-radius:12px;padding:12px;font:inherit;text-align:center;line-height:1.35}.adq-sp b{font-size:1.05rem}.adq-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.adq{position:relative;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit}.adq span{font-size:1.5rem}.adq b{font-size:.82rem;line-height:1.2}.adq i{position:absolute;top:4px;left:6px;background:#d93025;color:#fff;border-radius:999px;font-style:normal;font-size:.72rem;min-width:18px;padding:0 5px}
@@ -1128,9 +1129,27 @@ function nearSay(t){const now=new Date(),nm=nowMin();let day=now.getDay(),when='
 function zmSay(dt){dt=dt||new Date();const z=zmanim(dt);return `זמני היום. עלות השחר ${hm(z.alot)}. הנץ החמה ${hm(z.rise)}. סוף זמן ק״ש לפי מג״א ${hm(z.shmaM)}, ולפי הגר״א ${hm(z.shmaG)}. סוף זמן תפילה ${hm(z.tfG)}. חצות ${hm(z.chatzot)}. מנחה גדולה ${hm(z.mg)}. פלג המנחה ${hm(z.plag)}. שקיעה ${hm(z.set)}. צאת הכוכבים ${hm(z.tzeit)}.`}
 function shabSay(sat){sat=sat||nextSat(new Date());const f=addDays(sat,-1),zf=zmanim(f),zs=zmanim(sat);const nm=shabNames(sat);return `שבת ${parTitle(sat)}${nm.length?', '+nm.join(', '):''}. הדלקת נרות ביום שישי ${hm(zf.candle)}. צאת השבת ${hm(zs.tzeit)}. לפי רבנו תם ${hm(zs.rt)}. שבת שלום!`}
 function shulSay(id){const s=shul(id);if(!s)return'';const d=new Date().getDay(),L=collect('prayers',d,p=>p.tm,new Date()).filter(p=>p.s.id===id);return `${s.name}${s.address?', '+s.address:''}. ${L.length?'תפילות היום: '+L.map(p=>`${p.t} ב${p.tm}`).join('. ')+'.':'אין תפילות רשומות להיום.'}`}
-function askVoice(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return toast('הטלפון לא תומך בשאלה קולית – נסו בכרום');
-  try{const r=new R();r.lang='he-IL';r.interimResults=false;r.maxAlternatives=1;r.onresult=e=>voiceAnswer(e.results[0][0].transcript);r.onerror=e=>toast(e.error==='not-allowed'?'צריך לאשר גישה למיקרופון':'לא שמעתי – נסו שוב');r.start();
-    modal(`<div style="text-align:center;padding:16px"><div class="mic-pulse">${ic('mic','big')}</div><b>מקשיב…</b><div class="muted" style="margin-top:8px">שאלו למשל: "מתי מנחה?" · "מתי נכנסת שבת?" · "מתי השקיעה?" · "מה פרשת השבוע?"</div></div>`,'🎤 שאלה בקול')}catch(e){toast('לא הצלחתי להפעיל את המיקרופון')}}
+const VQ=['מתי מנחה?','מתי ערבית?','מתי שחרית?','מתי נכנסת שבת?','מתי השקיעה?','מה פרשת השבוע?','מתי החג הבא?'];
+let _rec=null;
+function askVoice(){
+  modal(`<div style="text-align:center;padding:8px 4px"><button class="mic-big" id="micB" onclick="micStart()" aria-label="לחצו ודברו">${ic('mic','big')}</button>
+  <div id="micS" style="font-weight:800;margin-top:6px">לחצו על המיקרופון ושאלו</div><div id="micT" class="muted" style="min-height:22px;margin-top:4px"></div></div>
+  <div class="f">או בחרו שאלה:</div><div class="chips" style="flex-wrap:wrap">${VQ.map(q=>`<button class="chip" onclick="voiceAnswer('${q}')">${q}</button>`).join('')}</div>
+  <div style="display:flex;gap:6px;margin-top:10px"><input class="inp" id="micQ" placeholder="או הקלידו שאלה…" onkeydown="if(event.key==='Enter'&&this.value.trim())voiceAnswer(this.value)"><button class="btn sm" onclick="$('#micQ').value.trim()&&voiceAnswer($('#micQ').value)">שאל</button></div>`,'🎤 שאלה בקול');
+  setTimeout(micStart,250);
+}
+async function micStart(){const R=window.SpeechRecognition||window.webkitSpeechRecognition,S2=t=>{const e=$('#micS');if(e)e.textContent=t};
+  if(!R){S2('הדפדפן הזה לא תומך בזיהוי קולי – אפשר לבחור או להקליד שאלה');return}
+  if(_rec){try{_rec.abort()}catch(e){}_rec=null}
+  try{if(navigator.mediaDevices?.getUserMedia){const st=await navigator.mediaDevices.getUserMedia({audio:true});st.getTracks().forEach(t=>t.stop())}}
+  catch(e){S2('🔒 צריך לאשר גישה למיקרופון. בהגדרות הטלפון ← אפליקציות ← Chrome ← הרשאות ← מיקרופון ← לאפשר. אחר כך: בכרום ← ⋮ ← הגדרות ← הגדרות אתרים ← מיקרופון ← לאפשר לאתר');return}
+  const r=new R();_rec=r;r.lang='he-IL';r.interimResults=true;r.continuous=false;r.maxAlternatives=1;let got='',done=false;
+  r.onstart=()=>{S2('🎙️ מקשיב… דברו עכשיו');$('#micB')?.classList.add('on')};
+  r.onresult=e=>{let t='';for(const x of e.results)t+=x[0].transcript;got=t;const el=$('#micT');if(el)el.textContent='"'+t+'"';if(e.results[e.results.length-1].isFinal&&!done){done=true;try{r.stop()}catch(x){}voiceAnswer(t)}};
+  r.onerror=e=>{const m={'not-allowed':'🔒 צריך לאשר גישה למיקרופון: הגדרות הטלפון ← אפליקציות ← Chrome ← הרשאות ← מיקרופון','service-not-allowed':'הזיהוי הקולי חסום בטלפון – ודאו שאפליקציית Google מותקנת ופעילה','no-speech':'לא שמעתי כלום – לחצו שוב ודברו','audio-capture':'לא נמצא מיקרופון','network':'צריך חיבור לאינטרנט לזיהוי קולי','language-not-supported':'עברית לא נתמכת בזיהוי – אפשר להקליד'}[e.error]||('לא הצלחתי ('+e.error+') – נסו שוב או הקלידו');S2(m);$('#micB')?.classList.remove('on')};
+  r.onend=()=>{$('#micB')?.classList.remove('on');_rec=null;if(!done&&got){done=true;voiceAnswer(got)}else if(!done&&$('#micS')&&/מקשיב/.test($('#micS').textContent))S2('לא שמעתי – לחצו על המיקרופון ונסו שוב')};
+  try{r.start()}catch(e){S2('לא הצלחתי להפעיל את המיקרופון – אפשר להקליד')}
+}
 function voiceAnswer(q){let a;const z=zmanim(new Date());
   if(/פרש/.test(q))a=`פרשת השבוע: ${parashaOf(nextSat())}.`;
   else if(/שבת|נרות|הדלק|הבדלה/.test(q))a=shabSay();
