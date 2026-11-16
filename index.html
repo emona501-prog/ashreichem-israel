@@ -211,6 +211,10 @@ footer a{color:var(--muted)}
 .swt{display:inline-block;width:14px;height:14px;border-radius:50%;margin-inline-end:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.2)}
 .mol-ann{font-family:'Frank Ruhl Libre',serif;font-size:1.15rem;line-height:1.6;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:6px}
 .push-card{background:linear-gradient(135deg,#eef3f8,#faf3df)}body.dark .push-card{background:var(--card)}.push-card.on{background:#e5f4ec}
+.inst-steps{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:10px}
+.inst-steps li{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:14px;padding:12px}
+.inst-n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pri);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px;padding:10px}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
@@ -1310,7 +1314,39 @@ function modal(html,title,keep){
 }
 function closeModal(){$('#modals').innerHTML='';if(window._dirty){window._dirty=0;render()}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-function installInfo(){if(_inst){_inst.prompt();_inst.userChoice.finally(()=>_inst=null);return}modal(`<p>📱 <b>אנדרואיד (כרום):</b> תפריט ⋮ ← "הוספה למסך הבית".</p><p>🍏 <b>אייפון (ספארי):</b> כפתור השיתוף ← "הוספה למסך הבית".</p><p class="muted">כך האפליקציה תיפתח במסך מלא כמו אפליקציה רגילה.</p>`,'התקנה כאפליקציה')}
+/* ===== מדריך התקנה לפי סוג המכשיר ===== */
+const UA=navigator.userAgent;
+const DEV={ios:/iPhone|iPad|iPod/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1),android:/Android/.test(UA),
+  inApp:/FBAN|FBAV|Instagram|WhatsApp|Telegram|Line\/|; wv\)|GSA\//.test(UA),iosChrome:/CriOS|FxiOS|EdgiOS/.test(UA),samsung:/SamsungBrowser/.test(UA)};
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const SHARE_SVG='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-5px"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+const DOTS='<b style="font-size:1.2rem;letter-spacing:-1px">⋮</b>';
+function stepList(a){return `<ol class="inst-steps">${a.map((s,i)=>`<li><span class="inst-n">${i+1}</span><div>${s}</div></li>`).join('')}</ol>`}
+function installInfo(auto){
+  if(isStandalone()){if(!auto)toast('האפליקציה כבר מותקנת אצלכם ✔️');return}
+  const url=location.origin+location.pathname;let body='',btn='';
+  if(DEV.inApp){
+    body=`<p>נראה שפתחתם את הקישור מתוך וואטסאפ / טלגרם / פייסבוק. משם אי אפשר להתקין.</p>`+stepList([`לוחצים על ${DOTS} או ⋯ בפינה העליונה`,`בוחרים <b>"פתיחה ב${DEV.ios?'ספארי':'כרום'}"</b> / "פתח בדפדפן"`,`ממשיכים לפי ההוראות שיופיעו שם`])+
+      `<button class="btn sec" style="width:100%" onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}');toast('הקישור הועתק – הדביקו אותו בדפדפן')">📋 העתקת הקישור</button>`;
+  }else if(DEV.ios){
+    body=(DEV.iosChrome?`<p class="inst-warn">⚠️ באייפון מתקינים רק דרך <b>ספארי</b>. העתיקו את הקישור ופתחו אותו בספארי.</p>`:'')+
+      stepList([`לוחצים על כפתור השיתוף ${SHARE_SVG} בתחתית המסך (או למעלה באייפד)`,`גוללים מטה ובוחרים <b>"הוספה למסך הבית"</b> ➕`,`לוחצים <b>"הוסף"</b> בפינה העליונה`,`פותחים את <b>אשריכם ישראל</b> מהאייקון החדש במסך הבית – ושם מפעילים 🔔 התראות`])+
+      `<div class="muted">💡 באייפון ההתראות עובדות רק כשפותחים מהאייקון שבמסך הבית (iOS 16.4 ומעלה).</div>`+
+      (DEV.iosChrome?`<button class="btn sec" style="width:100%;margin-top:8px" onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}');toast('הקישור הועתק')">📋 העתקת הקישור</button>`:'');
+  }else{
+    if(_inst)btn=`<button class="btn" style="width:100%;min-height:54px;font-size:1.1rem;margin-bottom:12px" onclick="doInstall()">📲 התקנה בלחיצה אחת</button><div class="muted" style="text-align:center;margin-bottom:8px">או ידנית:</div>`;
+    body=btn+stepList(DEV.samsung?[`לוחצים על ☰ בתחתית המסך`,`בוחרים <b>"הוסף דף אל"</b> ← <b>"מסך הבית"</b>`,`מאשרים <b>"הוסף"</b>`]:
+      [`לוחצים על ${DOTS} בפינה העליונה של כרום`,`בוחרים <b>"התקנת אפליקציה"</b> או <b>"הוספה למסך הבית"</b>`,`מאשרים <b>"התקנה"</b> – והאייקון יופיע במסך הבית`])+`<div class="muted">💡 אחרי ההתקנה האפליקציה נפתחת במסך מלא, עובדת גם בלי אינטרנט, ושולחת התראות.</div>`;
+  }
+  modal(`<div style="text-align:center"><img src="icon-192.png" alt="" style="width:84px;height:84px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,.2)"><div style="font-weight:800;font-size:1.15rem;margin:8px 0 2px">הוסיפו את "אשריכם ישראל" למסך הבית</div><div class="muted">כמו אפליקציה רגילה – בלחיצה אחת מהמסך</div></div>${body}
+  ${auto?`<div class="btns" style="margin-top:12px"><button class="btn ghost" style="flex:1" onclick="U.instSnooze=Date.now();saveU();closeModal()">לא עכשיו</button><button class="btn ghost" style="flex:1" onclick="U.instNever=1;saveU();closeModal()">כבר התקנתי</button></div>`:''}`,DEV.ios?'📲 התקנה באייפון':'📲 התקנה כאפליקציה');
+}
+async function doInstall(){if(!_inst)return;_inst.prompt();try{const r=await _inst.userChoice;if(r.outcome==='accepted'){closeModal();toast('מותקן! 🎉 האייקון יופיע במסך הבית');U.instNever=1;saveU()}}catch(e){}_inst=null}
+function autoInstallGuide(){
+  if(isStandalone()||U.instNever)return;if(!(DEV.ios||DEV.android))return;
+  if(U.instSnooze&&Date.now()-U.instSnooze<3*864e5)return;
+  setTimeout(()=>{if(!$('#modals').innerHTML&&!isStandalone())installInfo(true)},DEV.inApp?1200:3500);
+}
 
 function initYtDrag(){
   const f=$('#ytFab');if(!f)return;const W=54;
@@ -1591,11 +1627,11 @@ function pushCard(){
 }
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{}));
-let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e});
+let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e;if(TAB==='more')render()});addEventListener('appinstalled',()=>{U.instNever=1;saveU()});
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();autoInstallGuide();setInterval(()=>{checkRem();if(['home','times'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
