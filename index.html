@@ -301,6 +301,9 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .lnk{border:0;background:none;color:var(--pri,#24456b);font:inherit;font-weight:800;text-decoration:underline;cursor:pointer;padding:0}
 .rf-h{display:flex;align-items:center;gap:8px}.rav-face{width:42px;height:42px;border-radius:50%;flex:none;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .gm-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.gm-q{background:#fffdf5;border:2px solid #1b1b1b;border-radius:14px;padding:10px 12px}
+.ad-wa{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;background:#1fa855;color:#fff;font-weight:800;border-radius:14px;padding:12px;text-decoration:none;font-size:1.05rem;box-shadow:0 3px 10px rgba(31,168,85,.3)}
+.ad-wa.sm{padding:9px;font-size:.95rem;margin-top:8px}
+.ad-st{display:flex;gap:12px;margin-top:8px;font-size:.85rem;font-weight:700;color:#6b5320;background:#fbf3df;border-radius:10px;padding:6px 10px;width:max-content}.ad-st.sm{font-size:.75rem;padding:3px 8px;margin-top:4px}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
@@ -999,7 +1002,7 @@ function adPopList(){const now=Date.now();
 let _adCur=null;
 function adPop(){const L=adPopList();if(!L.length)return'';const now=Date.now();U.adShown=U.adShown||{};
   let a=_adCur&&L.find(x=>x.id===_adCur.id)&&now-_adCur.t<15*6e4?L.find(x=>x.id===_adCur.id):null;
-  if(!a){a=L.find(x=>{const h=(adAt(x)-now)/36e5;return now-(U.adShown[x.id]||0)>=adGap(h)*36e5});if(!a)return'';_adCur={id:a.id,t:now};U.adShown[a.id]=now;
+  if(!a){a=L.find(x=>{const h=(adAt(x)-now)/36e5;return now-(U.adShown[x.id]||0)>=adGap(h)*36e5});if(!a)return'';_adCur={id:a.id,t:now};U.adShown[a.id]=now;countAd(a.id,'pop');
     Object.keys(U.adShown).forEach(k=>{if(!S.ads.some(z=>z.id===k))delete U.adShown[k]});saveU()}
   const at=adAt(a),mins=Math.round((at-now)/6e4),t0=new Date();t0.setHours(0,0,0,0);const dd=Math.round((new Date(at).setHours(0,0,0,0)-t0)/864e5);
   const when=mins<=0?'<b>עכשיו!</b>':mins<60?'<b>בעוד '+mins+' דקות</b>':mins<180?'<b>בעוד '+diffTxt(mins).replace(/^בעוד /,'')+'</b>':dd===0?'<b>היום'+(a.tm?' ב־'+a.tm:'')+'</b>':dd===1?'<b>מחר'+(a.tm?' ב־'+a.tm:'')+'</b>':'בעוד '+dd+' ימים';
@@ -1011,12 +1014,12 @@ function adImgPop(){const now=Date.now(),ti=iso(new Date());U.adShown=U.adShown|
   const L=S.ads.filter(a=>adLive(a)&&a.img&&(U.adHide||{})[a.id]!==ti&&!(a.date&&adAt(a)<now));if(!L.length)return'';
   let a=_adImgCur&&now-_adImgCur.t<15*6e4?L.find(x=>x.id===_adImgCur.id):null;
   if(!a){if(now-(U.adImgLast||0)<2*36e5)return'';a=L.filter(x=>now-(U.adShown['i'+x.id]||0)>=8*36e5).sort((x,y)=>(U.adShown['i'+x.id]||0)-(U.adShown['i'+y.id]||0))[0];if(!a)return'';
-    _adImgCur={id:a.id,t:now};U.adShown['i'+a.id]=now;U.adImgLast=now;saveU()}
-  return `<div class="adimg" onclick="showAd('${a.id}')"><button class="adpop-c" aria-label="לא להציג היום" onclick="event.stopPropagation();adPopHide('${a.id}')">✕</button><img src="${a.img}" alt="${esc(a.title)}" loading="lazy"><div class="adimg-b"><small>📌 מלוח המודעות</small><b>${esc(a.title)}</b>${a.date?`<span class="muted">${adWhen(a)}</span>`:''}</div></div>`}
+    _adImgCur={id:a.id,t:now};U.adShown['i'+a.id]=now;U.adImgLast=now;saveU();countAd(a.id,'pop')}
+  return `<div class="adimg" onclick="showAd('${a.id}')"><button class="adpop-c" aria-label="לא להציג היום" onclick="event.stopPropagation();adPopHide('${a.id}')">✕</button><img src="${a.img}" alt="${esc(a.title)}" loading="lazy"><div class="adimg-b"><small>📌 מלוח המודעות</small><b>${esc(a.title)}</b>${a.date?`<span class="muted">${adWhen(a)}</span>`:''}${adWaBtn(a,1)}${adStatsHtml(a,1)}</div></div>`}
 function adPopHide(id){_adImgCur=null;U.adHide=U.adHide||{};const ti=iso(new Date());Object.keys(U.adHide).forEach(k=>{if(U.adHide[k]<ti)delete U.adHide[k]});U.adHide[id]=ti;_adCur=null;saveU();toast('לא יוצג עוד היום');softRender()}
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')'+(a.tm?' · 🕐 '+a.tm:''):a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
-function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span></div><span>‹</span></div>`}
-function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}
+function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span>${adStatsHtml(a,1)}</div><span>‹</span></div>`}
+function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}${adWaBtn(a)}${adStatsHtml(a)}
 ${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>`:''}</div>`}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
 function board(){
@@ -1035,6 +1038,8 @@ function adForm(id){const E=id?S.ads.find(z=>z.id===id):null,ed=!!E,v=k=>esc(E&&
   <label class="f">כותרת</label><input class="inp" id="at" maxlength="70" value="${v('title')}">
   <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')">${v('text')}</textarea><div class="fmt-pv" id="ax_pv"></div>
   <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel" value="${v('contact')}">
+  <label class="sp-it" style="margin-top:10px"><input type="checkbox" id="awa" ${E&&E.wa?'checked':''} onchange="$('#awaB').style.display=this.checked?'block':'none';if(this.checked&&!$('#awaP').value)$('#awaP').value=$('#ac').value"><div><b>💬 כפתור וואטסאפ למפרסם</b><div class="muted">מתאים לתרומות ולפרטים – לחיצה פותחת וואטסאפ ישר אליו</div></div></label>
+  <div id="awaB" style="display:${E&&E.wa?'block':'none'}"><div style="display:grid;grid-template-columns:1fr 1.2fr;gap:8px"><input class="inp" id="awaP" inputmode="tel" placeholder="מספר נייד" value="${v('wa')}"><select class="inp" id="awaL">${['💬 לתרומה בוואטסאפ','💬 לפרטים בוואטסאפ','💬 להרשמה בוואטסאפ','💬 להזמנה בוואטסאפ'].map(x=>`<option ${E&&E.waL===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
   <label class="f">תמונה (לא חובה)</label>${E&&E.img?`<div id="aimg" style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><img src="${E.img}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px"><button class="btn ghost sm" onclick="window._adEd.img='';$('#aimg').remove()">🗑️ הסרת התמונה</button></div>`:''}<input type="file" accept="image/*" id="ai" class="inp">
   <label class="f">מתי האירוע? (המודעה תופיע בלוח השנה)</label>
   <select class="inp" id="aw" onchange="$('#awd').style.display=this.value==='date'?'block':'none';$('#awr').style.display=this.value==='rec'?'block':'none'"><option value="" ${w===''?'selected':''}>לא קשור לתאריך</option><option value="date" ${w==='date'?'selected':''}>בתאריך ושעה מסוימים</option><option value="rec" ${w==='rec'?'selected':''}>קבוע כל שבוע</option></select>
@@ -1240,7 +1245,7 @@ function pinForm(s){
 }
 //@addPin
 //@delPin
-function showAd(id){const a=S.ads.find(z=>z.id===id);modal(adCard(a).replace('class="card ad"','class="ad"'),'📢 מודעה')}
+function showAd(id){const a=S.ads.find(z=>z.id===id);if(!a)return;countAd(id,'open');modal(adCard(a).replace('class="card ad"','class="ad"'),'📢 מודעה')}
 
 /* ===== מיקום ===== */
 const DEF_LOC={lat:31.7525,lng:35.2205,name:'תלפיות, ירושלים'};
@@ -2688,7 +2693,7 @@ const NH_FIX={chibatyer:'ארמון הנציב',mishkanreuven:'ארמון הנצ
 function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
 function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
-async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},dau:a.dau||{},nu:a.nu||{},inst:a.inst||0,views:w.exists()?w.data():{},at:Date.now()};softRender()}catch(e){}}
+async function loadStats(){try{const F=C.F;const[v,w,ad]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views')),F.getDoc(dref('stats','ads')).catch(()=>null)]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},dau:a.dau||{},nu:a.nu||{},inst:a.inst||0,views:w.exists()?w.data():{},ads:ad&&ad.exists()?ad.data():{},at:Date.now()};softRender()}catch(e){}}
 let _counted=false;
 const NOCNT='ash_nocount',noCount=()=>{try{const v=localStorage.getItem(NOCNT);return v===null?isAdev():v==='1'}catch(e){return false}};
 function setNoCount(on){try{localStorage.setItem(NOCNT,on?'1':'0')}catch(e){}toast(on?'✔️ הכניסות מהמכשיר הזה לא ייספרו':'הכניסות מהמכשיר הזה ייספרו שוב');render()}
@@ -2701,6 +2706,15 @@ function countVisit(){if(noCount())return;
   if((isStandalone()||NAT.on)&&!U.instCnt){o.inst=F.increment(1);U.instCnt=1;saveU()}
   F.setDoc(dref('stats','visits'),o,{merge:true}).catch(()=>{});
 }
+/* 👁️ ספירת צפיות במודעות: pop = הופיעה במסך הראשי, open = נפתחה, wa = לחצו וואטסאפ */
+const _adCnt={};
+function countAd(id,k){if(!id||!C.ok||noCount())return;const key=id+k;if(k!=='wa'&&_adCnt[key])return;_adCnt[key]=1;
+  C.F.setDoc(dref('stats','ads'),{[id]:{[k]:C.F.increment(1)}},{merge:true}).catch(()=>{});
+  if(S.stats){S.stats.ads=S.stats.ads||{};const o=S.stats.ads[id]=S.stats.ads[id]||{};o[k]=(o[k]||0)+1}}
+function adStatsHtml(a,sm){const o=(S.stats&&S.stats.ads||{})[a.id]||{};if(!(ROLE&&ROLE.type==='admin'))return'';
+  return `<div class="ad-st${sm?' sm':''}"><span title="הופיעה במסך הראשי">👁️ ${o.pop||0}</span><span title="נפתחה">👆 ${o.open||0}</span>${a.wa?`<span title="לחצו וואטסאפ">💬 ${o.wa||0}</span>`:''}</div>`}
+function adWaUrl(a){const ph=String(a.wa||'').replace(/\D/g,'').replace(/^0/,'972');return `https://wa.me/${ph}?text=`+encodeURIComponent(`שלום, ראיתי את המודעה "${a.title}" באפליקציית אשריכם ישראל 🙂`)}
+function adWaBtn(a,sm){if(!a.wa)return'';return `<a class="ad-wa${sm?' sm':''}" href="${adWaUrl(a)}" target="_blank" rel="noopener" onclick="event.stopPropagation();countAd('${a.id}','wa')">${esc(a.waL||'💬 לפרטים בוואטסאפ')}</a>`}
 function countView(sid){if(!C.ok||noCount())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
 function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
@@ -2806,7 +2820,8 @@ async function addPin(s){
 async function delPin(id,s){if(!confirm('למחוק את ההודעה?')||!needCloud())return;try{await C.F.deleteDoc(dref('pins',id))}catch(e){return cerr(e)}setTimeout(()=>openDay(s),300)}
 async function sendAd(){const E=window._adEd;
   const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:E?E.img||'':'',st:E?E.st:ROLE?'ok':'pend',dt:E?E.dt:Date.now(),
-    date:$('#aw').value==='date'?$('#awdd').value:'',tm:$('#aw').value==='date'?$('#awtm').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,untilTm:$('#au').value?$('#autm').value:'',sid:$('#asid')?.value||''};
+    date:$('#aw').value==='date'?$('#awdd').value:'',tm:$('#aw').value==='date'?$('#awtm').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,untilTm:$('#au').value?$('#autm').value:'',sid:$('#asid')?.value||'',wa:$('#awa')&&$('#awa').checked?$('#awaP').value.trim():'',waL:$('#awa')&&$('#awa').checked?$('#awaL').value:''};
+  if(a.wa&&!/^0?5\d[\d\-\s]{7,9}$/.test(a.wa.replace(/^\+?972/,'0')))return toast('מספר הוואטסאפ לא תקין – צריך נייד, למשל 050-1234567');
   if(a.until&&adEnd(a)<new Date()&&!confirm('⚠️ זמן ההסרה שבחרתם כבר עבר – המודעה לא תוצג. לשמור בכל זאת?'))return;
   if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
