@@ -686,6 +686,7 @@ function home(){
   <div class="say-row"><button onclick="sayToggle(()=>nearSay())">${ic('speaker','bi')}הקראת המניין הקרוב</button><button onclick="askVoice()">${ic('mic','bi')}לשאול בקול</button></div>
   ${adPop()}
   ${mnyHome()}
+  ${favHome()}
   ${!isStandalone()&&!NAT.on?`<button class="inst-cta" onclick="installInfo()"><img src="${IC.help}" alt=""><div><b>איך מתקינים את האפליקציה?</b><small>הסבר קצר לטלפון שלכם – חצי דקה, פעם אחת</small></div><span>‹</span></button>`:''}
   ${gabHome()}
   ${thHomeCard()}
@@ -864,7 +865,7 @@ function more(){
   ${it(ic('printer','md'),'הדפסת לוחות',"printCenter()",'זמנים, שבת, בית כנסת, סיכום יום ולוח חודש')}
   ${it('📮','תיבת הודעות למנהל'+ibBadge(ROLE&&ROLE.type==='admin'?ibAdminNew():ibUserNew()),"go('inbox')",'רעיונות, בקשות, מידע להוסיף ותקלות')}
   ${it('📢','כל העדכונים',"go('updates')")}
-  ${it('⭐','האזור האישי שלי',"go('mine')",'מועדפים · תזכורות · תהילים')}
+  ${it('⭐','האזור האישי שלי',"go('mine')",'בתי הכנסת המועדפים · תזכורות · התראות · תהילים')}
   ${it('♿','נגישות ותצוגה',"openA11y()",'גודל טקסט · ניגודיות · מצב לילה')}
   ${it('🔑','כניסת גבאים',"openLogin()")}
   ${ROLE?.type==='admin'?it('🛡️','לוח ניהול',"go('admin')"):''}
@@ -960,10 +961,14 @@ function adAutoEnd(){const d=$('#awdd').value,t=$('#awtm').value;if(!d||$('#au')
 //@sendAd
 //@adSt
 /* ===== אזור אישי ===== */
+function favHome(){const L=S.shuls.filter(s=>U.favs.includes(s.id));if(!L.length)return'';
+  return `<div class="card fav-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⭐ בתי הכנסת המועדפים שלי</h3><button class="btn ghost sm" onclick="go('mine')">ניהול ‹</button></div>
+  ${L.map(s=>{const nx=shulNext(s);return `<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>⭐</span><div class="main"><b>${esc(String(s.name).split(/ [–-] /)[0])}</b><span class="muted">${nx?'⏰ הקרוב היום: '+esc(nx):'אין עוד תפילות היום'}</span></div><span>‹</span></div>`}).join('')}</div>`}
 function mine(){
   const favs=S.shuls.filter(s=>U.favs.includes(s.id));
-  return `<h2>⭐ האזור האישי שלי</h2>${pushCard()}
-  <div class="card"><h3>בתי הכנסת שלי</h3>${favs.map(s=>`<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>⭐</span><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(shulNext(s)?'⏰ הקרוב היום: '+shulNext(s):s.address||'')}</span></div><button class="btn ghost sm" aria-label="הסרה מהמועדפים" onclick="event.stopPropagation();fav('${s.id}')">✕ הסרה</button></div>`).join('')||'<div class="empty-msg">לחצו על ☆ ליד בית כנסת כדי להוסיף אותו לכאן</div>'}</div>
+  return `<h2>⭐ האזור האישי שלי</h2>
+  <div class="card"><h3>⭐ בתי הכנסת המועדפים שלי</h3>${favs.map(s=>`<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>⭐</span><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(shulNext(s)?'⏰ הקרוב היום: '+shulNext(s):s.address||'')}</span></div><button class="btn ghost sm" aria-label="הסרה מהמועדפים" onclick="event.stopPropagation();fav('${s.id}')">✕ הסרה</button></div>`).join('')||'<div class="empty-msg">לחצו על ☆ ליד בית כנסת כדי להוסיף אותו לכאן</div>'}</div>
+  ${pushCard()}
   <div class="card"><h3>🔔 התזכורות שלי</h3>${U.rem.map(r=>`<div class="row"><div class="time">${resolveTm(r.tm,nextDateIn(r.d))}</div><div class="main"><b>${esc(r.title)}</b><span class="muted">${DAYSETS[r.d]?.l} · ${r.before} דק׳ לפני</span></div><button class="btn red sm" onclick="U.rem=U.rem.filter(x=>x.id!=='${r.id}');saveU();render()">✕</button></div>`).join('')||'<div class="empty-msg">לחצו על 🔔 ליד תפילה או שיעור כדי לקבל תזכורת</div>'}</div>
   <div class="card"><h3>📜 מעקב תהילים אישי</h3><div class="muted" style="margin-bottom:8px">סמנו כל פרק שאמרתם · ${U.th.length}/150</div>
   <div class="th">${Array.from({length:150},(_,i)=>`<button class="${U.th.includes(i+1)?'on':''}" onclick="thT(${i+1})" aria-label="פרק ${i+1}">${heNum(i+1)}</button>`).join('')}</div>
