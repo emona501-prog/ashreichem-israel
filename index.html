@@ -1997,6 +1997,13 @@ function smartParse(txt){
     if(!tgt){it.tm='';return}const r=parseRel(tgt.tm),off=(it.sgn==='-'?-1:1)*it.n;
     if(r){const tot=(r.s==='-'?-r.n:r.n)+off;it.tm='@'+r.b+(tot<0?'-':'+')+Math.abs(tot)}else{const[hh,mm]=tgt.tm.split(':').map(Number);const x=hh*60+mm+off;it.tm=String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
     it.note=(it.note?it.note+' · ':'')+minTxt(it.n)+(it.sgn==='-'?' לפני ':' אחרי ')+it.ref});
+  // "מנחה ערב שבת - שיר השירים -" ובשורה הבאה "ערבית: 20 דק לפני השקיעה" = תפילה אחת ברצף שמתחילה בזמן הזה
+  for(let j=0;j<out.length-1;j++){const a=out[j],b=out[j+1];
+    if(!a.tm&&!a.ref&&b.tm&&b._ln===a._ln+1&&a.typ==='p'&&b.typ==='p'&&/[-–]\s*$|שיר השירים|ברצף/.test(a.c)){
+      const seq=[a.kind,(a.c.match(/שיר השירים|קבלת שבת/g)||[]).join(', '),b.kind].filter(Boolean);
+      a.tm=b.tm;a.d=a.d||b.d;if(a.d==='sat'||a.d==='fri'||/ערב שבת|שישי/.test(a.c))a.d='fri';
+      a.note='ברצף: '+[...new Set(seq.join(', ').split(', '))].join(', ').replace(/, ([^,]+)$/,' ו$1');b._merged=1}}
+  for(let j=out.length-1;j>=0;j--)if(out[j]._merged)out.splice(j,1);
   // ערבית "לפני השקיעה" בשבת = בעצם ליל שבת (יום שישי)
   out.forEach(it=>{if(it.kind==='ערבית'&&it.d==='sat'&&/^@(set-|candle)/.test(it.tm||'')){it.d='fri';it.note=(it.note?it.note+' · ':'')+'ליל שבת'}});
   return{items:out,notes,info};
