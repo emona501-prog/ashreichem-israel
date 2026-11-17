@@ -271,6 +271,13 @@ body.nomotion .inst-cta img{animation:none}@keyframes instB{0%,100%{transform:tr
 .gab-code{width:100%;display:flex;align-items:center;gap:12px;text-align:start;background:#fff8e6;border:2px solid #e8c873;border-radius:16px;padding:12px 14px;margin-bottom:12px;font:inherit;color:inherit;cursor:pointer}.gab-code>span:first-child{font-size:2rem}.gab-code b{display:block;font-size:1.05rem}.gab-code small{color:#8a5a12}.gab-code>div{flex:1}
 body.dark .gab-code{background:#3a2f17;border-color:#7a6230}
 .near-side{display:grid!important;grid-template-columns:1fr 1fr;gap:5px;align-content:stretch}.near-side .near-go{width:52px;min-height:44px;padding:4px 0}.near-side .near-rem{grid-column:1/-1}
+#mnyPop{position:fixed;inset-inline:10px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:900;animation:mpIn .45s cubic-bezier(.2,1.4,.4,1)}
+#mnyPop .mp-in{background:linear-gradient(135deg,#0f5132,#2e8b57);color:#fff;border-radius:20px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);border:2px solid #9be3b5;animation:mpGlow 1.2s ease-in-out infinite alternate}
+.mp-h{display:flex;align-items:center;gap:6px;font-size:1.1rem}.mp-h span{margin-inline-start:auto;font-size:.85rem;background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px}
+.mp-t{margin-top:4px;font-size:1.02rem}.mp-c{opacity:.92;font-size:.9rem}.mp-b{display:flex;gap:8px;margin-top:10px}
+.mp-b button{border:0;border-radius:14px;font:inherit;font-weight:800;padding:10px;cursor:pointer}.mp-j{flex:2;background:#fff;color:#0f5132;font-size:1.05rem}.mp-x{flex:1;background:rgba(255,255,255,.18);color:#fff}
+@keyframes mpIn{from{transform:translateY(140%);opacity:0}to{transform:none;opacity:1}}@keyframes mpGlow{from{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 0 rgba(155,227,181,.0)}to{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 8px rgba(155,227,181,.45)}}
+body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -588,7 +595,7 @@ function render(){
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
   const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV}[TAB]||home;
-  try{wFeed()}catch(e){}
+  try{wFeed()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -2365,7 +2372,7 @@ function listenPublic(){
   C.unsub.pins=F.onSnapshot(col('pins'),q=>{if(q.empty&&!S.cloud)return;S.pins=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
   C.unsub.ads=F.onSnapshot(F.query(col('ads'),F.where('st','==','ok')),q=>{if(q.empty&&!S.cloud)return;const pend=S.ads.filter(a=>a.st!=='ok'&&ROLE&&ROLE.type==='admin');S.ads=q.docs.map(d=>({...d.data(),id:d.id})).concat(pend);save();softRender()});
   C.unsub.th2=F.onSnapshot(col('th2'),q=>{if(q.empty&&!S.cloud)return;S.th2=S.th2||{books:[],total:0};S.th2.books=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
-  C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()},e=>console.warn(e));
+  C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender();setTimeout(()=>{try{mnyPop()}catch(e){}},300)},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
 function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}
@@ -2661,6 +2668,20 @@ function mnyCard(m,full){
       ${(mine||ROLE?.type==='admin')&&full?`<button class="btn red sm" onclick="mnyCancel('${m.id}')">ביטול המניין</button>`:''}
     </div></div>`;
 }
+/* ===== 🙋 מניין מתארגן – חלון מהבהב בתוך האפליקציה (בכל מסך) ===== */
+function mnyPopPick(){const now=Date.now(),me=myUid(),H=U.mnyHide||{};
+  return mnyList().filter(m=>!H[m.id]&&m.uid!==me&&!(m.j||{})[me]&&m.at>now-10*6e4&&m.at<now+12*36e5&&mnyCnt(m)<10)[0]}
+function mnyPop(){let el=document.getElementById('mnyPop');const m=mnyPopPick();
+  if(!m||TAB==='mny'){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='mnyPop';el.setAttribute('role','alert');document.body.appendChild(el)}
+  if(el.dataset.id===m.id&&el.dataset.n===String(mnyCnt(m)))return;el.dataset.id=m.id;el.dataset.n=String(mnyCnt(m));
+  const n=mnyCnt(m),pl=m.sid&&shul(m.sid)?String(shul(m.sid).name).split(/ [–-] /)[0]:m.place;
+  el.innerHTML=`<div class="mp-in"><div class="mp-h">🙋 <b>מתארגן מניין!</b><span>${esc(mnyWhen(m.at))}</span></div>
+  <div class="mp-t"><b>${esc(m.t)}</b> · ${esc(pl||'')}</div><div class="mp-c">${n} כבר נרשמו · <b>חסרים ${10-n}</b></div>
+  <div class="mp-b"><button class="mp-j" onclick="mnyPopGo('${m.id}',1)">✋ אני מצטרף</button><button class="mp-x" onclick="mnyPopGo('${m.id}',0)">התעלמות</button></div></div>`;
+  if(navigator.vibrate&&!el.dataset.v){el.dataset.v=1;try{navigator.vibrate([60,80,60])}catch(e){}}}
+function mnyPopGo(id,j){U.mnyHide=Object.assign(U.mnyHide||{},{[id]:1});const now=Date.now();Object.keys(U.mnyHide).forEach(k=>{if(!(S.mny||[]).some(m=>m.id===k))delete U.mnyHide[k]});saveU();
+  const el=document.getElementById('mnyPop');if(el)el.remove();if(j){go('mny',{id});setTimeout(()=>mnyJoin(id),150)}else toast('בסדר 🙂 אפשר תמיד להצטרף ממסך "מניין ספונטני"')}
 function mnyHome(){const L=mnyList();
   return `<div class="card mny-home"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;display:flex;align-items:center;gap:8px">${ic('mny','md')} מארגנים מניין</h3><button class="btn sm" onclick="mnyForm()">➕ לארגן</button></div>
   ${L.length?L.slice(0,2).map(m=>mnyCard(m,0)).join('')+(L.length>2?`<button class="btn ghost sm" style="width:100%" onclick="go('mny')">לכל ${L.length} המניינים ‹</button>`:''):`<div class="muted" style="margin-top:6px">צריכים מניין בשעה לא שגרתית? פותחים קריאה – והשכנים מצטרפים.</div>`}</div>`}
@@ -2687,7 +2708,7 @@ async function mnyCreate(){
   if(d.getTime()<Date.now()-5*6e4)return toast('השעה כבר עברה');
   U.name=nm;saveU();const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת, נסו שוב');
   const m={t,at:d.getTime(),sid,place,note:$('#mnN').value.trim(),uid,on:nm,ph:$('#mnPh').value.trim(),cr:Date.now(),cx:false,j:{[uid]:{n:nm,c:+$('#mnC').value}}};
-  try{const r=await C.F.addDoc(col('minyanim'),m);closeModal();toast('הקריאה נפתחה 📢 עכשיו מזמינים חברים');go('mny',{id:r.id});setTimeout(()=>mnyShare(r.id),600)}catch(e){cerr(e)}
+  try{const r=await C.F.addDoc(col('minyanim'),m);closeModal();U.mnyHide=Object.assign(U.mnyHide||{},{[r.id]:1});saveU();relayCall({kind:'mny',id:r.id});toast('הקריאה נפתחה 📢 נשלחה התראה לכל המשתמשים');go('mny',{id:r.id});setTimeout(()=>mnyShare(r.id),600)}catch(e){cerr(e)}
 }
 function mnyJoin(id){
   if(!needCloud())return;
@@ -2993,7 +3014,7 @@ if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
     pushTags();softRender();setTimeout(remSync,3000);
   }catch(e){console.warn('push',e)}
 });
-function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');if(ROLE&&ROLE.type==='gabbai')t.gabbai=ROLE.sid;if(ROLE&&ROLE.type==='admin')t.admin='1';
+function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');if(ROLE&&ROLE.type==='gabbai')t.gabbai=ROLE.sid;if(ROLE&&ROLE.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';
   const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
 function pushToggle(){
   if(location.protocol!=='https:')return toast('ההתראות עובדות רק מהכתובת באינטרנט');
@@ -3003,6 +3024,7 @@ function pushToggle(){
 }
 function pushCard(){
   return `<div class="card push-card ${PUSH.on?'on':''}"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">${PUSH.on?'🔔':'🔕'}</span><div style="flex:1"><b>${PUSH.on?'ההתראות פעילות':'קבלו התראות מהקהילה'}</b><div class="muted">${PUSH.on?'תקבלו עדכונים חשובים גם כשהאפליקציה סגורה':'הודעות חשובות, שיעורים מיוחדים, ספר תהילים חדש ועוד – גם כשהאפליקציה סגורה'}</div></div></div>
+  ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label>`:''}
   <button class="btn ${PUSH.on?'ghost':''}" style="width:100%;margin-top:10px" onclick="pushToggle()">${PUSH.on?'כיבוי התראות':'🔔 הפעלת התראות'}</button></div>`
 }
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
