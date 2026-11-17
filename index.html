@@ -514,7 +514,7 @@ function holidaysOn(dt){
   return o;
 }
 /* כל מה שקורה בתאריך מסוים */
-function adsOn(dt){const s=iso(dt);return S.ads.filter(a=>a.st==='ok'&&(!a.until||a.until>=s)&&((a.date&&a.date===s)||(a.d&&DAYSETS[a.d]?.d.includes(dt.getDay()))))}
+function adsOn(dt){const s=iso(dt);return S.ads.filter(a=>adLive(a)&&(!a.until||a.until>=s)&&((a.date&&a.date===s)||(a.d&&DAYSETS[a.d]?.d.includes(dt.getDay()))))}
 const pinsOn=dt=>(S.pins||[]).filter(p=>p.date===iso(dt)).sort((a,b)=>toMin(a.tm)-toMin(b.tm));
 const notesOn=dt=>(U.notes||[]).filter(n=>n.date===iso(dt)).sort((a,b)=>toMin(a.tm)-toMin(b.tm));
 function diffTxt(m){if(m<1)return'עכשיו';if(m<60)return`בעוד ${m} דק׳`;const h=Math.floor(m/60),r=m%60;return`בעוד ${h}:${String(r).padStart(2,'0')} ש׳`}
@@ -609,7 +609,7 @@ function home(){
   const next=collect('prayers',d,p=>p.t!=='זמן').filter(p=>toMin(p.tm)>=nm-2).slice(0,4);
   const nextOf=t=>collect('prayers',d,p=>p.t===t).find(p=>toMin(p.tm)>=nm);
   const hl=hillulotOn(new Date());
-  const ads=S.ads.filter(a=>a.st==='ok').sort((a,b)=>b.dt-a.dt).slice(0,2);
+  const ads=S.ads.filter(adLive).sort((a,b)=>b.dt-a.dt).slice(0,2);
   const qa=(em,t,sub,act)=>`<button class="qa" onclick="${act}"><span class="em">${em}</span><b>${t}</b><small>${sub}</small></button>`;
   const nm1=nextOf('שחרית'),nm2=nextOf('מנחה'),nm3=nextOf('ערבית');
   const todayEv=collect('events',d).filter(e=>toMin(e.tm)>=nm).length;
@@ -753,7 +753,7 @@ function shulPage(){
     ${ge.length?ge.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(e=>`<div class="row"><div class="time">${e.tm?esc(dispTm(e)):'<small style="font-size:.75rem">'+esc(e.n)+'</small>'}</div><div class="main"><b>${esc(e.title)}</b><span class="muted">${isRel(e.tm)?'⏱ '+relLabel(e.tm)+' · ':''}${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.c)}${e.who?' · '+esc(e.who):''}${e.n?' · '+esc(e.n):''}</span></div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','events','${e.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">אין פעילויות רשומות</div>'}
   </div>
   ${alonShulSec(s)}
-  ${(()=>{const l=S.ads.filter(a=>a.st==='ok'&&a.sid===s.id&&(!a.until||a.until>=iso(new Date())));return l.length?`<h3>📢 מודעות</h3>${l.map(adMini).join('')}`:''})()}
+  ${(()=>{const l=S.ads.filter(a=>adLive(a)&&a.sid===s.id);return l.length?`<h3>📢 מודעות</h3>${l.map(adMini).join('')}`:''})()}
   <div class="card"><h3>📷 תמונות מהמקום</h3>
     ${s.photos.length?`<div class="gallery">${s.photos.map((p,i)=>`<div style="background-image:url(${p})" onclick="viewImg('${s.id}',${i})">${ed?`<button class="x" aria-label="מחק" onclick="event.stopPropagation();delPhoto('${s.id}',${i})">✕</button>`:''}</div>`).join('')}</div>`:'<div class="empty-msg">אין עדיין תמונות</div>'}
   </div>`;
@@ -834,49 +834,62 @@ function editHill(id){
 //@saveHill
 /* ===== לוח מודעות ===== */
 /* ===== 🔔 מודעה עם תאריך – קופצת מדי פעם במסך הראשי עד יום האירוע (מתחת למניין הקרוב) ===== */
-function adPopList(){const t=new Date();t.setHours(0,0,0,0);const ti=iso(t);
-  return S.ads.filter(a=>{if(a.st!=='ok'||!a.date||a.date<ti||(a.until&&a.until<ti))return false;const n=a.popD===undefined?7:+a.popD;if(!n)return false;
-    const days=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);return days<=n&&(U.adHide||{})[a.id]!==ti}).sort((a,b)=>a.date<b.date?-1:1)}
-function adPop(){const L=adPopList();if(!L.length)return'';
-  // "מדי פעם": ביום האירוע ויום לפניו – תמיד; לפני כן – בערך בכל כניסה שנייה, ומתחלפות בין המודעות
-  const t=new Date();t.setHours(0,0,0,0);
-  const show=L.filter(a=>{const d=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);return d<=1||((window._adTick||0)%2===0)});if(!show.length)return'';
-  const a=show[(window._adTick||0)%show.length];const d=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);
-  const when=d<=0?'<b>היום!</b>':d===1?'<b>מחר</b>':'בעוד '+d+' ימים';
-  return `<div class="adpop${d<=0?' today':''}" onclick="showAd('${a.id}')">${a.img?`<div class="adpop-im" style="background-image:url(${a.img})"></div>`:'<span class="adpop-em">📢</span>'}<div class="adpop-x"><small>🔔 תזכורת · ${when}</small><b>${esc(a.title)}</b><span class="muted">${adWhen(a)}</span></div><button class="adpop-c" aria-label="לא להציג היום" onclick="event.stopPropagation();adPopHide('${a.id}')">✕</button></div>`}
-function adPopHide(id){U.adHide=U.adHide||{};const ti=iso(new Date());Object.keys(U.adHide).forEach(k=>{if(U.adHide[k]<ti)delete U.adHide[k]});U.adHide[id]=ti;saveU();toast('לא יוצג עוד היום');softRender()}
-window._adTick=(+(localStorage.getItem('ash_adtick')||0))+1;try{localStorage.setItem('ash_adtick',window._adTick)}catch(e){}
-function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')':a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
+function adAt(a){if(!a.date)return null;const d=fromIso(a.date),[h,m]=(a.tm||'08:00').split(':');d.setHours(+h||0,+m||0,0,0);return d}
+function adEnd(a){if(!a.until)return null;const d=fromIso(a.until),[h,m]=(a.untilTm||'23:59').split(':');d.setHours(+h||0,+m||0,59,0);return d}
+const adLive=a=>a.st==='ok'&&!(adEnd(a)&&adEnd(a)<new Date());
+/* כמה זמן בין הקפצה להקפצה – ככל שהמועד מתקרב, מקפיצים יותר */
+function adGap(h){return h>48?8:h>24?4:h>12?2:h>4?1:h>1?1/3:0}
+function adPopList(){const now=Date.now();
+  return S.ads.filter(a=>{if(!adLive(a)||!a.date)return false;const n=a.popD===undefined?7:+a.popD;if(!n)return false;const at=adAt(a);
+    const h=(at-now)/36e5;return h<=n*24&&h>-.5&&(U.adHide||{})[a.id]!==iso(new Date())}).sort((a,b)=>adAt(a)-adAt(b))}
+let _adCur=null;
+function adPop(){const L=adPopList();if(!L.length)return'';const now=Date.now();U.adShown=U.adShown||{};
+  let a=_adCur&&L.find(x=>x.id===_adCur.id)&&now-_adCur.t<15*6e4?L.find(x=>x.id===_adCur.id):null;
+  if(!a){a=L.find(x=>{const h=(adAt(x)-now)/36e5;return now-(U.adShown[x.id]||0)>=adGap(h)*36e5});if(!a)return'';_adCur={id:a.id,t:now};U.adShown[a.id]=now;
+    Object.keys(U.adShown).forEach(k=>{if(!S.ads.some(z=>z.id===k))delete U.adShown[k]});saveU()}
+  const at=adAt(a),mins=Math.round((at-now)/6e4),t0=new Date();t0.setHours(0,0,0,0);const dd=Math.round((new Date(at).setHours(0,0,0,0)-t0)/864e5);
+  const when=mins<=0?'<b>עכשיו!</b>':mins<60?'<b>בעוד '+mins+' דקות</b>':mins<180?'<b>בעוד '+diffTxt(mins).replace(/^בעוד /,'')+'</b>':dd===0?'<b>היום'+(a.tm?' ב־'+a.tm:'')+'</b>':dd===1?'<b>מחר'+(a.tm?' ב־'+a.tm:'')+'</b>':'בעוד '+dd+' ימים';
+  const hot=mins<180||dd===0;
+  return `<div class="adpop${hot?' today':''}" onclick="showAd('${a.id}')">${a.img?`<div class="adpop-im" style="background-image:url(${a.img})"></div>`:'<span class="adpop-em">📢</span>'}<div class="adpop-x"><small>🔔 תזכורת · ${when}</small><b>${esc(a.title)}</b><span class="muted">${adWhen(a)}</span></div><button class="adpop-c" aria-label="לא להציג היום" onclick="event.stopPropagation();adPopHide('${a.id}')">✕</button></div>`}
+function adPopHide(id){U.adHide=U.adHide||{};const ti=iso(new Date());Object.keys(U.adHide).forEach(k=>{if(U.adHide[k]<ti)delete U.adHide[k]});U.adHide[id]=ti;_adCur=null;saveU();toast('לא יוצג עוד היום');softRender()}
+function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')'+(a.tm?' · 🕐 '+a.tm:''):a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span></div><span>‹</span></div>`}
 function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}
-${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>`:''}</div>`}
+${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>`:''}</div>`}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
 function board(){
-  const ok=S.ads.filter(a=>a.st==='ok').sort((a,b)=>b.dt-a.dt),pend=S.ads.filter(a=>a.st==='pend');
+  const ok=S.ads.filter(adLive).sort((a,b)=>b.dt-a.dt),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
   const L=launchOn();
   return `<h2>📌 לוח מודעות</h2>
   ${L?`<div class="launch"><div class="l1">🎉 מבצע השקה 🎉</div><div class="l2">3 החודשים הראשונים – פרסום <b>חינם</b>!</div><div class="l3">עסקים, שיעורים, שמחות, אירועים ומודעות קהילה · בתוקף עד ${hebDate(LAUNCH_END,1)} (${gStr(LAUNCH_END)})</div></div>`:''}
   <button class="btn" style="width:100%;margin-bottom:12px" onclick="adForm()">${ROLE?.type==='admin'?'📝 מודעה חדשה – מתפרסמת מיד':'📝 בקשה לפרסום מודעה'+(L?' – חינם':'')}</button>
   ${ROLE?.type==='admin'&&pend.length?`<h3>⏳ ממתינות לאישור (${pend.length})</h3>${pend.map(adCard).join('')}<h3>מפורסמות</h3>`:''}
-  ${ok.map(adMini).join('')||'<div class="empty-msg">אין מודעות כרגע</div>'}`;
+  ${ok.map(adMini).join('')||'<div class="empty-msg">אין מודעות כרגע</div>'}
+  ${ended.length?`<details style="margin-top:12px"><summary class="muted">⏱️ מודעות שהסתיים זמנן (${ended.length}) – רק המנהל רואה</summary>${ended.map(adMini).join('')}</details>`:''}`;
 }
-function adForm(){
-  modal(`${launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, אבידות ומציאות ועוד.</div>
-  <label class="f">כותרת</label><input class="inp" id="at" maxlength="70">
-  <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')"></textarea><div class="fmt-pv" id="ax_pv"></div>
-  <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel">
-  <label class="f">תמונה (לא חובה)</label><input type="file" accept="image/*" id="ai" class="inp">
+function adForm(id){const E=id?S.ads.find(z=>z.id===id):null,ed=!!E,v=k=>esc(E&&E[k]||'');window._adEd=E;
+  const w=E?(E.date?'date':E.d?'rec':''):'';const pp=E&&E.popD!==undefined?String(E.popD):'7';
+  modal(`${!ed&&launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}${ed?'':'<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, אבידות ומציאות ועוד.</div>'}
+  <label class="f">כותרת</label><input class="inp" id="at" maxlength="70" value="${v('title')}">
+  <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')">${v('text')}</textarea><div class="fmt-pv" id="ax_pv"></div>
+  <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel" value="${v('contact')}">
+  <label class="f">תמונה (לא חובה)</label>${E&&E.img?`<div id="aimg" style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><img src="${E.img}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px"><button class="btn ghost sm" onclick="window._adEd.img='';$('#aimg').remove()">🗑️ הסרת התמונה</button></div>`:''}<input type="file" accept="image/*" id="ai" class="inp">
   <label class="f">מתי האירוע? (המודעה תופיע בלוח השנה)</label>
-  <select class="inp" id="aw" onchange="$('#awd').style.display=this.value==='date'?'block':'none';$('#awr').style.display=this.value==='rec'?'block':'none'"><option value="">לא קשור לתאריך</option><option value="date">בתאריך מסוים</option><option value="rec">קבוע כל שבוע</option></select>
-  <div id="awd" style="display:none;margin-top:6px"><input class="inp" type="date" id="awdd">
-  <label class="f">🔔 תזכורת במסך הראשי</label><select class="inp" id="apop"><option value="3">מ-3 ימים לפני</option><option value="7" selected>משבוע לפני</option><option value="14">משבועיים לפני</option><option value="0">בלי תזכורת</option></select>
-  <div class="muted" style="font-size:.85rem">המודעה תקפוץ מדי פעם במסך הראשי עד יום האירוע – מתחת לזמני המניין הקרוב.</div></div>
-  <select class="inp" id="awr" style="display:none;margin-top:6px">${dsOpts('mz')}</select>
-  <label class="f">להציג עד תאריך (לא חובה)</label><input class="inp" type="date" id="au">
-  ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${ROLE.sid===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
+  <select class="inp" id="aw" onchange="$('#awd').style.display=this.value==='date'?'block':'none';$('#awr').style.display=this.value==='rec'?'block':'none'"><option value="" ${w===''?'selected':''}>לא קשור לתאריך</option><option value="date" ${w==='date'?'selected':''}>בתאריך ושעה מסוימים</option><option value="rec" ${w==='rec'?'selected':''}>קבוע כל שבוע</option></select>
+  <div id="awd" style="display:${w==='date'?'block':'none'};margin-top:6px"><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><div><label class="f" style="margin-top:0">📅 תאריך</label><input class="inp" type="date" id="awdd" value="${v('date')}" onchange="adAutoEnd()"></div><div><label class="f" style="margin-top:0">🕐 שעה</label><input class="inp" type="time" id="awtm" value="${v('tm')}" onchange="adAutoEnd()"></div></div>
+  <label class="f">🔔 תזכורת במסך הראשי</label><select class="inp" id="apop">${[['1','מיום לפני'],['3','מ-3 ימים לפני'],['7','משבוע לפני'],['14','משבועיים לפני'],['0','בלי תזכורת']].map(([x,l])=>`<option value="${x}" ${pp===x?'selected':''}>${l}</option>`).join('')}</select>
+  <div class="muted" style="font-size:.85rem">המודעה קופצת במסך הראשי (מתחת למניין הקרוב) – <b>וככל שהמועד מתקרב, היא קופצת יותר</b>: בהתחלה פעם בכמה שעות, ביום האירוע כל שעה, ובשעות האחרונות כמעט בכל כניסה.</div></div>
+  <select class="inp" id="awr" style="display:${w==='rec'?'block':'none'};margin-top:6px">${dsOpts(E&&E.d||'mz')}</select>
+  <label class="f">⏱️ הסרה אוטומטית של המודעה (לא חובה)</label><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><input class="inp" type="date" id="au" value="${v('until')}" ${E&&E.until?'data-man="1"':''} oninput="this.dataset.man=1"><input class="inp" type="time" id="autm" value="${v('untilTm')}"></div>
+  <div class="muted" style="font-size:.85rem">בתאריך ובשעה האלה המודעה יורדת לבד מהאפליקציה. בלי שעה – בסוף היום.</div>
+  ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${(E?E.sid===x.id:ROLE.sid===x.id)?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
   ${ROLE?'':termsBox('adT')}
-  <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">${ROLE?'📌 פרסום עכשיו':'שליחה לאישור'}</button>`,ROLE?'📝 מודעה חדשה':'בקשת פרסום');
-}
+  <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">${ed?'💾 שמירת השינויים':ROLE?'📌 פרסום עכשיו':'שליחה לאישור'}</button>
+  ${ed?`<button class="btn red" style="width:100%;margin-top:8px" onclick="closeModal();adSt('${E.id}','del')">🗑️ מחיקת המודעה</button>`:''}`,ed?'✏️ עריכת מודעה':ROLE?'📝 מודעה חדשה':'בקשת פרסום');
+  setTimeout(()=>fmtPrev('ax'),30)}
+/* אם לא נקבעה הסרה – מציעים להסיר שעתיים אחרי האירוע */
+function adAutoEnd(){const d=$('#awdd').value,t=$('#awtm').value;if(!d||$('#au').dataset.man)return;
+  const x=fromIso(d);const[h,m]=(t||'21:59').split(':');x.setHours(+h,+m+120,0,0);$('#au').value=iso(x);$('#autm').value=String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0')}
 //@sendAd
 //@adSt
 /* ===== אזור אישי ===== */
@@ -2340,12 +2353,14 @@ async function addPin(s){
   closeModal();toast('ההודעה ננעצה בלוח 📌');setTimeout(()=>openDay(s),300);
 }
 async function delPin(id,s){if(!confirm('למחוק את ההודעה?')||!needCloud())return;try{await C.F.deleteDoc(dref('pins',id))}catch(e){return cerr(e)}setTimeout(()=>openDay(s),300)}
-async function sendAd(){
-  const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:'',st:ROLE?'ok':'pend',dt:Date.now(),
-    date:$('#aw').value==='date'?$('#awdd').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
+async function sendAd(){const E=window._adEd;
+  const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:E?E.img||'':'',st:E?E.st:ROLE?'ok':'pend',dt:E?E.dt:Date.now(),
+    date:$('#aw').value==='date'?$('#awdd').value:'',tm:$('#aw').value==='date'?$('#awtm').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,untilTm:$('#au').value?$('#autm').value:'',sid:$('#asid')?.value||''};
+  if(a.until&&adEnd(a)<new Date()&&!confirm('⚠️ זמן ההסרה שבחרתם כבר עבר – המודעה לא תוצג. לשמור בכל זאת?'))return;
   if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
   const f=$('#ai').files[0];if(f)a.img=await shrink(f,800);
+  if(E){try{await C.F.setDoc(dref('ads',E.id),a);Object.assign(E,a);U.adShown&&delete U.adShown[E.id]}catch(e){return cerr(e)}window._adEd=null;closeModal();toast('✔️ המודעה עודכנה');render();return}
   try{await C.F.addDoc(col('ads'),a)}catch(e){return cerr(e)}
   closeModal();toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור');
   if(a.st!=='ok'&&S.settings.adminPhone)window.open(`https://wa.me/${S.settings.adminPhone.replace(/\D/g,'').replace(/^0/,'972')}?text=`+encodeURIComponent(`בקשת פרסום חדשה:\n*${a.title}*\n${a.text}\n${a.contact}`));
