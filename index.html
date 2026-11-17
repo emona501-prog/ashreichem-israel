@@ -2428,6 +2428,7 @@ const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
   C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.dupok=F.onSnapshot(dref('config','dupok'),d=>{DUPOK=new Set(d.exists()?(d.data().keys||[]):[]);softRender()},()=>{});
   C.unsub.arch=F.onSnapshot(dref('config','archive'),d=>{ARCH=d.exists()?(d.data().shuls||{}):{};softRender()},()=>{});
   C.unsub.alon=F.onSnapshot(col('alon'),q=>{S.alon=q.docs.map(d=>({...d.data(),id:d.id}));softRender();setTimeout(alonCleanup,4000)},()=>{});
   C.unsub.shuls=F.onSnapshot(col('shuls'),q=>{if(q.empty&&!S.cloud)return;const old={};S.shuls.forEach(s=>old[s.id]=s);
@@ -2522,8 +2523,10 @@ function dupOf(x,exceptId){const n=dupName(x.name),a=dupAddr(x.address);
   return S.shuls.filter(s=>s.id!==exceptId&&s.id!==x.id).filter(s=>{const sn=dupName(s.name),sa=dupAddr(s.address);
     return (n.length>=3&&(sn===n||(n.length>=5&&(sn.includes(n)||n.includes(sn))&&sn.length>=5)))||(a&&sa&&a===sa)})}
 function dupMsg(L){return L.map(s=>`• ${s.name}${s.address?' – '+s.address:''}`).join('\n')}
-function dupPairs(){const out=[],seen=new Set();S.shuls.forEach(x=>dupOf(x).forEach(y=>{const k=[x.id,y.id].sort().join('|');if(!seen.has(k)){seen.add(k);out.push([x,y])}}));return out}
-function dupsV(){const P=dupPairs();modal(P.length?`<p>נמצאו ${P.length} זוגות שנראים כמו אותו בית כנסת. בדקו – ומחקו את הכפול (הוא יעבור לארכיון, אפשר לשחזר):</p>`+P.map(([a,b])=>`<div class="card" style="margin:8px 0;padding:10px">${[a,b].map(x=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><div style="flex:1"><b>${esc(x.name)}</b><div class="muted" style="font-size:.85rem">${esc(x.address||'')} · ${(x.prayers||[]).length} תפילות${x.no?' · מס׳ '+x.no:''}${codeOf(x.id)?' · יש קוד גבאי':''}</div></div><button class="btn sec sm" onclick="closeModal();go('shul',{id:'${x.id}'})">פתיחה</button><button class="btn red sm" onclick="closeModal();delShul('${x.id}')">🗑️</button></div>`).join('')}</div>`).join(''):'<p>✅ לא נמצאו כפילויות.</p>','🔍 בדיקת כפילויות')}
+let DUPOK=new Set();
+function dupPairs(){const out=[],seen=new Set();S.shuls.forEach(x=>dupOf(x).forEach(y=>{const k=[x.id,y.id].sort().join('|');if(!seen.has(k)&&!DUPOK.has(k)){seen.add(k);out.push([x,y])}}));return out}
+async function dupApprove(a,b){const k=[a,b].sort().join('|');DUPOK.add(k);try{await C.F.setDoc(dref('config','dupok'),{keys:[...DUPOK]})}catch(e){cerr(e)}toast('✔️ סומן – אלה שני בתי כנסת שונים');closeModal();render();if(dupPairs().length)setTimeout(dupsV,250)}
+function dupsV(){const P=dupPairs();modal(P.length?`<p>נמצאו ${P.length} זוגות שנראים כמו אותו בית כנסת. בדקו – ומחקו את הכפול (הוא יעבור לארכיון, אפשר לשחזר):</p>`+P.map(([a,b])=>`<div class="card" style="margin:8px 0;padding:10px">${[a,b].map(x=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><div style="flex:1"><b>${esc(x.name)}</b><div class="muted" style="font-size:.85rem">${esc(x.address||'')} · ${(x.prayers||[]).length} תפילות${x.no?' · מס׳ '+x.no:''}${codeOf(x.id)?' · יש קוד גבאי':''}</div></div><button class="btn sec sm" onclick="closeModal();go('shul',{id:'${x.id}'})">פתיחה</button><button class="btn red sm" onclick="closeModal();delShul('${x.id}')">🗑️</button></div>`).join('')}<button class="btn sm" style="width:100%;margin-top:8px;background:#2e8b57" onclick="dupApprove('${a.id}','${b.id}')">✅ אלה שני בתי כנסת שונים – לאשר ולסגור</button></div>`).join(''):'<p>✅ לא נמצאו כפילויות.</p>','🔍 בדיקת כפילויות')}
 /* מספר קבוע לכל בית כנסת (מס׳ 1, 2, 3…) – ניתן לפי סדר ההוספה ולא משתנה */
 const shulNo=x=>x&&x.no?x.no:0;
 function ensureNos(){if(ROLE?.type!=='admin'||!S.cloud||ensureNos.done)return;ensureNos.done=1;let mx=Math.max(0,...S.shuls.map(x=>+x.no||0));
