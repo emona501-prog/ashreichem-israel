@@ -1927,7 +1927,7 @@ const SP_KW=[['מנחה גדולה','p','מנחה','מנחה גדולה'],['מנ
 const SP_NUM=[['שעתיים וחצי',150],['שעתיים ורבע',135],['שעתיים',120],['שלוש שעות',180],['שעה ושלושת רבעי',105],['שעה וחצי',90],['שעה ורבע',75],['שלושת רבעי שעה',45],['חצי שעה',30],['רבע שעה',15],['שעה',60],
   ['ארבעים וחמש',45],['ארבעים',40],['שלושים וחמש',35],['שלושים',30],['עשרים וחמש',25],['עשרים',20],['חמש עשרה',15],['חמישה עשר',15],['עשר',10],['חמש',5]];
 const SP_BASE=[[/רבנו תם|ר"ת|ר״ת/,'rt'],[/י?צאת ה?שבת|יציאת ה?שבת|מוצאי ה?שבת|מוצ"ש|מוצש|צאת ה?חג|הבדלה/,'tzeit'],[/צאת ה?כוכבים|צה"כ|צה״כ|צאה"כ|צאת(?=[\s,.:]|$)/,'tzeit'],[/שקיעה|השקיעה|שקיעת החמה|שקיע"ה/,'set'],[/הנץ|נץ החמה|נה"ח|זריחה/,'rise'],[/פלג המנחה|פלג/,'plag'],[/הדלקת ה?נרות|הדלקה|כניסת ה?שבת|כניסת ה?חג/,'candle']];
-const spNorm=t=>t.replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
+const spNorm=t=>t.replace(/(^|\s)[*_~]+|[*_~]+(?=\s|$)/gm,'$1').replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
 function spSeason(){const m=new Date().getMonth()+1;return m>=4&&m<=10?'קיץ':'חורף'}
 function spTime(c,kind){ // מחזיר {tm} או {ref,sgn,n}
   const ss=c.match(/בחורף[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?קיץ[^\d]*(\d{1,2}[:.]\d{2})/)||c.match(/בקיץ[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?חורף[^\d]*(\d{1,2}[:.]\d{2})/);
@@ -1953,9 +1953,22 @@ function spDay(ctx,c,kind){
   if(ctx==='wk6'&&kind==='שחרית')return'wk6';
   return ctx;
 }
+/* פרטי בית הכנסת מתוך ההודעה: שם, כתובת, גבאי וטלפון, נוסח, רב */
+function spInfo(line,info){const L=line.replace(/^[•\-–*\d.)\s]+/,'').trim();let m;
+  const tel=L.match(/0\d{1,2}[\s\-]?\d{3}[\s\-]?\d{4}/);
+  if((m=L.match(/^(?:שם\s+)?(?:בית ה?כנסת|בית כנסת|ביה"כ|בהכ"נ|ביהכ"נ|קהילה|קהילת)\s*[:\-–]\s*(.+)$/))){info.name=m[1].trim();return true}
+  if((m=L.match(/^(?:כתובת|מיקום|מקום|רחוב|כתובת בית הכנסת)\s*[:\-–]\s*(.+)$/))){info.address=m[1].replace(/\s*,?\s*ירושלים\s*$/,'').trim();return true}
+  if((m=L.match(/^נוסח(?:\s+התפילה)?\s*[:\-–]\s*(.+)$/))){info.nusach=m[1].trim();return true}
+  if((m=L.match(/^(?:רב בית הכנסת|רב הקהילה|רב|הרב|מרא דאתרא)\s*[:\-–]\s*(.+)$/))){info.rabbi=m[1].trim();return true}
+  if(tel&&/גבאי|טלפון|טל'|טל\b|נייד|פלאפון|לפרטים|ליצירת קשר|איש קשר/.test(L)){
+    const nm=L.replace(tel[0],' ').replace(/(?:טלפון|טל'|טל|נייד|פלאפון|ה?גבאי|לפרטים|ליצירת קשר|איש קשר|של|ה)(?=[\s:\-–]|$)/g,' ').replace(/[:\-–,.()]/g,' ').replace(/\s+/g,' ').trim();
+    (info.gab=info.gab||[]).push({name:nm.length<30?nm:'',phone:tel[0].replace(/\s/g,'')});return true}
+  if((m=L.match(/^(?:ה?גבאי(?:ם)?)\s*[:\-–]\s*(.+)$/))){(info.gab=info.gab||[]).push({name:m[1].trim(),phone:''});return true}
+  return false}
 function smartParse(txt){
-  const out=[],notes=[];let ctx='wk6';
+  const out=[],notes=[],info={};let ctx='wk6';
   spNorm(txt).split(/\n+/).map(l=>l.trim()).filter(Boolean).forEach((line,ln)=>{
+    if(spInfo(line,info))return;
     if(/^(שבת|בשבת|שבת קודש)(?=[\s,.:]|$)/.test(line)||/^זמני (ה)?(תפילות |תפילה |התפילות )?(ה)?שבת/.test(line))ctx='sat';
     else if(/ימות החול|ימי החול|בחול(?=[\s,.:]|$)|^חול(?=[\s,.:]|$)|כל יום/.test(line))ctx='wk6';
     else if(/^(ערב שבת|יום שישי|שישי)(?=[\s,.:]|$)/.test(line))ctx='fri';
@@ -1963,7 +1976,7 @@ function smartParse(txt){
     // מציאת תחילת קטעים (מילת מפתח שלא קודמת לה "לפני/אחרי")
     const hits=[];SP_KW.forEach(([k,...r])=>{let i=-1;while((i=line.indexOf(k,i+1))>=0){const before=line.slice(Math.max(0,i-7),i);if(/(לפני|אחרי|לאחר|אחר)\s*$/.test(before))continue;if(hits.some(h=>i>=h.i&&i<h.i+h.k.length))continue;hits.push({i,k,r})}});
     hits.sort((a,b)=>a.i-b.i||b.k.length-a.k.length);const H=hits.filter((h,j)=>!hits.some((g,jj)=>jj!==j&&h.i>=g.i&&h.i<g.i+g.k.length&&g.k.length>h.k.length));
-    if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת|שבת( קודש)?|מוצאי שבת|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני התפילה)/.test(line)&&line.length>3)notes.push(line);return}
+    if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת|שבת( קודש)?|מוצאי שבת|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני)/.test(line)&&line.length>3)notes.push(line);return}
     H.forEach((h,j)=>{
       let c=line.slice(h.i,j+1<H.length?H[j+1].i:line.length).replace(/(^|\s)(תפילת|תפלת|ו)\s*$/,'').trim();
       let ct=c;if(j===0){const pre=line.slice(0,h.i).trim();if(pre&&/לפני|אחרי|לאחר|\d/.test(pre))ct=pre+' '+c}
@@ -1984,7 +1997,7 @@ function smartParse(txt){
     if(!tgt){it.tm='';return}const r=parseRel(tgt.tm),off=(it.sgn==='-'?-1:1)*it.n;
     if(r){const tot=(r.s==='-'?-r.n:r.n)+off;it.tm='@'+r.b+(tot<0?'-':'+')+Math.abs(tot)}else{const[hh,mm]=tgt.tm.split(':').map(Number);const x=hh*60+mm+off;it.tm=String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
     it.note=(it.note?it.note+' · ':'')+minTxt(it.n)+(it.sgn==='-'?' לפני ':' אחרי ')+it.ref});
-  return{items:out,notes};
+  return{items:out,notes,info};
 }
 let SP=null;
 function smartPaste(){
@@ -2001,6 +2014,10 @@ function spPrev(){
   ${L.map((it,i)=>`<label class="sp-it"><input type="checkbox" ${it.tm?'checked':''} onchange="SP.items[${i}].off=!this.checked">
     <div><b>${it.typ==='p'?'🕰️ '+esc(it.kind)+(it.lbl&&it.lbl!==it.kind?' · '+esc(it.lbl):''):'📚 '+esc(it.title)}</b> <span class="badge">${esc(DAYSETS[it.d]?.l||it.d)}</span>
     <div>${spTmTxt(it)}${it.who?` · ${esc(it.who)}`:''}</div>${it.note?`<div class="muted">${esc(it.note)}</div>`:''}<div class="muted sp-src">"${esc(it.c)}"</div></div></label>`).join('')||'<div class="empty-msg">לא זוהו תפילות או שיעורים</div>'}
+  ${(()=>{const I=SP.info||{},rows=[];const r=(k,l,v)=>rows.push(`<label class="sp-it"><input type="checkbox" class="spI" value="${k}" checked><div><b>${l}</b><div>${esc(v)}</div></div></label>`);
+    if(I.name)r('name','🕍 שם בית הכנסת',I.name);if(I.address)r('address','📍 כתובת',I.address);if(I.nusach)r('nusach','📖 נוסח',I.nusach);if(I.rabbi)r('rabbi','🎓 רב בית הכנסת',I.rabbi);
+    (I.gab||[]).forEach((g,j)=>r('gab'+j,'👤 גבאי',[g.name,g.phone].filter(Boolean).join(' · ')));
+    return rows.length?`<div class="f" style="margin-top:4px">📋 פרטי בית הכנסת</div>${rows.join('')}`:''})()}
   ${SP.notes.length?`<label class="sp-it"><input type="checkbox" id="spN" checked><div><b>📝 להוסיף להערות בית הכנסת</b>${SP.notes.map(n=>`<div class="muted">• ${esc(n)}</div>`).join('')}</div></label>`:''}
   ${ED.prayers.length||ED.events.length?`<label class="muted" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="spR"> למחוק את הזמנים הקיימים ולהחליף בחדשים (${ED.prayers.length} תפילות, ${ED.events.length} שיעורים)</label>`:''}
   <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="spApply()">➕ הוספה לבית הכנסת</button><button class="btn ghost" onclick="smartPaste();$('#spT').value=SP.raw">↩️ תיקון הטקסט</button></div>`,'✨ זה מה שזיהינו');
@@ -2010,8 +2027,13 @@ function spApply(){
   let np=0,ne=0;SP.items.filter(it=>!it.off&&it.tm).forEach(it=>{
     if(it.typ==='p'){ED.prayers.push({id:uid(),t:PT.includes(it.kind)?it.kind:'אחר',d:it.d,tm:it.tm,n:[it.lbl&&it.lbl!==it.kind?it.lbl:'',it.note].filter(Boolean).join(' · ')});np++}
     else{ED.events.push({id:uid(),title:it.title,c:CATS.includes(it.kind)?it.kind:'שיעור תורה',d:it.d,tm:it.tm,end:'',who:it.who||'',n:it.note||''});ne++}});
+  const I=SP.info||{},on=new Set([...document.querySelectorAll('.spI:checked')].map(x=>x.value));let ni=0;
+  if(on.has('name')){ED.name=I.name;ni++}if(on.has('address')){ED.address=I.address;ni++}if(on.has('nusach')){ED.nusach=I.nusach;ni++}
+  if(on.has('rabbi')){ED.rabbi=I.rabbi;if(!/רב/.test(ED.notes||''))ED.notes=('רב בית הכנסת: '+I.rabbi+(ED.notes?'\n'+ED.notes:''));ni++}
+  (I.gab||[]).forEach((g,j)=>{if(!on.has('gab'+j))return;ED.gabbaim=(ED.gabbaim||[]).filter(x=>(x.name||'').trim()||(x.phone||'').trim());
+    const ex=ED.gabbaim.find(x=>x.phone&&g.phone&&x.phone.replace(/\D/g,'')===g.phone.replace(/\D/g,''));if(ex){if(g.name&&!ex.name)ex.name=g.name}else ED.gabbaim.push({name:g.name,phone:g.phone,pub:true});ni++});
   if($('#spN')&&$('#spN').checked&&SP.notes.length)ED.notes=(ED.notes?ED.notes.trim()+'\n':'')+SP.notes.join('\n');
-  drawEd();toast(`נוספו ${np} תפילות ו-${ne} שיעורים ✔️ בדקו ולחצו שמירה`,4000);
+  drawEd();toast(`נוספו ${np} תפילות ו-${ne} שיעורים${ni?` ו-${ni} פרטים`:''} ✔️ בדקו ולחצו שמירה`,4000);
 }
 /* ===== 🏛️ לוגו לבית הכנסת – כל גבאי מעלה את הסמל שלו ===== */
 function logoEdHtml(){const L=ED&&(ED.logo||LOGO[ED.id]);
