@@ -278,6 +278,12 @@ body.dark .gab-code{background:#3a2f17;border-color:#7a6230}
 .mp-b button{border:0;border-radius:14px;font:inherit;font-weight:800;padding:10px;cursor:pointer}.mp-j{flex:2;background:#fff;color:#0f5132;font-size:1.05rem}.mp-x{flex:1;background:rgba(255,255,255,.18);color:#fff}
 @keyframes mpIn{from{transform:translateY(140%);opacity:0}to{transform:none;opacity:1}}@keyframes mpGlow{from{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 0 rgba(155,227,181,.0)}to{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 8px rgba(155,227,181,.45)}}
 body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
+.st-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;margin:10px 0 4px;border:0;background:rgba(255,255,255,.1);border-radius:14px;padding:8px 4px;font:inherit;color:inherit;cursor:pointer}
+.st-strip div{display:flex;flex-direction:column;align-items:center}.st-strip b{font-size:1.35rem;color:#f3d78e;line-height:1.1}.st-strip span{font-size:.72rem;opacity:.9;white-space:nowrap}
+.st-sec{font-weight:800;margin:12px 0 4px;font-size:.92rem;color:var(--pri,#24456b)}
+.st-ch{display:flex;align-items:flex-end;gap:3px;height:110px;padding:4px 2px 18px;border-bottom:1px solid var(--line)}
+.st-bar{flex:1;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:1px}.st-bar i,.st-bar em{display:block;width:45%;border-radius:3px 3px 0 0;min-height:2px}
+.st-bar i{background:#4a7fc1}.st-bar em{background:#3ea86b}.st-bar span{position:absolute;bottom:-17px;font-size:.68rem;color:var(--muted,#778)}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -618,9 +624,26 @@ function setNh(n){U.nh=n;saveU();pushTags();render()}
 /* ===== מסך הבית ===== */
 
 /* ----- ⚡ גישה מהירה למנהל במסך הראשי ----- */
+/* ===== 📊 נתוני שימוש: כניסות ומשתמשים ===== */
+function stSum(o,days){const now=Date.now();return Object.entries(o||{}).filter(([d])=>(now-fromIso(d))/864e5<days).reduce((a,[,v])=>a+(+v||0),0)}
+function statsStrip(){const st=S.stats;if(!st)return'';const t=iso(new Date());
+  return `<button class="st-strip" onclick="go('admin')"><div><b>${st.users||0}</b><span>👥 משתמשים</span></div><div><b>${(st.dau||{})[t]||0}</b><span>🟢 היום</span></div><div><b>${(st.days||{})[t]||0}</b><span>🚪 כניסות היום</span></div><div><b>${st.visits||0}</b><span>📈 סה״כ כניסות</span></div></button>`}
+function statsCard(){const st=S.stats||{days:{},views:{}};const t=iso(new Date());
+  const L=[];for(let k=13;k>=0;k--){const d=new Date();d.setDate(d.getDate()-k);const i=iso(d);L.push([i,(st.days||{})[i]||0,(st.dau||{})[i]||0,d])}
+  const mx=Math.max(1,...L.map(x=>x[1]));
+  const bars=L.map(([i,v,u,d])=>`<div class="st-bar" title="${gStr(d)}: ${v} כניסות, ${u} משתמשים"><i style="height:${Math.round(v/mx*100)}%"></i><em style="height:${Math.round(u/mx*100)}%"></em><span>${'אבגדהוש'[d.getDay()]}</span></div>`).join('');
+  return `<div class="card"><h3>📊 נתוני שימוש</h3>
+  <div class="st-sec">👥 משתמשים (מכשירים)</div>
+  <div class="stat"><div><b>${st.users||0}</b>סה״כ משתמשים</div><div><b>${(st.dau||{})[t]||0}</b>פעילים היום</div><div><b>${stSum(st.dau,7)}</b>פעילים השבוע*</div></div>
+  <div class="stat" style="margin-top:6px"><div><b>${(st.nu||{})[t]||0}</b>חדשים היום</div><div><b>${stSum(st.nu,7)}</b>חדשים השבוע</div><div><b>${st.inst||0}</b>📲 התקינו</div></div>
+  <div class="st-sec">🚪 כניסות</div>
+  <div class="stat"><div><b>${(st.days||{})[t]||0}</b>היום</div><div><b>${stSum(st.days,7)}</b>השבוע</div><div><b>${st.visits||0}</b>סה״כ</div></div>
+  <div class="st-sec">14 הימים האחרונים</div><div class="st-ch">${bars}</div><div class="muted" style="font-size:.8rem">▮ כחול – כניסות · ▮ ירוק – משתמשים שונים באותו יום</div>
+  <div class="muted" style="font-size:.8rem;margin-top:6px">* סכום הפעילים בכל יום (משתמש שנכנס כמה ימים נספר בכל יום). "משתמש" = טלפון או מחשב אחד. כניסה = פתיחה של האפליקציה (רענון באותו ביקור לא נספר). הכניסות שלך מהטלפון הזה ${noCount()?'<b>לא נספרות</b>':'נספרות'}.<br>חלק מהנתונים (פעילים, חדשים, התקנות) נאספים מהיום והלאה.</div>
+  <button class="btn ghost sm" style="margin-top:8px" onclick="loadStats()">🔄 רענון</button></div>`}
 function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
-    return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
+    return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>${statsStrip()}
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
@@ -2221,9 +2244,8 @@ function admin(){
   const pend=S.ads.filter(a=>a.st==='pend').length;
   return `<h2>🛡️ לוח ניהול</h2>
   <div class="card" style="background:#e5f4ec"><b>📱 הטלפון הזה מוכר כטלפון המנהל</b><div class="muted">נשארים מחוברים תמיד – גם אחרי סגירת האפליקציה. מכאן עורכים כל בית כנסת (✏️ בדף שלו), מוסיפים בתי כנסת חדשים ומאשרים בקשות – בלי קודי גבאים ובלי להקליד סיסמה.</div></div>
-  <div class="card"><h3>📊 סטטיסטיקה</h3><div class="stat"><div><b>${st.days[today]||0}</b>כניסות היום</div><div><b>${week}</b>השבוע</div><div><b>${st.visits}</b>סה״כ</div></div>
-  ${top.length?`<h3 style="margin-top:12px">בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}`:''}
-  <div class="muted" style="margin-top:8px">👥 משתמשים שונים (מכשירים): <b>${st.users||0}</b> · הנתונים מכל המכשירים</div><button class="btn ghost sm" style="margin-top:6px" onclick="loadStats()">🔄 רענון</button></div>
+  ${statsCard()}
+  ${top.length?`<div class="card"><h3>🏆 בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}</div>`:''}
 
   ${S.cloud&&packPending().length?`<div class="card hl"><h3>📥 ${packPending().length} בתי כנסת חדשים מוכנים להוספה</h3><div class="muted">${packPending().map(s=>esc(s.name)).join(' · ')}</div><div class="btns" style="margin-top:10px"><button class="btn" onclick="importPack()">➕ הוספה לאפליקציה + יצירת קודים</button><button class="btn ghost" onclick="packDismiss()">✕ לא רלוונטי</button></div></div>`:''}
   ${S.cloud&&archList().length?`<div class="card"><h3>📦 ארכיון בתי כנסת (${archList().length})</h3><div class="muted">בתי כנסת שנמחקו או שהוחלט לא לצרף – לא מופיעים באפליקציה, ואפשר לשחזר.</div><button class="btn sec" style="margin-top:10px" onclick="archOpen()">📦 פתיחת הארכיון</button></div>`:''}
@@ -2382,7 +2404,7 @@ const NH_FIX={chibatyer:'ארמון הנציב',mishkanreuven:'ארמון הנצ
 function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
 function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
-async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},views:w.exists()?w.data():{}};softRender()}catch(e){}}
+async function loadStats(){try{const F=C.F;const[v,w]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views'))]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},dau:a.dau||{},nu:a.nu||{},inst:a.inst||0,views:w.exists()?w.data():{},at:Date.now()};softRender()}catch(e){}}
 let _counted=false;
 const NOCNT='ash_nocount',noCount=()=>{try{const v=localStorage.getItem(NOCNT);return v===null?isAdev():v==='1'}catch(e){return false}};
 function setNoCount(on){try{localStorage.setItem(NOCNT,on?'1':'0')}catch(e){}toast(on?'✔️ הכניסות מהמכשיר הזה לא ייספרו':'הכניסות מהמכשיר הזה ייספרו שוב');render()}
@@ -2390,7 +2412,9 @@ function countVisit(){if(noCount())return;
   if(_counted||!C.ok)return;_counted=true;
   if(sessionStorage.getItem('kv2')==='1')return;sessionStorage.setItem('kv2','1');
   const F=C.F,t=iso(new Date());const o={total:F.increment(1),days:{[t]:F.increment(1)}};
-  if(!U.counted){o.users=F.increment(1);U.counted=1;saveU()}
+  if(!U.counted){o.users=F.increment(1);o.nu={[t]:F.increment(1)};U.counted=1;saveU()}
+  if(U.lastDay!==t){o.dau={[t]:F.increment(1)};U.lastDay=t;saveU()}
+  if((isStandalone()||NAT.on)&&!U.instCnt){o.inst=F.increment(1);U.instCnt=1;saveU()}
   F.setDoc(dref('stats','visits'),o,{merge:true}).catch(()=>{});
 }
 function countView(sid){if(!C.ok||noCount())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
