@@ -295,6 +295,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .lim-r{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}.lim-r:last-child{border-bottom:0}
 .lim-x{flex:1;min-width:0}.lim-x small{display:block;color:var(--muted,#6b7280);font-size:.78rem}.lim-x b{font-size:1.02rem}
 .lim-go{flex:none;font-size:.8rem;padding:5px 10px;border-radius:999px;background:#eef3f9;color:var(--pri,#24456b);text-decoration:none;font-weight:700}
+.lim-night{background:#1f2f4d;color:#f3d78e;border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:.88rem}
 .lim-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:center;margin-bottom:10px}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
@@ -898,20 +899,23 @@ function limFix(k,t){t=t.replace(/[֑-ׇ]/g,'').replace(/^(דף יומי|תני�
   if(k==='kitzurshulchanaruch')t='סימן '+t.replace(/:/,' סעיף ');
   return t}
 function limGet(k,d){if(!window.HL)return null;try{const r=HL.get(k,d);if(!r||!r.he)return null;return{t:limFix(k,r.he),url:r.url&&r.url.replace('lang=bi','lang=he')}}catch(e){return null}}
-function limDate(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+(ST.lo||0));return d}
+/* היום העברי מתחלף בשקיעה – אחרי השקיעה מוצג כבר הלימוד של מחר */
+function limNight(){const n=new Date();try{const z=zmanim(n);return!!(z.set&&n>z.set)}catch(e){return false}}
+function limBase(){const d=new Date();d.setHours(12,0,0,0);if(limNight())d.setDate(d.getDate()+1);return d}
+function limDate(){const d=limBase();d.setDate(d.getDate()+(ST.lo||0));return d}
 function limRow(k,d,star){const r=limGet(k,d);if(!r)return'';const on=(U.lim||LIM_DEF).includes(k);
   return `<div class="lim-r"><div class="lim-x"><small>${limName(k)}</small><b>${esc(r.t)}</b></div>${r.url?`<a class="lim-go" href="${r.url}" target="_blank" rel="noopener">📖 ללמוד</a>`:''}${star?`<button class="star" aria-label="להציג בדף הבית" onclick="limStar('${k}')">${on?'★':'☆'}</button>`:''}</div>`}
 function limStar(k){const L=(U.lim||LIM_DEF).slice();const i=L.indexOf(k);i<0?L.push(k):L.splice(i,1);U.lim=L;saveU();render();toast(i<0?'יוצג בדף הבית ⭐':'הוסר מדף הבית')}
-function limHome(){const L=U.lim||LIM_DEF;if(!L.length)return'';if(!limLoad())return'';const d=new Date();
+function limHome(){const L=U.lim||LIM_DEF;if(!L.length)return'';if(!limLoad())return'';const d=limBase();
   const rows=L.map(k=>limRow(k,d,0)).join('');if(!rows)return'';
-  return `<div class="card lim-c"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">📚 הלימוד היומי</h3><button class="btn ghost sm" onclick="go('limud')">כל הסדרים ‹</button></div>${rows}</div>`}
+  return `<div class="card lim-c"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">📚 הלימוד היומי${limNight()?' <small class="muted" style="font-weight:400;font-size:.75rem">🌙 של מחר</small>':''}</h3><button class="btn ghost sm" onclick="go('limud')">כל הסדרים ‹</button></div>${rows}</div>`}
 function limudV(){const ok=limLoad();const d=limDate();const off=ST.lo||0;
   const nav=`<div class="lim-nav"><button class="btn ghost sm" onclick="ST.lo=(ST.lo||0)-1;render()">→ אתמול</button><div><b>${off===0?'היום':off===1?'מחר':off===-1?'אתמול':d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'numeric'})}</b><div class="muted" style="font-size:.85rem">${window.HL?HL.hd(d):''}</div></div><button class="btn ghost sm" onclick="ST.lo=(ST.lo||0)+1;render()">מחר ←</button></div>`;
   if(!ok)return `<h2>📚 הלימוד היומי</h2><div class="card muted" style="text-align:center">⏳ טוען את לוח הלימוד…</div>`;
-  return `<h2>📚 הלימוד היומי</h2><div class="muted" style="margin:-4px 4px 8px">כל סדרי הלימוד הקבועים בעולם. לוחצים ☆ כדי שהלימוד יופיע גם בדף הבית.</div>${nav}
+  return `<h2>📚 הלימוד היומי</h2><div class="muted" style="margin:-4px 4px 8px">כל סדרי הלימוד הקבועים בעולם. לוחצים ☆ כדי שהלימוד יופיע גם בדף הבית.</div>${nav}${limNight()&&!off?`<div class="lim-night">🌙 השמש כבר שקעה, ולכן מוצג הלימוד של <b>${window.HL?HL.hd(d):'מחר'}</b> – היום העברי הבא.</div>`:''}
   ${LIM.map(([h,L])=>{const r=L.map(([k])=>limRow(k,d,1)).join('');return r?`<div class="card"><h3 style="margin:0 0 4px">${h}</h3>${r}</div>`:''}).join('')}
   <button class="btn" style="width:100%" onclick="limShare()">📤 לשתף את הלימוד של ${off===0?'היום':'היום הזה'} בוואטסאפ</button>
-  <div class="muted" style="font-size:.78rem;text-align:center;margin:10px 0">הלוח מתחלף בחצות. הכפתור "ללמוד" פותח את הטקסט המלא בספריא.</div>`}
+  <div class="muted" style="font-size:.78rem;text-align:center;margin:10px 0">כמו בלוח העברי, הלימוד מתחלף בשקיעה. הכפתור "ללמוד" פותח את הטקסט המלא בספריא.</div>`}
 function limShare(){const d=limDate();const L=(U.lim||LIM_DEF).concat(LIM.flatMap(([,x])=>x.map(y=>y[0])).filter(k=>!(U.lim||LIM_DEF).includes(k)));
   const t='📚 *הלימוד היומי* – '+(window.HL?HL.hd(d):'')+'\n\n'+L.map(k=>{const r=limGet(k,d);return r?`▪️ ${limName(k)}: *${r.t}*`:''}).filter(Boolean).join('\n')+'\n\nמתוך אפליקציית "אשריכם ישראל" 👇\n'+location.origin+location.pathname;
   window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
