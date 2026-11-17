@@ -248,6 +248,12 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .adpop-c{border:0;background:rgba(0,0,0,.06);border-radius:50%;width:30px;height:30px;font-size:.9rem;color:#6a4a10;flex:none;cursor:pointer}
 @keyframes adIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1}}
 body.dark .adpop{background:linear-gradient(135deg,#3a2f17,#4a3a18);border-color:#7a6230}body.dark .adpop-x small{color:#e8c873}
+.fmt-bar{display:flex;gap:4px;flex-wrap:wrap;margin:2px 0 4px;background:rgba(36,69,107,.06);border-radius:12px 12px 4px 4px;padding:4px}
+.fmt-bar button{min-width:38px;height:34px;border:1px solid rgba(36,69,107,.18);background:var(--card,#fff);color:inherit;border-radius:9px;font:inherit;font-size:.95rem;cursor:pointer;padding:0 8px}
+.fmt-bar button:active{transform:scale(.94);background:rgba(36,69,107,.12)}.fmt-bar .fmt-help{margin-inline-start:auto;min-width:34px;font-weight:700;opacity:.7}
+.fmt-pv{display:none;margin-top:6px;padding:8px 10px;border:1px dashed rgba(36,69,107,.3);border-radius:10px;white-space:pre-line;font-size:.95rem}
+mark.tx-hl{background:linear-gradient(transparent 35%,#ffe27a 35%);color:inherit;padding:0 2px;border-radius:2px}body.dark mark.tx-hl{background:linear-gradient(transparent 35%,#8a6d10 35%)}
+.tx-bul{color:var(--pri,#24456b);font-weight:700}.fmt-ex{margin:6px 0}.fmt-ex code{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:6px;font-family:inherit}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -446,7 +452,34 @@ const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
 const shul=id=>S.shuls.find(s=>s.id===id);
 const canEdit=sid=>ROLE&&(ROLE.type==='admin'||(ROLE.type==='gabbai'&&ROLE.sid===sid));
 const inNh=s=>!U.nh||s.nh===U.nh;
-function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener" style="word-break:break-all">$1</a>').replace(/\b(0\d{1,2}-?\d{3}-?\d{4})\b/g,'<a href="tel:$1">$1</a>').replace(/([\w.]+@[\w.]+\.\w+)/g,'<a href="mailto:$1">$1</a>')}
+/* ===== ✍️ עיצוב טקסט קליל: *מודגש* _נטוי_ ~קו חוצה~ __קו תחתון__ ==מרקר== (כמו בוואטסאפ) ===== */
+function fmtMark(h){const B='(^|[\\s(\\[«"״׳\'\\-–>־])',E='(?=$|[\\s.,:;!?)\\]»"״׳\'\\-–<])';
+  return String(h)
+   .replace(new RegExp(B+'==([^=\\n]+?)=='+E,'g'),'$1<mark class="tx-hl">$2</mark>')
+   .replace(new RegExp(B+'__([^_\\n]+?)__'+E,'g'),'$1<u>$2</u>')
+   .replace(new RegExp(B+'\\*([^*\\n]+?)\\*'+E,'g'),'$1<b>$2</b>')
+   .replace(new RegExp(B+'_([^_\\n]+?)_'+E,'g'),'$1<i>$2</i>')
+   .replace(new RegExp(B+'~([^~\\n]+?)~'+E,'g'),'$1<s>$2</s>')
+   .replace(/^([•▪◦]) /gm,'<span class="tx-bul">$1</span> ')}
+const fmtTxt=t=>fmtMark(esc(t||''));
+/* טקסט נקי – להקראה ולשיתוף מחוץ לוואטסאפ */
+const fmtPlain=t=>String(t||'').replace(/==([^=\n]+?)==/g,'$1').replace(/__([^_\n]+?)__/g,'$1');
+/* סרגל עריכה מעל תיבת טקסט: בוחרים מילים ולוחצים */
+const FMT_B=[['*','<b>B</b>','מודגש'],['_','<i>I</i>','נטוי'],['__','<u>U</u>','קו תחתון'],['~','<s>S</s>','קו חוצה'],['==','<mark class="tx-hl">ab</mark>','מרקר'],['•','• רשימה','רשימה']];
+function fmtBar(id){return `<div class="fmt-bar" role="toolbar" aria-label="עיצוב טקסט">${FMT_B.map(([m,l,t])=>`<button type="button" title="${t}" aria-label="${t}" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="fmtApply('${id}','${m}')">${l}</button>`).join('')}<button type="button" class="fmt-help" onpointerdown="event.preventDefault()" onclick="fmtHelp()">?</button></div>`}
+function fmtApply(id,m){const ta=document.getElementById(id);if(!ta)return;ta.focus();let a=ta.selectionStart,b=ta.selectionEnd;const v=ta.value;
+  if(m==='•'){const ls=v.lastIndexOf('\n',a-1)+1;const le=v.indexOf('\n',b);const end=le<0?v.length:le;const block=v.slice(ls,end).split('\n').map(x=>/^• /.test(x)?x.slice(2):'• '+x).join('\n');ta.value=v.slice(0,ls)+block+v.slice(end);ta.setSelectionRange(ls,ls+block.length)}
+  else{while(a<b&&/\s/.test(v[a]))a++;while(b>a&&/\s/.test(v[b-1]))b--;const sel=v.slice(a,b);
+    if(sel&&sel.startsWith(m)&&sel.endsWith(m)&&sel.length>2*m.length){const inner=sel.slice(m.length,-m.length);ta.value=v.slice(0,a)+inner+v.slice(b);ta.setSelectionRange(a,a+inner.length)}
+    else if(v.slice(a-m.length,a)===m&&v.slice(b,b+m.length)===m){ta.value=v.slice(0,a-m.length)+sel+v.slice(b+m.length);ta.setSelectionRange(a-m.length,b-m.length)}
+    else if(sel){const pre=a>0&&!/\s/.test(v[a-1])?' ':'',post=b<v.length&&!/\s/.test(v[b])?' ':'';ta.value=v.slice(0,a)+pre+m+sel+m+post+v.slice(b);ta.setSelectionRange(a+pre.length+m.length,a+pre.length+m.length+sel.length)}
+    else{const pre=a>0&&!/\s/.test(v[a-1])?' ':'';ta.value=v.slice(0,a)+pre+m+m+v.slice(a);const c=a+pre.length+m.length;ta.setSelectionRange(c,c);toast('כתבו את המילים בין הסימנים',2500)}}
+  ta.dispatchEvent(new Event('input',{bubbles:true}))}
+function fmtPrev(id){const ta=document.getElementById(id),pv=document.getElementById(id+'_pv');if(!ta||!pv)return;const v=ta.value.trim();pv.style.display=/[*_~=•]/.test(v)?'block':'none';pv.innerHTML='<small class="muted">תצוגה:</small><div>'+linkify(ta.value)+'</div>'}
+function fmtHelp(){modal(`<p>מסמנים מילים בתיבה ולוחצים על כפתור – או כותבים את הסימנים לבד (כמו בוואטסאפ):</p>
+  <div class="fmt-ex"><code>*כתב מודגש*</code> ← <b>כתב מודגש</b></div><div class="fmt-ex"><code>_כתב נטוי_</code> ← <i>כתב נטוי</i></div><div class="fmt-ex"><code>__קו תחתון__</code> ← <u>קו תחתון</u></div><div class="fmt-ex"><code>~קו חוצה~</code> ← <s>קו חוצה</s></div><div class="fmt-ex"><code>==מרקר==</code> ← <mark class="tx-hl">מרקר</mark></div><div class="fmt-ex"><code>• שורה</code> ← רשימה</div>
+  <p class="muted">💡 טקסט שמודבק מוואטסאפ עם כוכביות – יופיע מודגש אוטומטית.</p>`,'✍️ עיצוב טקסט')}
+function linkify(t){return fmtMark(esc(t)).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener" style="word-break:break-all">$1</a>').replace(/\b(0\d{1,2}-?\d{3}-?\d{4})\b/g,'<a href="tel:$1">$1</a>').replace(/([\w.]+@[\w.]+\.\w+)/g,'<a href="mailto:$1">$1</a>')}
 function toast(m,ms){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||2600)}
 /* ===== תאריך עברי ===== */
 const _hc={};
@@ -815,7 +848,7 @@ function adPopHide(id){U.adHide=U.adHide||{};const ti=iso(new Date());Object.key
 window._adTick=(+(localStorage.getItem('ash_adtick')||0))+1;try{localStorage.setItem('ash_adtick',window._adTick)}catch(e){}
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')':a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span></div><span>‹</span></div>`}
-function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${esc(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}
+function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}
 ${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>`:''}</div>`}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
 function board(){
@@ -830,7 +863,7 @@ function board(){
 function adForm(){
   modal(`${launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, אבידות ומציאות ועוד.</div>
   <label class="f">כותרת</label><input class="inp" id="at" maxlength="70">
-  <label class="f">תוכן המודעה</label><textarea class="inp" id="ax" maxlength="600"></textarea>
+  <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')"></textarea><div class="fmt-pv" id="ax_pv"></div>
   <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel">
   <label class="f">תמונה (לא חובה)</label><input type="file" accept="image/*" id="ai" class="inp">
   <label class="f">מתי האירוע? (המודעה תופיע בלוח השנה)</label>
@@ -955,7 +988,7 @@ function pinForm(s){
   modal(`<div class="muted">ההודעה תופיע לכל המשתמשים בלוח השנה בתאריך זה.</div>
   ${adm?`<label class="f">בית כנסת</label><select class="inp" id="ps"><option value="">כללי – לכל האזור</option>${S.shuls.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>`:''}
   <label class="f">כותרת</label><input class="inp" id="pt" maxlength="70" placeholder="לדוגמה: שיעור מיוחד לרגל ההילולא">
-  <label class="f">פרטים</label><textarea class="inp" id="px" maxlength="400"></textarea>
+  <label class="f">פרטים</label>${fmtBar('px')}<textarea class="inp fmt-ta" id="px" maxlength="400" oninput="fmtPrev('px')"></textarea><div class="fmt-pv" id="px_pv"></div>
   <label class="f">שעה (לא חובה)</label><input class="inp" id="ptm" type="time">
   <label class="sw"><span>להציג גם בפס העדכונים</span><input type="checkbox" id="ptk"></label>
   <button class="btn" style="width:100%;margin-top:14px" onclick="addPin('${s}')">נעיצה בלוח 📌</button>`,'📌 '+hebDate(fromIso(s)));
@@ -1159,7 +1192,7 @@ const NW=['אפס','אחת','שתיים','שלוש','ארבע','חמש','שש','
 const numW=n=>n<20?NW[n]:NT[Math.floor(n/10)]+(n%10?' ו'+NW[n%10]:'');
 const sayTm=t=>{if(!t||!/^\d{1,2}:\d{2}$/.test(t))return t||'';const[h,m]=t.split(':').map(Number);const hw=h===0?'חצות':h===12?'שתים עשרה':numW(h);return m?`${hw} ו${numW(m)}`:`${hw} בדיוק`};
 const sayDur=(h,m)=>{const hw=h===1?'שעה':h===2?'שעתיים':numW(h)+' שעות';return m?`${hw} ו${m===1?'דקה':numW(m)+' דקות'}`:hw};
-const sayFix=s=>sayNikud(SAYFIX.reduce((a,[r,v])=>a.replace(r,v),s).replace(/(\d{1,2}):(\d{2})/g,(x)=>sayTm(x)));
+const sayFix=s=>sayNikud(SAYFIX.reduce((a,[r,v])=>a.replace(r,v),String(s).replace(/==|__|[*~•]/g,'').replace(/(^|\s)_|_(?=\s|$)/g,'$1')).replace(/(\d{1,2}):(\d{2})/g,(x)=>sayTm(x)));
 let SAYING=false;
 function speak(t,vid){vid=vid||U.ttsVoice;{const T=NAT.P('TextToSpeech');if(T){try{T.stop().catch(()=>{})}catch(e){}SAYING=true;ttsNatVoice(vid).then(vi=>T.speak({text:sayFix(t),lang:'he-IL',rate:U.ttsRate||.95,...(vi>=0?{voice:vi}:{})})).then(()=>{SAYING=false}).catch(()=>{SAYING=false;toast('אין בטלפון קול עברי – אפשר להתקין את "Google דיבור" (Speech Services) מחנות Play',5000)});return}}
   if(!('speechSynthesis'in window))return toast('הטלפון לא תומך בהקראה');const wasBusy=speechSynthesis.speaking||speechSynthesis.pending;speechSynthesis.cancel();
@@ -2002,7 +2035,7 @@ function drawEd(isNew){
   </div>`).join('')}
   <button class="btn sec sm" onclick="ED.gabbaim.push({name:'',phone:'',pub:true});drawEd()">➕ הוספת גבאי / איש קשר</button>
   ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">`:''}
-  <label class="f">הודעה קבועה / הערות</label><textarea class="inp" oninput="ED.notes=this.value">${esc(e.notes)}</textarea>
+  <label class="f">הודעה קבועה / הערות</label>${fmtBar('edN')}<textarea class="inp fmt-ta" id="edN" oninput="ED.notes=this.value;fmtPrev('edN')">${esc(e.notes)}</textarea><div class="fmt-pv" id="edN_pv"></div>
 
   <h3 style="margin-top:16px">🕰️ זמני תפילות</h3>
   <button class="btn sp-btn" onclick="smartPaste()">✨ קיבלתם את הזמנים בהודעה? הדביקו – והמערכת תסדר לבד</button>
@@ -2643,7 +2676,7 @@ function prShul(sid,base){
   return prHead(s.name,`📍 ${esc(s.address||'')}${s.nusach?' · נוסח '+esc(s.nusach):''}<br>${prRange(base,end)}`)+
   `<div class="cols"><section><h2>🕰️ זמני תפילות</h2>${pr.map(([d,a])=>`<h3>${DAYSETS[d]?.l||d}</h3><table>${sortT(a).map(p=>p.t==='זמן'?`<tr class="z"><td class="tm">${rt(p)}</td><td colspan="2">${esc(p.n)}</td></tr>`:`<tr><td class="tm">${rt(p)}</td><td><b>${esc(p.t)}</b></td><td class="n">${esc(p.n||'')}${isRel(p.tm)?` <i>(${relLabel(p.tm)})</i>`:''}</td></tr>`).join('')}</table>`).join('')||'<p>לא הוזנו זמנים</p>'}</section>
   <section>${ev.length?`<h2>📚 שיעורים ופעילויות</h2>${ev.map(([d,a])=>`<h3>${DAYSETS[d]?.l||d}</h3><table>${sortT(a).map(e=>`<tr><td class="tm">${rt(e)||'—'}</td><td><b>${esc(e.title)}</b>${e.who?`<div class="n">${esc(e.who)}</div>`:''}</td><td class="n">${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.n||'')}</td></tr>`).join('')}</table>`).join('')}`:''}
-  ${s.notes?`<h2>ℹ️ הודעות</h2><div class="notes">${esc(s.notes)}</div>`:''}
+  ${s.notes?`<h2>ℹ️ הודעות</h2><div class="notes">${fmtTxt(s.notes)}</div>`:''}
   ${gs.length?`<h2>👤 גבאים</h2><table>${gs.map(g=>`<tr><td><b>${esc(g.name||'גבאי')}</b></td><td dir="ltr" style="text-align:right">${esc(g.phone||'')}</td></tr>`).join('')}</table>`:''}</section></div>`+prFoot();
 }
 function prShab(base){
@@ -2761,7 +2794,7 @@ const ibAdminNew=()=>(S.ibAll||[]).filter(m=>m.unA).length;
 const ibUserNew=()=>(S.ibMine||[]).filter(m=>m.unU).length;
 function ibBadge(n){return n?`<span class="ib-badge">${n}</span>`:''}
 function ibThread(m,side){
-  return `<div class="ib-th"><div class="ib-b ${side==='admin'?'them':'me'}"><div>${esc(m.text)}</div><small>${new Date(m.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div>
+  return `<div class="ib-th"><div class="ib-b ${side==='admin'?'them':'me'}"><div style="white-space:pre-line">${linkify(m.text)}</div><small>${new Date(m.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div>
   ${(m.rep||[]).map(r=>{const mine=(side==='admin')===(r.by==='admin');return `<div class="ib-b ${mine?'me':'them'} ${r.by==='admin'?'adm':''}">${r.by==='admin'&&side!=='admin'?'<b>🛡️ המנהל:</b> ':''}<div style="white-space:pre-line">${esc(r.t)}</div><small>${new Date(r.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div>`}).join('')}</div>`;
 }
 function ibV(){
@@ -2770,7 +2803,7 @@ function ibV(){
   setTimeout(()=>{L.filter(m=>m.unU).forEach(m=>C.F.updateDoc(dref('inbox',m.id),{unU:false}).catch(()=>{}))},800);
   return `<h2>📮 תיבת הודעות למנהל</h2>${!ROLE?`<div class="card" style="background:#eef3f8"><b>🛡️ אתם המנהל?</b> <span class="muted">ההודעות שכולם שולחים מופיעות רק כשמחוברים כמנהל.</span><button class="btn sm" style="margin-top:8px;width:100%" onclick="openLogin()">כניסת מנהל – לראות את כל ההודעות</button></div>`:''}<div class="muted" style="margin-bottom:10px">יש לכם רעיון, בקשה, מידע להוסיף או תקלה? כתבו כאן – ההודעה מגיעה ישירות למנהל האפליקציה, והתשובה תופיע כאן.</div>
   <div class="card"><label class="f">נושא</label><div class="chips" style="flex-wrap:wrap" id="ibC">${IB_CAT.map((c,i)=>`<button class="chip ${i===0?'on':''}" data-k="${c[0]}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${c[1]} ${c[2]}</button>`).join('')}</div>
-  <label class="f">ההודעה</label><textarea class="inp" id="ibT" maxlength="1500" placeholder="כתבו כאן…" style="min-height:110px"></textarea>
+  <label class="f">ההודעה</label>${fmtBar('ibT')}<textarea class="inp fmt-ta" id="ibT" maxlength="1500" placeholder="כתבו כאן…" style="min-height:110px"></textarea>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">שם (לא חובה)</label><input class="inp" id="ibN" value="${esc(U.name||'')}" maxlength="40"></div><div><label class="f">טלפון (לא חובה)</label><input class="inp" id="ibP" inputmode="tel" maxlength="15" value="${esc(U.phone||'')}"></div></div>
   <button class="btn" style="width:100%;margin-top:12px" onclick="ibSend()">📨 שליחה למנהל</button></div>
   ${L.length?`<h3>הפניות שלי</h3>${L.map(m=>{const c=ibCat(m.cat);return `<div class="card ${m.unU?'ib-new':''}"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${c[1]} ${c[2]}</b><span class="badge ${m.st==='done'?'soon':m.rep&&m.rep.length?'':'gold'}">${m.st==='done'?'✅ טופל':m.rep&&m.rep.length?'💬 נענה':'⏳ נשלח'}</span></div>
