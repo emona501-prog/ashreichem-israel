@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 import android.os.Build;
+import android.app.NotificationManager;
 
 import com.getcapacitor.JSObject;
 import android.content.SharedPreferences;
@@ -64,5 +65,13 @@ public class WidgetBridgePlugin extends Plugin {
         }
         r.put("ok", ok);
         call.resolve(r);
+    }
+    @PluginMethod
+    public void clearNotifs(PluginCall call) {
+        try {
+            NotificationManager nm = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.cancelAll();
+        } catch (Exception e) { }
+        call.resolve();
     }
 }

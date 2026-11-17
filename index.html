@@ -1738,6 +1738,8 @@ function prDo(f,html){const W=NAT.P('WebPrint');if(W){W.printHtml({html:html||f.
 /* שיתוף מתוך האפליקציה (טקסט, תמונות, עמודי עלון) – דרך חלון השיתוף של אנדרואיד */
 /* ניקוי ההתראות שכבר נקראו והמספר על האייקון – כשנכנסים לאפליקציה */
 function clearNotifs(){try{navigator.clearAppBadge&&navigator.clearAppBadge().catch(()=>{})}catch(e){}
+  try{const W=NAT.P&&NAT.P('WidgetBridge');W&&W.clearNotifs&&W.clearNotifs().catch(()=>{})}catch(e){}
+  try{navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage({t:'clear'})).catch(()=>{})}catch(e){}
   try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.getNotifications&&r.getNotifications().then(ns=>ns.forEach(n=>n.close())).catch(()=>{}))).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(clearNotifs,800)});setTimeout(clearNotifs,1500);
 function natSetup(){if(!NAT.on||natSetup.done)return;natSetup.done=1;document.documentElement.classList.add('native');
