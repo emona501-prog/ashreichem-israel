@@ -2159,7 +2159,8 @@ const SP_KW=[['מנחה גדולה','p','מנחה','מנחה גדולה'],['מנ
 const SP_NUM=[['שעתיים וחצי',150],['שעתיים ורבע',135],['שעתיים',120],['שלוש שעות',180],['שעה ושלושת רבעי',105],['שעה וחצי',90],['שעה ורבע',75],['שלושת רבעי שעה',45],['חצי שעה',30],['רבע שעה',15],['שעה',60],
   ['ארבעים וחמש',45],['ארבעים',40],['שלושים וחמש',35],['שלושים',30],['עשרים וחמש',25],['עשרים',20],['חמש עשרה',15],['חמישה עשר',15],['עשר',10],['חמש',5]];
 const SP_BASE=[[/רבנו תם|ר"ת|ר״ת/,'rt'],[/י?צאת ה?שבת|יציאת ה?שבת|מוצאי ה?שבת|מוצ"ש|מוצש|צאת ה?חג|הבדלה/,'tzeit'],[/צאת ה?כוכבים|צה"כ|צה״כ|צאה"כ|צאת(?=[\s,.:]|$)/,'tzeit'],[/שקיעה|השקיעה|שקיעת החמה|שקיע"ה/,'set'],[/הנץ|נץ החמה|נה"ח|זריחה/,'rise'],[/פלג המנחה|פלג/,'plag'],[/הדלקת ה?נרות|הדלקה|כניסת ה?שבת|כניסת ה?חג/,'candle']];
-const spNorm=t=>t.replace(/(^|\s)[*_~]+|[*_~]+(?=\s|$)/gm,'$1').replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
+/* ניקוי: סימני כיוון נסתרים מוורד, "16: 11" → "16:11" */
+const spNorm=t=>String(t||'').replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,'').replace(/\u00a0/g,' ').replace(/(\d{1,2})[ \t]*[:：][ \t]*(\d{2})(?!\d)/g,'$1:$2').replace(/(^|\s)[*_~]+|[*_~]+(?=\s|$)/gm,'$1').replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
 function spSeason(){const m=new Date().getMonth()+1;return m>=4&&m<=10?'קיץ':'חורף'}
 function spTime(c,kind){ // מחזיר {tm} או {ref,sgn,n}
   const ss=c.match(/בחורף[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?קיץ[^\d]*(\d{1,2}[:.]\d{2})/)||c.match(/בקיץ[^\d]*(\d{1,2}[:.]\d{2})[^\d]*ב?חורף[^\d]*(\d{1,2}[:.]\d{2})/);
@@ -2276,7 +2277,7 @@ async function pdfText(buf){await loadJs(CDN+'pdfjs-dist@3.11.174/build/pdf.min.
 const TM_CELL=/^\s*(\d{1,2}[:.]\d{2}(\s*[-–]\s*\d{1,2}[:.]\d{2})?)\s*$/;
 function htmlLines(html){const d=new DOMParser().parseFromString('<div>'+html+'</div>','text/html');const out=[];
   const walk=el=>{for(const n of el.children){const tg=n.tagName;
-    if(tg==='TABLE'){n.querySelectorAll('tr').forEach(tr=>{const cs=[...tr.children].map(c=>c.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);if(!cs.length)return;
+    if(tg==='TABLE'){n.querySelectorAll('tr').forEach(tr=>{const cs=[...tr.children].map(c=>spNorm(c.textContent).replace(/\s+/g,' ').trim()).filter(Boolean);if(!cs.length)return;
       const tx=cs.filter(c=>!TM_CELL.test(c)),tm=cs.filter(c=>TM_CELL.test(c));out.push(tx.concat(tm).join(' '))})}
     else if(/^(UL|OL|DIV|BLOCKQUOTE)$/.test(tg))walk(n);
     else{const t=n.textContent.replace(/\s+/g,' ').trim();if(t)out.push(t)}}};
