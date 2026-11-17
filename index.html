@@ -531,7 +531,7 @@ const RELB={set:'השקיעה',tzeit:'צאת הכוכבים',rt:'צאת ר״ת',
 const isRel=t=>typeof t==='string'&&t[0]==='@';
 function parseRel(t){const m=/^@(\w+)([+-])(\d+)$/.exec(t||'');return m?{b:m[1],s:m[2],n:+m[3]}:null}
 function minTxt(n){return({45:'שלושת רבעי שעה',60:'שעה',75:'שעה ורבע',90:'שעה וחצי',120:'שעתיים',150:'שעתיים וחצי',180:'שלוש שעות',210:'שלוש שעות וחצי',240:'ארבע שעות'})[n]||n+' דק׳'}
-function relLabel(t){const r=parseRel(t);if(!r)return'';const B=RELB[r.b]||r.b;if(!r.n)return r.b==='set'?'בשקיעה':B;return minTxt(r.n)+(r.s==='-'?' לפני ':' אחרי ')+B}
+function relLabel(t,d){const r=parseRel(t);if(!r)return'';const B=r.b==='tzeit'&&(d==='sat'||d==='mz')?'צאת השבת':RELB[r.b]||r.b;if(!r.n)return r.b==='set'?'בשקיעה':B;return minTxt(r.n)+(r.s==='-'?' לפני ':' אחרי ')+B}
 const _zc={};
 function zAt(dt){const k=iso(dt);return _zc[k]||(_zc[k]=zmanim(dt,DEF_LOC))}
 function resolveTm(t,dt){
@@ -690,7 +690,7 @@ function prayerRow(p,day){
   const past=today&&df<0;
   return `<div class="row ${past?'past':''}" onclick="go('shul',{id:'${p.s.id}'})" style="cursor:pointer">
     <div class="time">${esc(p.tm)||'<small style="font-size:.7rem">'+esc(p.n||'')+'</small>'}</div>
-    <div class="main"><b>${esc(p.t||p.title)} · ${esc(String(p.s.name||'').split(/ [–-] /)[0])}</b>${p.end?`<span class="muted">עד ${esc(p.end)} · </span>`:''}<span class="muted">${p.rel?'⏱ '+relLabel(p.rel)+' · ':''}${esc(p.s.nh)}${p.n?' · '+esc(p.n):''}${p.who?' · '+esc(p.who):''}</span></div>
+    <div class="main"><b>${esc(p.t||p.title)} · ${esc(String(p.s.name||'').split(/ [–-] /)[0])}</b>${p.end?`<span class="muted">עד ${esc(p.end)} · </span>`:''}<span class="muted">${p.rel?'⏱ '+relLabel(p.rel,p.d)+' · ':''}${esc(p.s.nh)}${p.n?' · '+esc(p.n):''}${p.who?' · '+esc(p.who):''}</span></div>
     ${today&&!past?`<span class="badge ${df<=30?'soon':''}">${diffTxt(df)}</span>`:''}
   </div>`;
 }
@@ -1913,7 +1913,7 @@ function fs(x){U.a11y.fs=Math.min(26,Math.max(14,U.a11y.fs+x));saveU();applyA11y
 /* ===== עריכת בית כנסת ===== */
 const dsOpts=v=>Object.entries(DAYSETS).map(([k,o])=>`<option value="${k}" ${k===v?'selected':''}>${o.l}</option>`).join('');
 let ED=null;
-const TMODES=[['fixed','שעה קבועה'],['set-','דק׳ לפני השקיעה'],['set+','דק׳ אחרי השקיעה'],['tzeit+','דק׳ אחרי צאת הכוכבים'],['rt+','דק׳ אחרי צאת ר״ת'],['rise+','דק׳ אחרי הנץ'],['rise-','דק׳ לפני הנץ'],['plag+','דק׳ אחרי פלג המנחה'],['candle+','דק׳ אחרי הדלקת נרות'],['tzeit-','דק׳ לפני צאת הכוכבים']];
+const TMODES=[['fixed','🕐 שעה קבועה'],['set-','דק׳ לפני השקיעה'],['set+','דק׳ אחרי השקיעה'],['tzeit-','דק׳ לפני צאת הכוכבים / צאת שבת'],['tzeit+','דק׳ אחרי צאת הכוכבים / צאת שבת'],['candle-','דק׳ לפני הדלקת נרות'],['candle+','דק׳ אחרי הדלקת נרות'],['plag-','דק׳ לפני פלג המנחה'],['plag+','דק׳ אחרי פלג המנחה'],['rise-','דק׳ לפני הנץ'],['rise+','דק׳ אחרי הנץ'],['rt-','דק׳ לפני צאת ר״ת'],['rt+','דק׳ אחרי צאת ר״ת']];
 function tmCtl(arr,i,tm){
   const r=parseRel(tm);const mode=r?r.b+r.s:'fixed';
   return `<div class="tmctl"><select class="inp" aria-label="סוג הזמן" onchange="setTmMode('${arr}',${i},this.value)">${TMODES.map(([v,l])=>`<option value="${v}" ${v===mode?'selected':''}>${l}</option>`).join('')}</select>
@@ -1926,7 +1926,7 @@ const SP_KW=[['מנחה גדולה','p','מנחה','מנחה גדולה'],['מנ
   ['דף יומי','e','שיעור תורה','דף יומי'],['הדף היומי','e','שיעור תורה','הדף היומי'],['שיעור','e','שיעור תורה',''],['תהילים','e','תהילים',''],['הלכה יומית','e','שיעור תורה','הלכה יומית'],['ליל שישי','e','שיעור תורה','ליל שישי'],['אבות ובנים','e','ילדים','אבות ובנים']];
 const SP_NUM=[['שעתיים וחצי',150],['שעתיים ורבע',135],['שעתיים',120],['שלוש שעות',180],['שעה ושלושת רבעי',105],['שעה וחצי',90],['שעה ורבע',75],['שלושת רבעי שעה',45],['חצי שעה',30],['רבע שעה',15],['שעה',60],
   ['ארבעים וחמש',45],['ארבעים',40],['שלושים וחמש',35],['שלושים',30],['עשרים וחמש',25],['עשרים',20],['חמש עשרה',15],['חמישה עשר',15],['עשר',10],['חמש',5]];
-const SP_BASE=[[/צאת השבת|יציאת השבת|יציאת שבת|מוצאי שבת|מוצ"ש|מוצש/,'tzeit'],[/צאת הכוכבים|צה"כ|צה״כ/,'tzeit'],[/רבנו תם|ר"ת|ר״ת/,'rt'],[/שקיעה|השקיעה|שקיעת החמה/,'set'],[/הנץ|נץ החמה|זריחה/,'rise'],[/פלג המנחה|פלג/,'plag'],[/הדלקת נרות|כניסת השבת|כניסת שבת/,'candle']];
+const SP_BASE=[[/רבנו תם|ר"ת|ר״ת/,'rt'],[/י?צאת ה?שבת|יציאת ה?שבת|מוצאי ה?שבת|מוצ"ש|מוצש|צאת ה?חג|הבדלה/,'tzeit'],[/צאת ה?כוכבים|צה"כ|צה״כ|צאה"כ|צאת(?=[\s,.:]|$)/,'tzeit'],[/שקיעה|השקיעה|שקיעת החמה|שקיע"ה/,'set'],[/הנץ|נץ החמה|נה"ח|זריחה/,'rise'],[/פלג המנחה|פלג/,'plag'],[/הדלקת ה?נרות|הדלקה|כניסת ה?שבת|כניסת ה?חג/,'candle']];
 const spNorm=t=>t.replace(/[״”“]/g,'"').replace(/[׳’]/g,"'").replace(/קייץ/g,'קיץ').replace(/[ \t ]+/g,' ');
 function spSeason(){const m=new Date().getMonth()+1;return m>=4&&m<=10?'קיץ':'חורף'}
 function spTime(c,kind){ // מחזיר {tm} או {ref,sgn,n}
@@ -1948,7 +1948,7 @@ function spHM(s,kind){let[h,m]=s.split(/[:.]/).map(Number);if(['מנחה','ער�
 function spDay(ctx,c,kind){
   if(/מוצ"ש|מוצש|מוצאי שבת/.test(c)&&kind==='ערבית')return'mz';
   if(/ערב שבת|יום שישי|בשישי/.test(c))return'fri';
-  if(/בשבת|שבת קודש/.test(c))return'sat';
+  if(/בשבת|שבת קודש/.test(c)||/(^|\s)ב?שבת(?=[\s,.:\-]|$)/.test(c.replace(/(ערב|מוצאי|מוצ"ש|י?צאת|יציאת|כניסת|הדלקת|לפני|אחרי)\s+ה?שבת/g,'')))return'sat';
   if(ctx==='wk6'&&kind==='ערבית')return'wk';
   if(ctx==='wk6'&&kind==='שחרית')return'wk6';
   return ctx;
@@ -1956,7 +1956,7 @@ function spDay(ctx,c,kind){
 function smartParse(txt){
   const out=[],notes=[];let ctx='wk6';
   spNorm(txt).split(/\n+/).map(l=>l.trim()).filter(Boolean).forEach((line,ln)=>{
-    if(/^(שבת|בשבת|שבת קודש)(?=[\s,.:]|$)/.test(line)||/^זמני (ה)?שבת/.test(line))ctx='sat';
+    if(/^(שבת|בשבת|שבת קודש)(?=[\s,.:]|$)/.test(line)||/^זמני (ה)?(תפילות |תפילה |התפילות )?(ה)?שבת/.test(line))ctx='sat';
     else if(/ימות החול|ימי החול|בחול(?=[\s,.:]|$)|^חול(?=[\s,.:]|$)|כל יום/.test(line))ctx='wk6';
     else if(/^(ערב שבת|יום שישי|שישי)(?=[\s,.:]|$)/.test(line))ctx='fri';
     else if(/^(מוצ"ש|מוצאי שבת)/.test(line))ctx='mz';
@@ -1965,7 +1965,7 @@ function smartParse(txt){
     hits.sort((a,b)=>a.i-b.i||b.k.length-a.k.length);const H=hits.filter((h,j)=>!hits.some((g,jj)=>jj!==j&&h.i>=g.i&&h.i<g.i+g.k.length&&g.k.length>h.k.length));
     if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת|שבת( קודש)?|מוצאי שבת|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני התפילה)/.test(line)&&line.length>3)notes.push(line);return}
     H.forEach((h,j)=>{
-      let c=line.slice(h.i,j+1<H.length?H[j+1].i:line.length).replace(/\s*(תפילת|תפלת|ו)\s*$/,'').trim();
+      let c=line.slice(h.i,j+1<H.length?H[j+1].i:line.length).replace(/(^|\s)(תפילת|תפלת|ו)\s*$/,'').trim();
       let ct=c;if(j===0){const pre=line.slice(0,h.i).trim();if(pre&&/לפני|אחרי|לאחר|\d/.test(pre))ct=pre+' '+c}
       const[typ,kind,lbl]=h.r;const t=spTime(ct,kind);const d=spDay(ctx,ct,typ==='p'?kind:'');
       const it={_ln:ln,typ,kind,lbl,d,c:ct,tm:t.tm||'',ref:t.ref,sgn:t.sgn,n:t.n,note:t.note||''};
@@ -1973,7 +1973,9 @@ function smartParse(txt){
         let title=lbl||h.k;if(!lbl){const ws=c.split(' ');if(ws[1]&&!/^(עם|בשעה|שעה|לפני|אחרי|כ?שעתיים|ב?\d|בשבת|בחול|של)/.test(ws[1]))title=ws[0]+' '+ws[1];}
         if(/ילדים/.test(c))it.kind='ילדים';if(title==='שיעור')title='שיעור תורה';it.title=title}
       const all=!t.note&&!t.ref&&it.tm&&!isRel(it.tm)?[...ct.matchAll(/(\d{1,2})[:.](\d{2})/g)].map(m=>spHM(m[0],kind)):[];
-      if(all.length>1)all.forEach((tm,q)=>out.push({...it,tm,_m:q}));else out.push(it)});
+      const PARTS=/קרבנות|הודו|פתיחה|ברכות השחר|פסוקי ד?זמרה|שוכן עד|נשמת|ישתבח|קריאת התורה|מוסף|הנחת תפילין|נץ|ותיקין/;
+      if(all.length>1&&typ==='p'&&PARTS.test(ct.replace(h.k,''))){it.tm=all[0];it.note=ct.slice(ct.indexOf(h.k)+h.k.length).replace(/^[\s:.,\-–]+/,'').replace(/^(ב?שבת( קודש)?|ערב שבת|מוצ"ש|ימי חול|בחול)[\s:.,\-–]*/,'').replace(/\s+/g,' ').trim();out.push(it)}
+      else if(all.length>1)all.forEach((tm,q)=>out.push({...it,tm,_m:q}));else out.push(it)});
     // "מנחה וערבית 16:30" – פריט בלי זמן שצמוד לבא אחריו מקבל את אותו זמן
     const L=out.filter(o=>o._ln===ln);for(let j=L.length-2;j>=0;j--)if(!L[j].tm&&!L[j].ref&&L[j].c.split(' ').length<=3&&L[j+1].tm){L[j].tm=L[j+1].tm;L[j].d=spDay(ctx,L[j+1].c,L[j].typ==='p'?L[j].kind:'')}
   });
@@ -1992,7 +1994,7 @@ function smartPaste(){
   <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="drawEd()">↩️ חזרה לעריכה</button>`,'✨ הדבקה חכמה'+(ED&&ED.name?' – '+ED.name:''));
 }
 function spRun(){const t=$('#spT').value;if(!t.trim())return toast('הדביקו טקסט');SP=smartParse(t);SP.raw=t;spPrev()}
-function spTmTxt(it){if(!it.tm)return'<span style="color:#b3261e">לא זוהה זמן</span>';return isRel(it.tm)?`${relLabel(it.tm)} <span class="muted">(השבוע: ${resolveTm(it.tm,nextDateIn(it.d))})</span>`:it.tm}
+function spTmTxt(it){if(!it.tm)return'<span style="color:#b3261e">לא זוהה זמן</span>';return isRel(it.tm)?`${relLabel(it.tm,it.d)} <span class="muted">(השבוע: ${resolveTm(it.tm,nextDateIn(it.d))})</span>`:it.tm}
 function spPrev(){
   const L=SP.items;
   modal(`<div class="muted" style="margin-bottom:6px">זוהו <b>${L.length}</b> פריטים. סמנו מה להוסיף – אחר כך אפשר לתקן כל פריט כרגיל בעריכה.</div>
