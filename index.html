@@ -262,6 +262,14 @@ body.nomotion .inst-cta img{animation:none}@keyframes instB{0%,100%{transform:tr
 .ed-hd b{color:var(--tc);filter:brightness(.8)}.ed-hd span{color:var(--muted,#667)}.ed-hd .ed-tm{margin-inline-start:auto;font-weight:700;color:var(--ink,#222)}
 .ed-no{width:24px;height:24px;border-radius:50%;background:var(--tc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex:none}
 .ed2.edc{border-style:solid}.ed-new{animation:edNew 1.6s ease}@keyframes edNew{0%,40%{box-shadow:0 0 0 4px var(--tc)}100%{box-shadow:0 1px 4px rgba(0,0,0,.05)}}
+.map-wrap{position:relative;margin-top:8px}#shMap{height:58vh;min-height:320px;border-radius:16px;overflow:hidden;border:1px solid var(--line);z-index:0}
+.map-me{position:absolute;bottom:12px;inset-inline-start:12px;z-index:500;border:0;border-radius:999px;padding:10px 16px;background:#1a73e8;color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer}
+.map-pin{width:40px;height:40px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#fff;border:3px solid #24456b;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:18px;overflow:hidden}
+.map-pin>*{transform:rotate(45deg)}.map-pin img{width:30px;height:30px;object-fit:contain}.map-pin.on{border-color:#2e8b57}
+.map-pop{direction:rtl;text-align:right;font-family:inherit;min-width:180px}.map-pop b{font-size:1rem}.map-nx{margin:4px 0;color:#2e7d4f}
+.map-btns{display:flex;gap:6px;margin-top:6px}.map-btns>*{flex:1;border:0;border-radius:10px;padding:7px 6px;background:#24456b;color:#fff!important;font:inherit;font-size:.85rem;text-align:center;text-decoration:none;cursor:pointer}.map-btns a{background:#33ccff}
+.gab-code{width:100%;display:flex;align-items:center;gap:12px;text-align:start;background:#fff8e6;border:2px solid #e8c873;border-radius:16px;padding:12px 14px;margin-bottom:12px;font:inherit;color:inherit;cursor:pointer}.gab-code>span:first-child{font-size:2rem}.gab-code b{display:block;font-size:1.05rem}.gab-code small{color:#8a5a12}.gab-code>div{flex:1}
+body.dark .gab-code{background:#3a2f17;border-color:#7a6230}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -578,7 +586,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV}[TAB]||home;
   try{wFeed()}catch(e){}
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
@@ -725,7 +733,7 @@ function shuls(){
   const q=(ST.q||'').trim();
   const list=S.shuls.filter(inNh).filter(s=>!q||(s.name+s.address+s.nh+s.nusach).includes(q))
     .sort((a,b)=>(U.favs.includes(b.id)-U.favs.includes(a.id))||a.name.localeCompare(b.name,'he'));
-  return `<h2>🕍 בתי כנסת</h2>
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🕍 בתי כנסת</h2><button class="btn sm" onclick="go('map')">🗺️ במפה</button></div>
   <input class="search" placeholder="🔍 חיפוש לפי שם, רחוב או נוסח" value="${esc(q)}" oninput="ST.q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{render();const i=$('.search');i.focus();i.setSelectionRange(i.value.length,i.value.length)},350)" aria-label="חיפוש בית כנסת">
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
@@ -2065,6 +2073,60 @@ function logoPick(f){if(!f)return;if(!/^image\//.test(f.type))return toast('נא
     let u=c.toDataURL('image/webp',.85);if(!/^data:image\/webp/.test(u))u=c.toDataURL('image/png');
     if(u.length>180000)u=c.toDataURL('image/jpeg',.82);
     ED.logo=u;$('#edLogo').innerHTML=logoEdHtml();toast('✔️ הלוגו מוכן – לחצו "שמירה" למטה')};im.onerror=()=>toast('לא הצלחנו לפתוח את התמונה');im.src=r.result};r.readAsDataURL(f)}
+/* ===== 🔑 בקשת קוד גבאי – לבית כנסת שכבר קיים באפליקציה ===== */
+function codeReq(){modal(`<p>בית הכנסת שלכם כבר באפליקציה? מצוין! ממלאים כאן – <b>המנהל יוודא שאתם הגבאים</b> ויחזור אליכם עם קוד אישי (בדרך כלל באותו יום).</p>
+  <label class="f">בית הכנסת</label><select class="inp" id="crS"><option value="">בחרו מהרשימה…</option>${S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(x=>`<option value="${x.id}">${esc(x.name)}${x.address?' – '+esc(x.address):''}</option>`).join('')}</select>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">השם שלכם</label><input class="inp" id="crN" value="${esc(U.name||'')}" maxlength="40"></div><div><label class="f">טלפון</label><input class="inp" id="crP" inputmode="tel" value="${esc(U.phone||'')}" maxlength="15"></div></div>
+  <label class="f">תפקיד</label><select class="inp" id="crR"><option>גבאי</option><option>רב בית הכנסת</option><option>חבר ועד</option><option>מתנדב מטעם הגבאי</option></select>
+  <button class="btn" style="width:100%;margin-top:14px;min-height:50px" onclick="codeReqSend()">📨 שליחת בקשה לקוד</button>
+  <div class="muted" style="margin-top:8px">לא מוצאים את בית הכנסת ברשימה? חזרו אחורה ולחצו "📝 מילוי פרטי בית הכנסת".</div>`,'🔑 קבלת קוד גבאי')}
+async function codeReqSend(){const sid=$('#crS').value,n=$('#crN').value.trim(),ph=$('#crP').value.trim(),r=$('#crR').value;
+  if(!sid)return toast('נא לבחור בית כנסת');if(!n||!telOk(ph))return toast('נא למלא שם וטלפון תקין');if(!needCloud())return;const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת');
+  U.name=n;U.phone=ph;saveU();const sn=shul(sid)?.name||sid,t=`🔑 בקשת קוד גבאי\nבית הכנסת: ${sn}\nשם: ${n} (${r})\nטלפון: ${ph}`;
+  try{await C.F.addDoc(col('inbox'),{uid,name:n,phone:ph,cat:'req',kind:'code',sid,text:t,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});relayAdmin('inbox','🔑 בקשת קוד גבאי – '+sn,n+' · '+ph);closeModal();
+    modal(`<div style="text-align:center"><div style="font-size:2.6rem">✅</div><b>הבקשה נשלחה!</b><p>המנהל יחזור אליכם בוואטסאפ עם הקוד.<br>את התשובה תראו גם כאן: <b>עוד ← 📮 תיבת הודעות</b>.</p></div>`,'נשלח')}catch(e){cerr(e)}}
+function codeSendWa(id){const m=(S.ibAll||[]).find(x=>x.id===id);if(!m)return;const sh=shul(m.sid),c=codeOf(m.sid);if(!c)return toast('לבית הכנסת הזה עוד אין קוד – צרו קוד בעריכת בית הכנסת');
+  const t=`שלום ${m.name||''} 👋\nהקוד האישי שלך ל"${sh?sh.name:''}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nהקוד אישי – לא להעביר הלאה 🙏`;
+  window.open('https://wa.me/'+waNum(m.phone)+'?text='+encodeURIComponent(t),'_blank')}
+/* ===== 🗺️ מפת בתי הכנסת ===== */
+let _map=null,_mapLL=null,GEO={};try{GEO=JSON.parse(localStorage.getItem('ash_geo')||'{}')}catch(e){}
+const MAP_C=[31.7525,35.2205];
+function shulLL(x){if(x.lat&&x.lng)return[+x.lat,+x.lng];const g=GEO[x.id];return g&&g.a===(x.address||'')?[g.lat,g.lng]:null}
+function mapLoad(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(c);const j=document.createElement('script');j.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';j.onload=ok;j.onerror=no;document.head.appendChild(j)})}
+async function geocode(x){const a=(x.address||'').replace(/\(.*?\)/g,'').replace(/פינת.*$/,'').trim();if(!a)return null;
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=il&accept-language=he&q='+encodeURIComponent(a+', ירושלים'));const j=await r.json();if(!j[0])return null;
+    const ll={lat:+(+j[0].lat).toFixed(6),lng:+(+j[0].lon).toFixed(6)};if(Math.abs(ll.lat-MAP_C[0])>.06||Math.abs(ll.lng-MAP_C[1])>.06)return null;
+    GEO[x.id]={...ll,a:x.address||''};try{localStorage.setItem('ash_geo',JSON.stringify(GEO))}catch(e){}
+    if(ROLE?.type==='admin'&&S.cloud)C.F.updateDoc(dref('shuls',x.id),ll).catch(()=>{});return[ll.lat,ll.lng]}catch(e){return null}}
+function shulNext(x){const d=new Date().getDay(),nm=nowMin();const p=collect('prayers',d,p=>p.s.id===x.id&&['שחרית','מנחה','ערבית'].includes(p.t)).find(p=>toMin(p.tm)>=nm);return p?`${p.t} ${p.tm}`:''}
+function distM(a,b){const r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)**2;return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function mapV(){setTimeout(mapInit,30);const L=S.shuls.filter(inNh);
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🗺️ בתי הכנסת במפה</h2><button class="btn sec sm" onclick="go('shuls')">☰ רשימה</button></div>${nhChips()}
+  <div class="map-wrap"><div id="shMap"></div><button class="map-me" onclick="mapMe()">📍 איפה אני?</button></div>
+  <div class="muted" id="mapSt" style="font-size:.85rem;margin:4px 0 8px"></div><div id="mapList"></div>`}
+async function mapInit(){const el=$('#shMap');if(!el)return;try{await mapLoad()}catch(e){el.innerHTML='<div class="empty-msg">לא הצלחנו לטעון את המפה – בדקו חיבור לאינטרנט</div>';return}
+  if(_map){try{_map.remove()}catch(e){}_map=null}
+  _map=L.map(el,{zoomControl:true,attributionControl:true}).setView(_mapLL||MAP_C,15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_map);
+  const list=S.shuls.filter(inNh),miss=[];const grp=[];
+  const add=(x,ll)=>{const nx=shulNext(x),lg=shulLogo(x);
+    const ic=L.divIcon({className:'',html:`<div class="map-pin${nx?' on':''}">${lg?`<img src="${lg}" alt="">`:'🕍'}</div>`,iconSize:[40,40],iconAnchor:[20,38],popupAnchor:[0,-34]});
+    L.marker(ll,{icon:ic,title:x.name}).addTo(_map).bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט</a></div></div>`);grp.push(ll)};
+  list.forEach(x=>{const ll=shulLL(x);if(ll)add(x,ll);else if(x.address)miss.push(x)});
+  if(grp.length>1&&!_mapLL)_map.fitBounds(grp,{padding:[30,30],maxZoom:16});
+  mapList();const st=$('#mapSt');
+  if(miss.length){if(st)st.textContent=`⏳ ממקם עוד ${miss.length} בתי כנסת לפי הכתובת…`;for(const x of miss){const ll=await geocode(x);if(!_map||!$('#shMap'))return;if(ll){add(x,ll);mapList()}await new Promise(r=>setTimeout(r,1100))}}
+  const no=list.filter(x=>!shulLL(x)).length;if(st)st.textContent=no?`ℹ️ ${no} בתי כנסת עוד לא ממוקמים על המפה (חסרה כתובת מדויקת)`:''}
+function mapList(){const box=$('#mapList');if(!box)return;const L2=S.shuls.filter(inNh).map(x=>({x,ll:shulLL(x)})).filter(o=>o.ll);
+  if(_mapLL)L2.forEach(o=>o.d=distM(_mapLL,o.ll));L2.sort((a,b)=>(a.d??0)-(b.d??0)||a.x.name.localeCompare(b.x.name,'he'));
+  box.innerHTML=_mapLL?`<h3>📍 הקרובים אליך</h3>`+L2.slice(0,8).map(o=>{const nx=shulNext(o.x);return `<div class="row" onclick="go('shul',{id:'${o.x.id}'})"><div class="time" style="font-size:1rem;min-width:58px">${o.d<1000?Math.round(o.d/10)*10+' מ׳':(o.d/1000).toFixed(1)+' ק״מ'}</div><div class="main"><b>${esc(String(o.x.name).split(/ [–-] /)[0])}</b><span class="muted">${esc(o.x.address||'')}${nx?' · ⏰ '+esc(nx):''}</span></div></div>`}).join(''):''}
+function mapMe(){if(!navigator.geolocation)return toast('הטלפון לא מאפשר מיקום');toast('מאתר מיקום…');
+  navigator.geolocation.getCurrentPosition(p=>{_mapLL=[p.coords.latitude,p.coords.longitude];if(_map){_map.setView(_mapLL,16);L.circleMarker(_mapLL,{radius:9,color:'#fff',weight:3,fillColor:'#1a73e8',fillOpacity:1}).addTo(_map).bindPopup('אתם כאן')}mapList()},
+  ()=>toast('לא התקבל מיקום – אשרו הרשאת מיקום לאתר',4000),{enableHighAccuracy:true,timeout:12000})}
+/* מיקום בית הכנסת בעריכה */
+async function edLoc(m){if(m==='gps'){if(!navigator.geolocation)return;toast('מאתר מיקום…');navigator.geolocation.getCurrentPosition(p=>{ED.lat=+p.coords.latitude.toFixed(6);ED.lng=+p.coords.longitude.toFixed(6);$('#edLoc').innerHTML=edLocHtml();toast('✔️ נקבע – לחצו "שמירה"')},()=>toast('לא התקבל מיקום'),{enableHighAccuracy:true,timeout:12000});return}
+  if(!ED.address)return toast('נא למלא כתובת קודם');toast('מחפש את הכתובת…');delete GEO[ED.id];const ll=await geocode({id:ED.id,address:ED.address});if(!ll)return toast('הכתובת לא נמצאה במפה – נסו "אני בבית הכנסת עכשיו"',4000);ED.lat=ll[0];ED.lng=ll[1];$('#edLoc').innerHTML=edLocHtml();toast('✔️ נמצא – לחצו "שמירה"')}
+function edLocHtml(){const ok=ED.lat&&ED.lng;return `<div class="muted" style="font-size:.88rem">${ok?`✅ ממוקם על המפה · <a href="https://www.google.com/maps?q=${ED.lat},${ED.lng}" target="_blank" rel="noopener">בדיקה במפה</a>`:'עוד לא ממוקם על המפה'}</div><div class="btns" style="margin-top:4px"><button class="btn sec sm" onclick="edLoc('addr')">🔎 לפי הכתובת</button><button class="btn sec sm" onclick="edLoc('gps')">📍 אני בבית הכנסת עכשיו</button></div>`}
 /* ===== 🎨 עריכה ברורה: כל תפילה / פעילות בכרטיס צבעוני משלה ===== */
 const ED_CLR={'שחרית':'#e6a817','מנחה':'#e0742c','ערבית':'#5b5bd6','מוסף':'#2f9c8f','קבלת שבת':'#c2508f','זמן':'#7a8796'};
 const EV_CLR={'שיעור תורה':'#3b9b57','ילדים':'#e0558a','צעירים':'#1f9bc4','תהילים':'#a0702a','נשים':'#9b55c9','ציבורי':'#c99a1a'};
@@ -2088,6 +2150,7 @@ function drawEd(isNew){
     <div><label class="f">נוסח</label><input class="inp" list="nus" value="${esc(e.nusach)}" oninput="ED.nusach=this.value"><datalist id="nus"><option>ספרד</option><option>אשכנז</option><option>עדות המזרח</option><option>תימני</option><option>חב״ד</option></datalist></div>
   </div>
   <label class="f">כתובת</label><input class="inp" value="${esc(e.address)}" oninput="ED.address=this.value">
+  <label class="f">🗺️ מיקום על המפה</label><div id="edLoc">${edLocHtml()}</div>
   <label class="f">♿ נגישות</label><input class="inp" value="${esc(e.access||'')}" placeholder="לדוגמה: נגיש / יש מדרגות" oninput="ED.access=this.value">
   <h3 style="margin-top:16px">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
   ${e.gabbaim.map((g,i)=>`<div class="ed2">
@@ -2303,7 +2366,10 @@ function listenPublic(){
   C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
-function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}}
+function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}
+  // בתי כנסת שנוספו עם שכונה שגויה (מזרח תלפיות = ארמון הנציב)
+  Object.entries(NH_FIX).forEach(([id,nh])=>{const x=shul(id);if(x&&x.nh!==nh&&!x._nhfix){x._nhfix=1;C.F.updateDoc(dref('shuls',id),{nh}).catch(()=>{})}})}
+const NH_FIX={chibatyer:'ארמון הנציב',mishkanreuven:'ארמון הנציב',israelhatzair:'ארמון הנציב'};
 function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
 function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
@@ -2638,7 +2704,7 @@ const ADMIN_WA_DEF='0546137202';
 const adminWa=()=>waNum(S.settings.adminPhone||ADMIN_WA_DEF);
 function gabHome(){if(ROLE)return'';return `<div class="card gab-home" onclick="go('gab')" role="button" tabindex="0"><span style="font-size:2.2rem">🕍</span><div style="flex:1"><b style="font-size:1.1rem">גבאי? היכנס לכאן!</b><div class="muted">הצטרפו את בית הכנסת שלכם לאפליקציה – בחינם</div></div><span style="font-size:1.3rem">‹</span></div>`}
 const GAB_MAT=[['times','🕰️ זמני תפילות (חול, שבת, מוצ״ש)'],['shiurim','📚 שיעורי תורה ומוסרי השיעורים'],['kids','🧒 פעילויות לילדים / נשים / תהילים'],['addr','📍 כתובת מדויקת ונגישות'],['phones','📞 טלפונים של הגבאים'],['photos','📷 תמונות של בית הכנסת'],['notices','📢 הודעות קבועות ומודעות']];
-function gabV(){return `<div class="gab-hero"><div style="font-size:3rem">🕍</div><h2 style="margin:4px 0;color:#fff">גבאי יקר – ברוך הבא!</h2><div style="opacity:.9">"וְכָל מִי שֶׁעוֹסְקִים בְּצָרְכֵי צִבּוּר בֶּאֱמוּנָה – הַקָּדוֹשׁ בָּרוּךְ הוּא יְשַׁלֵּם שְׂכָרָם"</div></div>
+function gabV(){return `<button class="gab-code" onclick="codeReq()"><span>🔑</span><div><b>בית הכנסת שלי כבר מופיע באפליקציה</b><small>איך מקבלים קוד גבאי? לחצו כאן</small></div><span>‹</span></button><div class="gab-hero"><div style="font-size:3rem">🕍</div><h2 style="margin:4px 0;color:#fff">גבאי יקר – ברוך הבא!</h2><div style="opacity:.9">"וְכָל מִי שֶׁעוֹסְקִים בְּצָרְכֵי צִבּוּר בֶּאֱמוּנָה – הַקָּדוֹשׁ בָּרוּךְ הוּא יְשַׁלֵּם שְׂכָרָם"</div></div>
   <div class="card"><h3>✨ זכות גדולה בידיים שלך</h3>
   <p>הגבאי הוא <b>שליח הציבור</b>. כשהזמנים מעודכנים – יהודי מוצא מניין ברגע האחרון, אבל זוכה לומר קדיש על אביו, ילד מגיע לשיעור, ואדם בודד מוצא קהילה. <b>כל תפילה בציבור שמתקיימת בזכות מידע מדויק – נזקפת לזכותך.</b></p>
   <p class="muted" style="margin:0">"כָּל הַמְזַכֶּה אֶת הָרַבִּים – אֵין חֵטְא בָּא עַל יָדוֹ" (אבות ה׳ י״ח)</p></div>
@@ -2887,6 +2953,7 @@ function ibAdminV(){
       <div style="flex:1;min-width:0"><b>${m.unA?'🔵 ':''}${c[1]} ${c[2]}</b><div class="muted">${esc(m.name||'אנונימי')} · ${new Date(m.dt).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</div>${op?'':`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.text)}</div>`}</div>
       <span class="badge ${m.st==='done'?'soon':'gold'}">${m.st==='done'?'✅':(m.rep||[]).length?'💬 '+m.rep.length:'חדש'}</span></div>
     ${op?`${ibThread(m,'admin')}
+      ${m.kind==='code'&&m.sid?`<button class="btn" style="width:100%;margin:6px 0;background:#25d366" onclick="codeSendWa('${m.id}')">🔑 שליחת הקוד של "${esc(shul(m.sid)?.name||'')}" בוואטסאפ</button>`:''}
       ${m.phone?`<div class="btns" style="margin:6px 0"><a class="btn sec sm" href="tel:${esc(m.phone)}">📞 ${esc(m.phone)}</a><a class="btn sec sm" style="background:#25d366;color:#fff" href="https://wa.me/${waNum(m.phone)}" target="_blank" rel="noopener">💬 וואטסאפ</a></div>`:''}
       <textarea class="inp" id="ibr_${m.id}" placeholder="תשובה לפונה (תופיע לו באפליקציה)…" maxlength="1500" style="min-height:70px;margin-top:6px"></textarea>
       <div class="btns" style="margin-top:8px"><button class="btn sm" onclick="ibReply('${m.id}','admin')">📨 שליחת תשובה</button>
