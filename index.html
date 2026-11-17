@@ -241,6 +241,13 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .vs-row.on .vs-pick{border-color:#2e8b57;background:rgba(46,139,87,.1);font-weight:700}.vs-how{margin-top:14px}.vs-how summary{cursor:pointer;padding:6px 0}
 .logo-ed{display:flex;gap:12px;align-items:center;background:rgba(36,69,107,.05);border-radius:14px;padding:10px}
 .logo-ed img,.logo-ph{width:74px;height:74px;border-radius:14px;object-fit:contain;background:#fff;border:1px solid rgba(36,69,107,.15);display:flex;align-items:center;justify-content:center;flex:none}
+.adpop{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#fff8e6,#fdeec4);border:1px solid #e8c873;border-radius:16px;padding:9px 10px;margin:10px 0;cursor:pointer;box-shadow:0 2px 8px rgba(168,116,44,.12);animation:adIn .5s ease}
+.adpop.today{background:linear-gradient(135deg,#fff1d6,#f7d98b);border-color:#d4a237}
+.adpop-im{width:52px;height:52px;border-radius:12px;background:center/cover;flex:none}.adpop-em{font-size:1.8rem;flex:none}
+.adpop-x{flex:1;min-width:0;display:flex;flex-direction:column}.adpop-x small{color:#8a5a12}.adpop-x b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.adpop-x .muted{font-size:.82rem}
+.adpop-c{border:0;background:rgba(0,0,0,.06);border-radius:50%;width:30px;height:30px;font-size:.9rem;color:#6a4a10;flex:none;cursor:pointer}
+@keyframes adIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1}}
+body.dark .adpop{background:linear-gradient(135deg,#3a2f17,#4a3a18);border-color:#7a6230}body.dark .adpop-x small{color:#e8c873}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -580,6 +587,7 @@ function home(){
   ${alonWeek().length?`<button class="shb chg" style="background:linear-gradient(135deg,#5b3a1a,#a8742c)" onclick="go('alonim')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלוני השבוע</b><span>${alonWeek().length===1?'עלון חדש':alonWeek().length+' עלונים חדשים'} – לקריאה, שיתוף והדפסה ‹</span></div></button>`:''}
   ${nearest()}
   <div class="say-row"><button onclick="sayToggle(()=>nearSay())">${ic('speaker','bi')}הקראת המניין הקרוב</button><button onclick="askVoice()">${ic('mic','bi')}לשאול בקול</button></div>
+  ${adPop()}
   ${mnyHome()}
   ${gabHome()}
   ${thHomeCard()}
@@ -792,6 +800,19 @@ function editHill(id){
 }
 //@saveHill
 /* ===== לוח מודעות ===== */
+/* ===== 🔔 מודעה עם תאריך – קופצת מדי פעם במסך הראשי עד יום האירוע (מתחת למניין הקרוב) ===== */
+function adPopList(){const t=new Date();t.setHours(0,0,0,0);const ti=iso(t);
+  return S.ads.filter(a=>{if(a.st!=='ok'||!a.date||a.date<ti||(a.until&&a.until<ti))return false;const n=a.popD===undefined?7:+a.popD;if(!n)return false;
+    const days=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);return days<=n&&(U.adHide||{})[a.id]!==ti}).sort((a,b)=>a.date<b.date?-1:1)}
+function adPop(){const L=adPopList();if(!L.length)return'';
+  // "מדי פעם": ביום האירוע ויום לפניו – תמיד; לפני כן – בערך בכל כניסה שנייה, ומתחלפות בין המודעות
+  const t=new Date();t.setHours(0,0,0,0);
+  const show=L.filter(a=>{const d=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);return d<=1||((window._adTick||0)%2===0)});if(!show.length)return'';
+  const a=show[(window._adTick||0)%show.length];const d=Math.round((new Date(fromIso(a.date)).setHours(0,0,0,0)-t)/864e5);
+  const when=d<=0?'<b>היום!</b>':d===1?'<b>מחר</b>':'בעוד '+d+' ימים';
+  return `<div class="adpop${d<=0?' today':''}" onclick="showAd('${a.id}')">${a.img?`<div class="adpop-im" style="background-image:url(${a.img})"></div>`:'<span class="adpop-em">📢</span>'}<div class="adpop-x"><small>🔔 תזכורת · ${when}</small><b>${esc(a.title)}</b><span class="muted">${adWhen(a)}</span></div><button class="adpop-c" aria-label="לא להציג היום" onclick="event.stopPropagation();adPopHide('${a.id}')">✕</button></div>`}
+function adPopHide(id){U.adHide=U.adHide||{};const ti=iso(new Date());Object.keys(U.adHide).forEach(k=>{if(U.adHide[k]<ti)delete U.adHide[k]});U.adHide[id]=ti;saveU();toast('לא יוצג עוד היום');softRender()}
+window._adTick=(+(localStorage.getItem('ash_adtick')||0))+1;try{localStorage.setItem('ash_adtick',window._adTick)}catch(e){}
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')':a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span></div><span>‹</span></div>`}
 function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${esc(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}
@@ -814,7 +835,9 @@ function adForm(){
   <label class="f">תמונה (לא חובה)</label><input type="file" accept="image/*" id="ai" class="inp">
   <label class="f">מתי האירוע? (המודעה תופיע בלוח השנה)</label>
   <select class="inp" id="aw" onchange="$('#awd').style.display=this.value==='date'?'block':'none';$('#awr').style.display=this.value==='rec'?'block':'none'"><option value="">לא קשור לתאריך</option><option value="date">בתאריך מסוים</option><option value="rec">קבוע כל שבוע</option></select>
-  <input class="inp" type="date" id="awd" style="display:none;margin-top:6px">
+  <div id="awd" style="display:none;margin-top:6px"><input class="inp" type="date" id="awdd">
+  <label class="f">🔔 תזכורת במסך הראשי</label><select class="inp" id="apop"><option value="3">מ-3 ימים לפני</option><option value="7" selected>משבוע לפני</option><option value="14">משבועיים לפני</option><option value="0">בלי תזכורת</option></select>
+  <div class="muted" style="font-size:.85rem">המודעה תקפוץ מדי פעם במסך הראשי עד יום האירוע – מתחת לזמני המניין הקרוב.</div></div>
   <select class="inp" id="awr" style="display:none;margin-top:6px">${dsOpts('mz')}</select>
   <label class="f">להציג עד תאריך (לא חובה)</label><input class="inp" type="date" id="au">
   ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${ROLE.sid===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
@@ -1163,7 +1186,22 @@ function askVoice(){ttsPrime();
   <button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="voiceSet()">⚙️ החלפת הקול (גבר / אישה) ומהירות</button>`,'🎤 שאלה בקול');
   setTimeout(micStart,250);
 }
+/* 🎤 זיהוי דיבור באפליקציית האנדרואיד – דרך זיהוי הדיבור של גוגל שבטלפון */
+async function micNat(S2){const SR=NAT.P('SpeechRecognition');
+  try{const a=await SR.available();if(a&&a.available===false){S2('הזיהוי הקולי לא זמין בטלפון – ודאו שאפליקציית Google מותקנת. אפשר לבחור או להקליד שאלה');return}}catch(e){}
+  try{let p=await SR.checkPermissions();if(p.speechRecognition!=='granted')p=await SR.requestPermissions();
+    if(p.speechRecognition!=='granted'){S2('🔒 צריך לאשר גישה למיקרופון: הגדרות הטלפון ← אפליקציות ← אשריכם ישראל ← הרשאות ← מיקרופון ← לאפשר');return}}catch(e){}
+  try{await SR.stop()}catch(e){}try{await SR.removeAllListeners()}catch(e){}
+  let got='',done=false,tmr=null,safety=null;const B=$('#micB');
+  const end=()=>{clearTimeout(tmr);clearTimeout(safety);B?.classList.remove('on');try{SR.removeAllListeners()}catch(e){}};
+  const fin=()=>{if(done)return;done=true;end();try{SR.stop()}catch(e){}const t=got.trim();if(t)voiceAnswer(t);else S2('לא שמעתי – לחצו על המיקרופון ונסו שוב')};
+  SR.addListener('partialResults',d=>{const t=(d&&d.matches&&d.matches[0])||'';if(!t)return;got=t;const el=$('#micT');if(el)el.textContent='"'+t+'"';clearTimeout(tmr);tmr=setTimeout(fin,1300)});
+  SR.addListener('listeningState',d=>{if(d&&d.status==='stopped'){clearTimeout(tmr);tmr=setTimeout(fin,got?500:1500)}});
+  S2('🎙️ מקשיב… דברו עכשיו');B?.classList.add('on');safety=setTimeout(fin,12000);
+  try{const r=await SR.start({language:'he-IL',maxResults:1,partialResults:true,popup:false});if(r&&r.matches&&r.matches[0]){got=r.matches[0];fin()}}
+  catch(e){if(!done){done=true;end();S2(/permission/i.test(String(e&&e.message||e))?'🔒 צריך לאשר גישה למיקרופון':'לא הצלחתי להפעיל את המיקרופון – אפשר לבחור או להקליד שאלה')}}}
 async function micStart(){ttsPrime();const R=window.SpeechRecognition||window.webkitSpeechRecognition,S2=t=>{const e=$('#micS');if(e)e.textContent=t};
+  if(NAT.P('SpeechRecognition'))return micNat(S2);
   if(!R){S2('הדפדפן הזה לא תומך בזיהוי קולי – אפשר לבחור או להקליד שאלה');return}
   if(_rec){try{_rec.abort()}catch(e){}_rec=null}
   try{if(navigator.mediaDevices?.getUserMedia){const st=await navigator.mediaDevices.getUserMedia({audio:true});st.getTracks().forEach(t=>t.stop())}}
@@ -2271,7 +2309,7 @@ async function addPin(s){
 async function delPin(id,s){if(!confirm('למחוק את ההודעה?')||!needCloud())return;try{await C.F.deleteDoc(dref('pins',id))}catch(e){return cerr(e)}setTimeout(()=>openDay(s),300)}
 async function sendAd(){
   const a={title:$('#at').value.trim(),text:$('#ax').value.trim(),contact:$('#ac').value.trim(),img:'',st:ROLE?'ok':'pend',dt:Date.now(),
-    date:$('#aw').value==='date'?$('#awd').value:'',d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
+    date:$('#aw').value==='date'?$('#awdd').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,sid:$('#asid')?.value||''};
   if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
   const f=$('#ai').files[0];if(f)a.img=await shrink(f,800);

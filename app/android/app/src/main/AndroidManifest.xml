@@ -50,4 +50,10 @@
     <!-- מיקום: רק אם המשתמש מבקש "בתי כנסת לידי" / זמנים לפי המיקום -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- מיקרופון: רק כשלוחצים "לשאול בקול" -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+    </queries>
 </manifest>
