@@ -13,6 +13,17 @@ service cloud.firestore {
     }
     function canEditShul(sid) { return isAdmin() || isGabbaiOf(sid); }
 
+    // 📣 הודעות מהמנהל לכל הגבאים (דרך הדמות) + אישורי קריאה
+    match /gabmsg/{id} {
+      allow read: if signed();
+      allow write: if isAdmin();
+    }
+    match /gabread/{id} {
+      allow read: if isAdmin() || (signed() && isGabbaiOf(resource.data.sid));
+      allow create, update: if isGabbaiOf(request.resource.data.sid) && id == request.resource.data.mid + '_' + request.resource.data.sid;
+      allow delete: if isAdmin();
+    }
+
     // הגדרות כלליות, שכונות, הילולות – רק המנהל
     match /config/{doc} {
       allow read: if true;
