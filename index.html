@@ -220,6 +220,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
+.sp-file{margin-top:8px;text-align:center}.sp-file .btn{width:100%;border-style:dashed}
 .sp-btn{width:100%;margin:4px 0 10px;background:linear-gradient(135deg,#2f5585,#4a78b0)}.sp-it{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:var(--card)}.sp-it input{margin-top:5px;width:20px;height:20px;flex:none}.sp-src{font-size:.78rem;opacity:.8}
 .ic.bi{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin-inline-end:5px;filter:none}.ic.big{width:86px;height:86px;margin:0 auto}.ic.tl{width:40px;height:40px}.shb-ic .ic{width:54px;height:54px}.mic-pulse .ic{margin:0 auto 8px}
 .near-side{display:flex;flex-direction:column;gap:6px}.near-rem{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:14px;color:#fff;font:inherit;font-size:.78rem;font-weight:700;padding:6px 8px;gap:2px}.near-rem .ic{filter:none}
@@ -279,7 +280,7 @@ body.dark .gab-code{background:#3a2f17;border-color:#7a6230}
 @keyframes mpIn{from{transform:translateY(140%);opacity:0}to{transform:none;opacity:1}}@keyframes mpGlow{from{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 0 rgba(155,227,181,.0)}to{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 8px rgba(155,227,181,.45)}}
 body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .st-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;margin:10px 0 4px;border:0;background:rgba(255,255,255,.1);border-radius:14px;padding:8px 4px;font:inherit;color:inherit;cursor:pointer}
-.st-strip div{display:flex;flex-direction:column;align-items:center}.st-strip b{font-size:1.35rem;color:#f3d78e;line-height:1.1}.st-strip span{font-size:.72rem;opacity:.9;white-space:nowrap}
+.st-strip div{display:flex;flex-direction:column;align-items:center}.st-strip b{font-size:1.35rem;color:#f3d78e;line-height:1.1}.st-strip div{min-width:0}.st-strip span{font-size:.66rem;opacity:.9;text-align:center;line-height:1.2;white-space:normal}
 .st-sec{font-weight:800;margin:12px 0 4px;font-size:.92rem;color:var(--pri,#24456b)}
 .st-ch{display:flex;align-items:flex-end;gap:3px;height:110px;padding:4px 2px 18px;border-bottom:1px solid var(--line)}
 .st-bar{flex:1;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:1px}.st-bar i,.st-bar em{display:block;width:45%;border-radius:3px 3px 0 0;min-height:2px}
@@ -291,6 +292,8 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .map-srch{margin-top:8px}.map-hint{font-size:.88rem;background:rgba(36,69,107,.07);border-radius:12px;padding:8px 10px;margin:8px 0;line-height:1.6}
 .map-st{font-size:.88rem;margin:0 0 8px;color:var(--muted,#667)}.map-st:empty{display:none}
 #viewPill{bottom:calc(150px + env(safe-area-inset-bottom))}
+.sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
+.sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
 .topbar{flex-direction:column;align-items:stretch!important;gap:6px!important;padding:8px 12px 8px!important}
 .tb-row1{display:flex;align-items:center;gap:10px;min-width:0}.tb-row1>img{width:52px!important;height:52px!important;flex:none}
@@ -666,7 +669,7 @@ function setNh(n){U.nh=n;saveU();pushTags();render()}
 /* ===== 📊 נתוני שימוש: כניסות ומשתמשים ===== */
 function stSum(o,days){const now=Date.now();return Object.entries(o||{}).filter(([d])=>(now-fromIso(d))/864e5<days).reduce((a,[,v])=>a+(+v||0),0)}
 function statsStrip(){const st=S.stats;if(!st)return'';const t=iso(new Date());
-  return `<button class="st-strip" onclick="go('admin')"><div><b>${st.users||0}</b><span>👥 משתמשים</span></div><div><b>${(st.dau||{})[t]||0}</b><span>🟢 היום</span></div><div><b>${(st.days||{})[t]||0}</b><span>🚪 כניסות היום</span></div><div><b>${st.visits||0}</b><span>📈 סה״כ כניסות</span></div></button>`}
+  return `<button class="st-strip" onclick="go('admin')"><div><b>${st.users||0}</b><span>👥 משתמשים</span></div><div><b>${(st.dau||{})[t]||0}</b><span>🟢 פעילים היום</span></div><div><b>${(st.days||{})[t]||0}</b><span>🚪 כניסות היום</span></div><div><b>${st.visits||0}</b><span>📈 סה״כ כניסות</span></div></button>`}
 function statsCard(){const st=S.stats||{days:{},views:{}};const t=iso(new Date());
   const L=[];for(let k=13;k>=0;k--){const d=new Date();d.setDate(d.getDate()-k);const i=iso(d);L.push([i,(st.days||{})[i]||0,(st.dau||{})[i]||0,d])}
   const mx=Math.max(1,...L.map(x=>x[1]));
@@ -800,17 +803,21 @@ function times(){
 }
 
 /* ===== בתי כנסת ===== */
+function shSortFn(){const so=U.shSort||'no',F=x=>U.favs.includes(x.id)?1:0,N=x=>x.no||1e9,A=(a,b)=>a.name.replace(/["״']/g,'').localeCompare(b.name.replace(/["״']/g,''),'he');
+  return(a,b)=>(F(b)-F(a))||(so==='nh'?(a.nh||'').localeCompare(b.nh||'','he')||N(a)-N(b):so==='abc'?A(a,b):N(a)-N(b)||A(a,b))}
 function shuls(){
   const q=(ST.q||'').trim();
   const list=S.shuls.filter(inNh).filter(s=>!q||(s.name+s.address+s.nh+s.nusach).includes(q))
-    .sort((a,b)=>(U.favs.includes(b.id)-U.favs.includes(a.id))||a.name.localeCompare(b.name,'he'));
+    .sort(shSortFn());
+  const so=U.shSort||'no';let lastNh=null;
   const dp=ROLE?.type==='admin'?dupPairs().length:0;
   return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🕍 בתי כנסת <span class="muted" style="font-size:.95rem">(${list.length})</span></h2><button class="btn sm" onclick="go('map')">🗺️ במפה</button></div>
   ${dp?`<button class="adq-sp" style="background:linear-gradient(135deg,#b3541e,#f0a35e);margin:8px 0" onclick="dupsV()">⚠️ <b>${dp} כפילויות אפשריות</b> – לחצו לבדיקה</button>`:''}
   <input class="search" placeholder="🔍 חיפוש לפי שם, רחוב או נוסח" value="${esc(q)}" oninput="ST.q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{render();const i=$('.search');i.focus();i.setSelectionRange(i.value.length,i.value.length)},350)" aria-label="חיפוש בית כנסת">
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
-  ${list.map(s=>`<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
+  <div class="sh-sort"><span class="muted">סדר:</span>${[['no','לפי מספר'],['nh','לפי אזור'],['abc','א–ב']].map(([k,l])=>`<button class="${so===k?'on':''}" onclick="U.shSort='${k}';save();render()">${l}</button>`).join('')}</div>
+  ${list.map(s=>`${so==='nh'&&!U.favs.includes(s.id)&&s.nh!==lastNh?`<div class="sh-grp">📍 ${esc((lastNh=s.nh)||'אחר')}</div>`:''}<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
     <div class="thumb" style="${(s.thumb||s.photos[0])?`background-image:url(${s.thumb||s.photos[0]})`:shulLogo(s)?`background:#fff url(${shulLogo(s)}) center/88% no-repeat`:''}">${(s.thumb||s.photos[0]||shulLogo(s))?'':ic('shul','fill')}</div>
     <div style="flex:1;min-width:0"><b>${s.no?`<span class="sh-no">${s.no}</span>`:''}${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
     <button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
@@ -2152,9 +2159,48 @@ let SP=null;
 function smartPaste(){
   modal(`<div class="muted">מדביקים כאן את ההודעה מהגבאי (למשל מוואטסאפ) – והמערכת מזהה לבד תפילות, שיעורים, ימים וזמנים, כולל זמנים לפי השקיעה וצאת השבת. לפני ההוספה תראו בדיוק מה זוהה ותוכלו לבחור.</div>
   <textarea class="inp" id="spT" style="min-height:220px;margin-top:8px" placeholder="לדוגמה:\nשחרית בשעה 5:20\nמנחה 20 דקות לפני השקיעה\nשבת שחרית 7:30"></textarea>
+  <div class="sp-file"><button class="btn ghost sm" onclick="$('#spF').click()">📎 או להעלות קובץ: וורד / PDF / תמונה</button>
+  <input type="file" id="spF" hidden accept=".docx,.pdf,image/*,.txt" onchange="spFile(this.files[0]);this.value=''">
+  <div class="muted" id="spFs" style="font-size:12px;margin-top:4px"></div></div>
   <button class="btn" style="width:100%;margin-top:10px" onclick="spRun()">✨ לזהות ולסדר</button>
   <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="drawEd()">↩️ חזרה לעריכה</button>`,'✨ הדבקה חכמה'+(ED&&ED.name?' – '+ED.name:''));
 }
+/* ===== העלאת קובץ להדבקה חכמה: וורד / PDF / תמונה (בלי בינה מלאכותית, הכל בטלפון) ===== */
+const LIBS={};
+function loadJs(u){return LIBS[u]||(LIBS[u]=new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>{delete LIBS[u];no(new Error('lib'))};document.head.appendChild(e)}))}
+const CDN='https://cdn.jsdelivr.net/npm/';
+function spSt(t){const e=$('#spFs');if(e)e.textContent=t}
+const HEB_W=['שחרית','מנחה','ערבית','שבת','שיעור','מעריב','ותיקין','קבלת','שקיעה','דקות','ראשון','שני','שלישי','רביעי','חמישי','שישי'];
+function revLine(l){return [...l].reverse().join('').replace(/[0-9:.\/\-]{2,}/g,m=>[...m].reverse().join('')).replace(/[()\[\]]/g,c=>({'(':')',')':'(','[':']',']':'['}[c]))}
+function fixHeb(t){const rev=w=>[...w].reverse().join('');let a=0,b=0;HEB_W.forEach(w=>{a+=t.split(w).length-1;b+=t.split(rev(w)).length-1});return b>a?t.split('\n').map(revLine).join('\n'):t}
+async function ocrImg(src,lbl){await loadJs(CDN+'tesseract.js@5/dist/tesseract.min.js');
+  const r=await Tesseract.recognize(src,'heb+eng',{logger:m=>{if(m.status==='recognizing text')spSt(`🔎 ${lbl} קורא את הכתב… ${Math.round(m.progress*100)}%`);else if(/load/.test(m.status))spSt('⏳ טוען מנוע זיהוי כתב עברי (בפעם הראשונה לוקח רגע)…')}});
+  return r.data.text}
+async function pdfText(buf){await loadJs(CDN+'pdfjs-dist@3.11.174/build/pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc=CDN+'pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;let out=[];const n=Math.min(pdf.numPages,6);
+  for(let i=1;i<=n;i++){const pg=await pdf.getPage(i);const c=await pg.getTextContent();const rows={};
+    c.items.forEach(it=>{if(!it.str.trim())return;const y=Math.round(it.transform[5]/4);(rows[y]=rows[y]||[]).push(it)});
+    Object.keys(rows).sort((a,b)=>b-a).forEach(y=>{const its=rows[y].sort((a,b)=>b.transform[4]-a.transform[4]);out.push(its.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim())})}
+  let t=fixHeb(out.join('\n'));
+  if(t.replace(/\s/g,'').length<15){/* PDF סרוק – הופכים לתמונה ומזהים כתב */t='';
+    for(let i=1;i<=Math.min(pdf.numPages,3);i++){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2.2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+      await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;t+=await ocrImg(cv,`עמוד ${i}:`)+'\n'}}
+  return t}
+async function spFile(f){if(!f)return;const nm=(f.name||'').toLowerCase();
+  try{let t='';
+    if(/\.docx$/.test(nm)){spSt('⏳ קורא את קובץ הוורד…');await loadJs(CDN+'mammoth@1.8.0/mammoth.browser.min.js');t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value}
+    else if(/\.doc$/.test(nm))return spSt('⚠️ קובץ וורד ישן (.doc) לא נתמך. שמרו אותו כ-docx, או צלמו מסך והעלו תמונה.');
+    else if(/\.pdf$/.test(nm)||f.type==='application/pdf'){spSt('⏳ קורא את ה-PDF…');t=await pdfText(await f.arrayBuffer())}
+    else if((f.type||'').startsWith('image/')){t=await ocrImg(f,'')}
+    else if(/\.txt$/.test(nm))t=await f.text();
+    else return spSt('⚠️ סוג קובץ לא נתמך. אפשר וורד (docx), PDF או תמונה.');
+    t=t.replace(/\r/g,'').replace(/\n{3,}/g,'\n\n').trim();
+    if(!t)return spSt('⚠️ לא נמצא טקסט בקובץ. נסו תמונה ברורה יותר.');
+    const ta=$('#spT');ta.value=(ta.value.trim()?ta.value.trim()+'\n':'')+t;
+    spSt('✅ הטקסט נקלט. כדאי להציץ ולתקן אם משהו לא נקרא נכון, ואז ללחוץ "לזהות ולסדר".');
+    ta.scrollIntoView({block:'center',behavior:'smooth'});
+  }catch(e){console.warn(e);spSt('⚠️ לא הצלחתי לקרוא את הקובץ (צריך חיבור לאינטרנט). אפשר להעתיק את הטקסט ולהדביק.')}}
 function spRun(){const t=$('#spT').value;if(!t.trim())return toast('הדביקו טקסט');SP=smartParse(t);SP.raw=t;spPrev()}
 function spTmTxt(it){if(!it.tm)return'<span style="color:#b3261e">לא זוהה זמן</span>';return isRel(it.tm)?`${relLabel(it.tm,it.d)} <span class="muted">(השבוע: ${resolveTm(it.tm,nextDateIn(it.d))})</span>`:it.tm}
 function spPrev(){
