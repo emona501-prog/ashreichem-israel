@@ -315,6 +315,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .gb-txt b{color:#b3541e}.gb-small{display:block;font-size:1.4rem;margin-top:6px;color:#24456b}
 .gb-shul{text-align:center;color:var(--muted,#667);font-size:.85rem;margin-top:-6px}
 @keyframes gbIn{from{transform:translateY(40px) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}@keyframes gbPop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.ed-focus{outline:4px solid #e6a817!important;outline-offset:3px;border-radius:12px;animation:edFoc 1s ease-in-out 3}@keyframes edFoc{50%{outline-color:#f6d77a}}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -996,19 +997,29 @@ function adAutoEnd(){const d=$('#awdd').value,t=$('#awtm').value;if(!d||$('#au')
   const x=fromIso(d);const[h,m]=(t||'21:59').split(':');x.setHours(+h,+m+120,0,0);$('#au').value=iso(x);$('#autm').value=String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0')}
 //@sendAd
 //@adSt
+/* קיצור דרך: פתיחת העריכה ישר על השדה הנכון, עם הדגשה */
+const ED_FOCUS={logo:'#edLogo',loc:'#edLoc',addr:'#edAddr',phone:'#edGab',prayers:'#edPr',paste:'#edSp',notes:'#edN'};
+function editAt(id,f){editShul(id);setTimeout(()=>{let el=$(ED_FOCUS[f]||'');
+  if(f==='phone'){if(!ED.gabbaim.length||ED.gabbaim.every(g=>(g.phone||'').trim())){ED.gabbaim.push({name:'',phone:'',pub:true});drawEd();}const ph=[...document.querySelectorAll('#modals input[inputmode="tel"]')].find(i=>!telOk(i.value))||document.querySelector('#modals input[inputmode="tel"]');el=ph||$('#edGab')}
+  if(!el)return;const box=el.closest('label')?el:el;box.scrollIntoView({behavior:'smooth',block:'center'});
+  const hl=(f==='logo'||f==='loc')?el:el.matches('input,textarea')?el:el;hl.classList.add('ed-focus');setTimeout(()=>hl.classList.remove('ed-focus'),3500);
+  if(el.matches('input,textarea'))setTimeout(()=>el.focus(),500);
+  if(f==='paste')setTimeout(()=>el.click(),700)},250)}
+function missKey(m){return m.includes('טלפון')?'phone':m.includes('כתובת')?'addr':'prayers'}
 /* ===== 🧔 הודעה שבועית לגבאים – דמות עם בועת קומיקס ===== */
 const GAB_PRAISE=['יישר כוח על העבודה הנפלאה שלך! 🙏 בזכותך כל השכונה יודעת מתי יש מניין.','גבאי יקר, אשריך! כל מתפלל שהגיע בזמן – הזכות שלך. המשך כך! 💪','תודה שאתה שומר על הזמנים מעודכנים – זה זיכוי הרבים אמיתי! ✨','כל הכבוד! בית כנסת מעודכן = יותר מתפללים ומניינים מלאים. 🕍'];
 const GAB_TIPS=[
-  {t:'טיפ קטן: קיבלת את הזמנים בוואטסאפ? מדביקים ב"הדבקה חכמה" – והכול מסתדר לבד! ✨',b:'✨ לנסות עכשיו',a:s=>`editShul('${s.id}')`},
+  {t:'טיפ קטן: קיבלת את הזמנים בוואטסאפ? מדביקים ב"הדבקה חכמה" – והכול מסתדר לבד! ✨',b:'✨ לנסות עכשיו',a:s=>`editAt('${s.id}','paste')`},
   {t:'יש שינוי חד־פעמי? מניין שבוטל? כתוב "עדכון לפס הרץ" – וכל השכונה תראה מיד! 📢',b:'📢 עדכון לפס הרץ',a:s=>`postUpdate('${s.id}')`},
   {t:'יש לבית הכנסת עלון שבועי? אפשר להעלות אותו לאפליקציה – והמתפללים יקראו וידפיסו! 📰',b:'📰 לדף בית הכנסת',a:s=>`go('shul',{id:'${s.id}'})`},
-  {t:'הוסף לוגו או תמונה של בית הכנסת – זה נראה הרבה יותר מכובד! 🏛️',b:'🏛️ להוספה',a:s=>`editShul('${s.id}')`}];
+  {t:'הוסף לוגו או תמונה של בית הכנסת – זה נראה הרבה יותר מכובד! 🏛️',b:'🏛️ להוספת לוגו',a:s=>`editAt('${s.id}','logo')`}];
 function gabMsgs(s){const L=[],miss=missingOf(s),d=new Date().getDay();
-  if(miss.length)L.push({t:`גבאי יקר, חסרים עוד כמה פרטים בבית הכנסת: <b>${miss.join(', ')}</b>.<br>בוא נשלים – זה לוקח דקה! 😊`,b:'✏️ להשלים עכשיו',a:`closeModal();editShul('${s.id}')`});
-  if(!shulLL(s))L.push({t:'בית הכנסת עוד לא מסומן על המפה 🗺️<br>כשאתה בבית הכנסת – לחיצה אחת: "📍 אני בבית הכנסת עכשיו".',b:'📍 לסמן',a:`closeModal();editShul('${s.id}')`});
-  if(d===4||d===5)L.push({t:'שבת מתקרבת! 🕯️<br>בדקת שזמני השבת של בית הכנסת נכונים לשבוע הזה?',b:'🕰️ לבדיקת הזמנים',a:`closeModal();go('shul',{id:'${s.id}'})`});
-  if(s.upd&&Date.now()-s.upd>30*864e5)L.push({t:`עברו כבר <b>${Math.floor((Date.now()-s.upd)/864e5)} ימים</b> מהעדכון האחרון 📅<br>אם השתנה משהו – אל תשכח לעדכן!`,b:'✏️ לעדכון',a:`closeModal();editShul('${s.id}')`});
-  const wk=Math.floor(Date.now()/(7*864e5));const tp=GAB_TIPS[wk%GAB_TIPS.length];
+  if(miss.length){const k=missKey(miss[0]);L.push({t:`גבאי יקר, חסרים עוד כמה פרטים בבית הכנסת: <b>${miss.join(', ')}</b>.<br>בוא נשלים – זה לוקח דקה! 😊`,b:{phone:'📞 להוספת טלפון',addr:'📍 להוספת כתובת',prayers:'🕰️ להוספת זמני תפילה'}[k],a:`closeModal();editAt('${s.id}','${k==='prayers'?'paste':k}')`})}
+  if(!shulLogo(s)&&!(s.photos||[]).length)L.push({t:'לבית הכנסת עוד אין לוגו או תמונה 🏛️<br>עם סמל – זה נראה הרבה יותר מכובד ברשימה!',b:'🏛️ להוספת לוגו',a:`closeModal();editAt('${s.id}','logo')`});
+  if(!shulLL(s))L.push({t:'בית הכנסת עוד לא מסומן על המפה 🗺️<br>כשאתה בבית הכנסת – לחיצה אחת: "📍 אני בבית הכנסת עכשיו".',b:'📍 לסימון על המפה',a:`closeModal();editAt('${s.id}','loc')`});
+  if(d===4||d===5)L.push({t:'שבת מתקרבת! 🕯️<br>בדקת שזמני השבת של בית הכנסת נכונים לשבוע הזה?',b:'🕰️ לבדיקת הזמנים',a:`closeModal();editAt('${s.id}','prayers')`});
+  if(s.upd&&Date.now()-s.upd>30*864e5)L.push({t:`עברו כבר <b>${Math.floor((Date.now()-s.upd)/864e5)} ימים</b> מהעדכון האחרון 📅<br>אם השתנה משהו – אל תשכח לעדכן!`,b:'✏️ לעדכון הזמנים',a:`closeModal();editAt('${s.id}','prayers')`});
+  const wk=Math.floor(Date.now()/(7*864e5));const TT=GAB_TIPS.filter(x=>!(x.b.includes('לוגו')&&shulLogo(s)));const tp=TT[wk%TT.length];
   L.push({t:`<b>היי! גבאי יקר</b> 👋<br>${GAB_PRAISE[wk%GAB_PRAISE.length]}<span class="gb-small">${tp.t}</span>`,b:tp.b,a:'closeModal();'+tp.a(s)});
   return L}
 function gabTip(force,sid,idx){const R=REAL_ROLE||ROLE;const s=shul(sid||(R&&R.sid)||'')||S.shuls[0];if(!s)return;
@@ -2291,10 +2302,10 @@ function drawEd(isNew){
     <div><label class="f">שכונה</label><select class="inp" onchange="ED.nh=this.value">${S.neighborhoods.map(n=>`<option ${n===e.nh?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
     <div><label class="f">נוסח</label><input class="inp" list="nus" value="${esc(e.nusach)}" oninput="ED.nusach=this.value"><datalist id="nus"><option>ספרד</option><option>אשכנז</option><option>עדות המזרח</option><option>תימני</option><option>חב״ד</option></datalist></div>
   </div>
-  <label class="f">כתובת</label><input class="inp" value="${esc(e.address)}" oninput="ED.address=this.value">
+  <label class="f">כתובת</label><input class="inp" id="edAddr" value="${esc(e.address)}" oninput="ED.address=this.value">
   <label class="f">🗺️ מיקום על המפה</label><div id="edLoc">${edLocHtml()}</div>
   <label class="f">♿ נגישות</label><input class="inp" value="${esc(e.access||'')}" placeholder="לדוגמה: נגיש / יש מדרגות" oninput="ED.access=this.value">
-  <h3 style="margin-top:16px">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
+  <h3 style="margin-top:16px" id="edGab">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
   ${e.gabbaim.map((g,i)=>`<div class="ed2">
     <input class="inp" placeholder="שם" value="${esc(g.name)}" oninput="ED.gabbaim[${i}].name=this.value">
     <input class="inp" placeholder="טלפון" inputmode="tel" value="${esc(g.phone)}" oninput="ED.gabbaim[${i}].phone=this.value" style="${telOk(g.phone)?'':'border-color:#e08a4f'}">
@@ -2305,8 +2316,8 @@ function drawEd(isNew){
   ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">`:''}
   <label class="f">הודעה קבועה / הערות</label>${fmtBar('edN')}<textarea class="inp fmt-ta" id="edN" oninput="ED.notes=this.value;fmtPrev('edN')">${esc(e.notes)}</textarea><div class="fmt-pv" id="edN_pv"></div>
 
-  <h3 style="margin-top:16px">🕰️ זמני תפילות</h3>
-  <button class="btn sp-btn" onclick="smartPaste()">✨ קיבלתם את הזמנים בהודעה? הדביקו – והמערכת תסדר לבד</button>
+  <h3 style="margin-top:16px" id="edPr">🕰️ זמני תפילות</h3>
+  <button class="btn sp-btn" id="edSp" onclick="smartPaste()">✨ קיבלתם את הזמנים בהודעה? הדביקו – והמערכת תסדר לבד</button>
   ${e.prayers.map((p,i)=>`<div class="ed edc" data-id="${p.id||''}" style="--tc:${edClr(p.t)}"><div class="ed-hd"><span class="ed-no">${i+1}</span><b>${esc(p.t)}</b><span>· ${esc(DAYSETS[p.d]?.l||'')}</span><span class="ed-tm">${esc(isRel(p.tm)?relLabel(p.tm,p.d):(p.tm||''))}</span></div>
     <select class="inp" onchange="ED.prayers[${i}].t=this.value;drawEd()">${PT.map(x=>`<option ${x===p.t?'selected':''}>${x}</option>`).join('')}</select>
     <select class="inp" onchange="ED.prayers[${i}].d=this.value;drawEd()">${dsOpts(p.d)}</select>
