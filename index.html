@@ -284,6 +284,8 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .st-ch{display:flex;align-items:flex-end;gap:3px;height:110px;padding:4px 2px 18px;border-bottom:1px solid var(--line)}
 .st-bar{flex:1;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:1px}.st-bar i,.st-bar em{display:block;width:45%;border-radius:3px 3px 0 0;min-height:2px}
 .st-bar i{background:#4a7fc1}.st-bar em{background:#3ea86b}.st-bar span{position:absolute;bottom:-17px;font-size:.68rem;color:var(--muted,#778)}
+#viewPill{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));inset-inline-end:12px;z-index:880;border:2px solid #f3d78e;background:#24456b;color:#fff;font:inherit;font-weight:800;font-size:.92rem;border-radius:999px;padding:9px 16px;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer}
+.view-sw{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:inherit;font:inherit;font-size:.85rem;border-radius:999px;padding:5px 12px;cursor:pointer}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -471,6 +473,13 @@ U.notes=U.notes||[];if(!U.dev){U.dev=uid()+uid();localStorage.setItem(UKEY,JSON.
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠️ הזיכרון במכשיר מלא – נסו למחוק תמונות')}}
 function saveU(){localStorage.setItem(UKEY,JSON.stringify(U))}
 let ROLE=null; // {type:'admin'} | {type:'gabbai',sid}
+/* 👁️ מעבר בין תצוגת ניהול לתצוגה רגילה – בלי להתנתק */
+let REAL_ROLE=null;const VIEWAS='ash_viewas';
+const viewingAsUser=()=>!!REAL_ROLE&&!ROLE;
+function viewAs(user){try{user?localStorage.setItem(VIEWAS,'1'):localStorage.removeItem(VIEWAS)}catch(e){}ROLE=user?null:REAL_ROLE;closeModal&&$('#modals')?.innerHTML&&closeModal();
+  if(!user&&ROLE?.type==='admin')loadStats();render();window.scrollTo(0,0);toast(user?'👁️ תצוגה רגילה – כמו שמשתמש רואה. לחזרה: הכפתור 🛡️ למטה':'🛡️ חזרת לתצוגת '+(REAL_ROLE?.type==='admin'?'ניהול':'גבאי'),3500)}
+function viewPill(){let el=document.getElementById('viewPill');if(!viewingAsUser()){if(el)el.remove();return}
+  if(!el){el=document.createElement('button');el.id='viewPill';el.onclick=()=>viewAs(false);document.body.appendChild(el)}el.textContent=REAL_ROLE.type==='admin'?'🛡️ חזרה לניהול':'✏️ חזרה לגבאי'}
 let TAB='home', ST={};
 
 /* ===== אייקונים ===== */
@@ -601,7 +610,7 @@ function render(){
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
   const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV}[TAB]||home;
-  try{wFeed()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
+  try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
 function renderTicker(){
@@ -643,7 +652,7 @@ function statsCard(){const st=S.stats||{days:{},views:{}};const t=iso(new Date()
   <button class="btn ghost sm" style="margin-top:8px" onclick="loadStats()">🔄 רענון</button></div>`}
 function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
-    return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>${statsStrip()}
+    return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><button class="view-sw" onclick="viewAs(true)">👁️ תצוגה רגילה</button></div>${statsStrip()}
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
@@ -794,7 +803,7 @@ function shulPage(){
   </div>
   ${ed&&missingOf(s).length?`<div class="card" style="background:#fdeee0;border-color:#f0b37e"><b>⚠️ חסרים פרטים חשובים:</b> ${missingOf(s).join(', ')}<div class="muted">הציבור צריך את הפרטים האלה. לחצו "עריכת פרטים וזמנים" כדי להשלים.</div></div>`:''}
   ${(()=>{const gs=gabbaimOf(s).filter(g=>g.pub!==false&&(g.name||g.phone));return gs.length?`<div class="card"><h3>👤 גבאים ואנשי קשר</h3>${gs.map(g=>`<div class="row"><div class="main"><b>${esc(g.name||'גבאי')}</b>${g.phone?`<span class="muted" style="direction:ltr;text-align:right">${esc(g.phone)}</span>`:''}</div>${telOk(g.phone)?`<a class="btn sec sm" href="tel:${esc(g.phone)}" aria-label="חיוג">📞</a><a class="btn sec sm" href="https://wa.me/${waNum(g.phone)}" target="_blank" rel="noopener" aria-label="וואטסאפ">💬</a>`:''}</div>`).join('')}</div>`:''})()}
-  ${ed?`<div class="card" style="background:#e5f4ec"><b>✏️ מצב עריכה</b><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="editShul('${s.id}')">עריכת פרטים וזמנים</button><button class="btn sm sec" onclick="addPhoto('${s.id}')">📷 הוספת תמונה</button><button class="btn sm sec" onclick="postUpdate('${s.id}')">📢 עדכון לפס הרץ</button></div></div>`:''}
+  ${ed?`<div class="card" style="background:#e5f4ec"><b>✏️ מצב עריכה</b><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="editShul('${s.id}')">עריכת פרטים וזמנים</button><button class="btn sm sec" onclick="addPhoto('${s.id}')">📷 הוספת תמונה</button><button class="btn sm sec" onclick="postUpdate('${s.id}')">📢 עדכון לפס הרץ</button><button class="btn sm ghost" onclick="viewAs(true)">👁️ תצוגה רגילה</button></div></div>`:''}
   ${s.notes?`<div class="card hl" style="white-space:pre-line"><b>ℹ️ הודעות בית הכנסת</b>\n${linkify(s.notes)}</div>`:''}
   <div class="card"><h3>🕰️ זמני תפילות</h3>
     ${gp.length?gp.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(p=>p.t==='זמן'?`<div class="row"><div class="time" style="color:var(--acc);font-size:1.1rem">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.n)}</b></div></div>`:`<div class="row"><div class="time">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.t)}</b>${p.rel||isRel(p.tm)?`<span class="badge" style="margin-inline-start:6px">⏱ ${relLabel(p.tm)}</span>`:''}${p.n?`<span class="muted" style="display:block">${esc(p.n)}</span>`:''}</div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','prayers','${p.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">עדיין לא הוזנו זמנים</div>'}
@@ -2375,7 +2384,7 @@ async function cloudInit(){
         if(u.email===ADMIN_EMAIL)role={type:'admin'};
         else{try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists())role={type:'gabbai',sid:r.data().sid}}catch(e){}}
       }
-      ROLE=role;ibListen(u);
+      REAL_ROLE=role;let va=false;try{va=localStorage.getItem(VIEWAS)==='1'}catch(e){}ROLE=role&&va?null:role;ibListen(u);
       if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
       countVisit();softRender();
@@ -2452,7 +2461,7 @@ async function login(){
   }
 }
 function pwSave(id,pw){try{if(window.PasswordCredential&&navigator.credentials)navigator.credentials.store(new PasswordCredential({id,password:pw,name:'מנהל – אשריכם ישראל'})).catch(()=>{})}catch(e){}}
-async function logout(){if(ROLE?.type==='admin'&&!confirm('לצאת מחשבון המנהל?\nהטלפון הזה מחובר קבוע – אין צורך לצאת. אחרי יציאה תצטרכו להקליד את הסיסמה שוב.'))return;try{await C.A.signOut(C.auth)}catch(e){}ROLE=null;render();toast('יצאתם ממצב עריכה')}
+async function logout(){if(viewingAsUser()){viewAs(false);return}if(ROLE?.type==='admin'&&!confirm('לצאת מחשבון המנהל?\nהטלפון הזה מחובר קבוע – אין צורך לצאת. אחרי יציאה תצטרכו להקליד את הסיסמה שוב.'))return;try{await C.A.signOut(C.auth)}catch(e){}ROLE=null;render();toast('יצאתם ממצב עריכה')}
 
 /* ----- קודי גבאים (רק מנהל) ----- */
 async function setGabbaiCode(sid,code){
@@ -3038,7 +3047,7 @@ if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
     pushTags();softRender();setTimeout(remSync,3000);
   }catch(e){console.warn('push',e)}
 });
-function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');if(ROLE&&ROLE.type==='gabbai')t.gabbai=ROLE.sid;if(ROLE&&ROLE.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';
+function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');const RR=REAL_ROLE||ROLE;if(RR&&RR.type==='gabbai')t.gabbai=RR.sid;if(RR&&RR.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';
   const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
 function pushToggle(){
   if(location.protocol!=='https:')return toast('ההתראות עובדות רק מהכתובת באינטרנט');
