@@ -554,7 +554,7 @@ function admHome(){
   if(ROLE?.type==='admin'){const ib=ibAdminNew(),rq=reqCnt();const b=(em,t,n,act)=>`<button class="adq" onclick="${act}"><span>${em}</span><b>${t}</b>${n?`<i>${n}</i>`:''}</button>`;
     return `<div class="card adm-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ ניהול מהיר</h3><span class="muted">🛡️ מחובר כמנהל</span></div>
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
-    ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button>`:''}
+    ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
     <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
@@ -2000,7 +2000,8 @@ function admin(){
   ${top.length?`<h3 style="margin-top:12px">בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}`:''}
   <div class="muted" style="margin-top:8px">👥 משתמשים שונים (מכשירים): <b>${st.users||0}</b> · הנתונים מכל המכשירים</div><button class="btn ghost sm" style="margin-top:6px" onclick="loadStats()">🔄 רענון</button></div>
 
-  ${S.cloud&&packPending().length?`<div class="card hl"><h3>📥 ${packPending().length} בתי כנסת חדשים מוכנים להוספה</h3><div class="muted">${packPending().map(s=>esc(s.name)).join(' · ')}</div><button class="btn" style="margin-top:10px" onclick="importPack()">➕ הוספה לאפליקציה + יצירת קודים</button></div>`:''}
+  ${S.cloud&&packPending().length?`<div class="card hl"><h3>📥 ${packPending().length} בתי כנסת חדשים מוכנים להוספה</h3><div class="muted">${packPending().map(s=>esc(s.name)).join(' · ')}</div><div class="btns" style="margin-top:10px"><button class="btn" onclick="importPack()">➕ הוספה לאפליקציה + יצירת קודים</button><button class="btn ghost" onclick="packDismiss()">✕ לא רלוונטי</button></div></div>`:''}
+  ${S.cloud&&archList().length?`<div class="card"><h3>📦 ארכיון בתי כנסת (${archList().length})</h3><div class="muted">בתי כנסת שנמחקו או שהוחלט לא לצרף – לא מופיעים באפליקציה, ואפשר לשחזר.</div><button class="btn sec" style="margin-top:10px" onclick="archOpen()">📦 פתיחת הארכיון</button></div>`:''}
   <div class="card"><h3>🕍 בתי כנסת וקודי גבאים</h3>
   ${S.shuls.map(s=>`<div class="row"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)} · קוד: <b>${esc(codeOf(s.id))||'—'}</b></span>${missingOf(s).length?`<span class="badge" style="background:#fdeee0;color:#9a4b10">⚠️ חסר: ${missingOf(s).join(', ')}</span>`:''}</div><button class="btn ghost sm" onclick="editShul('${s.id}')">✏️</button><button class="btn ghost sm" aria-label="שליחת קוד לגבאי" onclick="sendCode('${s.id}')">💬</button></div>`).join('')}
   <button class="btn sm" style="margin-top:8px" onclick="editShul()">➕ בית כנסת חדש</button></div>
@@ -2138,6 +2139,7 @@ const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
   C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.arch=F.onSnapshot(dref('config','archive'),d=>{ARCH=d.exists()?(d.data().shuls||{}):{};softRender()},()=>{});
   C.unsub.alon=F.onSnapshot(col('alon'),q=>{S.alon=q.docs.map(d=>({...d.data(),id:d.id}));softRender();setTimeout(alonCleanup,4000)},()=>{});
   C.unsub.shuls=F.onSnapshot(col('shuls'),q=>{if(q.empty&&!S.cloud)return;const old={};S.shuls.forEach(s=>old[s.id]=s);
     S.shuls=q.docs.map(d=>{const v=d.data();v.id=d.id;v.photos=(old[d.id]&&old[d.id].photos)||[];v.photoIds=(old[d.id]&&old[d.id].photoIds)||[];return v});S.cloud=1;save();softRender()});
@@ -2232,7 +2234,7 @@ async function saveShul(){
   if(ED._fromReq){const r=ED._fromReq,s={...ED};closeModal();return reqDone(r,s.id,code,s)}
   closeModal();go('shul',{id:ED.id});toast('נשמר בהצלחה ✔️');
 }
-async function delShul(id){if(!confirm('למחוק את בית הכנסת וכל המידע שלו?')||!needCloud())return;try{await C.F.deleteDoc(dref('shuls',id));const o=C.secrets[id];if(o&&o.uid)await C.F.deleteDoc(dref('roles',o.uid))}catch(e){return cerr(e)}closeModal();go('shuls')}
+async function delShul(id){if(!confirm('למחוק את בית הכנסת?\n(הוא יישמר בארכיון בלוח הניהול – ואפשר לשחזר אותו משם)')||!needCloud())return;try{const s0=shul(id);if(s0)await archPut(id,shulDoc(s0),s0.name);await C.F.deleteDoc(dref('shuls',id));const o=C.secrets[id];if(o&&o.uid)await C.F.deleteDoc(dref('roles',o.uid))}catch(e){return cerr(e)}closeModal();go('shuls')}
 function addPhoto(id){if(!needCloud())return;const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=true;i.onchange=async()=>{toast('מעלה תמונות…');let first=null;
   for(const f of i.files){const img=await shrink(f,900);first=first||f;try{await C.F.addDoc(col('photos'),{sid:id,img,dt:Date.now()})}catch(e){return cerr(e)}}
   const s=shul(id);if(s&&!s.thumb&&first){try{await C.F.updateDoc(dref('shuls',id),{thumb:await shrink(first,220)})}catch(e){}}toast('התמונות נוספו 📷')};i.click()}
@@ -2395,13 +2397,25 @@ const NEW_SHULS=[
   events:[['שיעור קצר','שיעור תורה','wk','@set+0','','','10 דק׳ בין מנחה לערבית']]}
 ].map(s=>({...s,nh:'ארנונה – תלפיות',photos:[],gabbai:s.gabbaim[0].name,phone:s.gabbaim[0].phone,
   prayers:s.prayers.map(p=>({id:uid(),t:p[0],d:p[1],tm:p[2],n:p[3]})),events:s.events.map(e=>({id:uid(),title:e[0],c:e[1],d:e[2],tm:e[3],end:e[4],who:e[5],n:e[6]}))}));
-const packPending=()=>NEW_SHULS.filter(s=>!shul(s.id));
+const packPending=()=>NEW_SHULS.filter(s=>!shul(s.id)&&!ARCH[s.id]);
 async function importPack(){
   if(!needCloud()||ROLE?.type!=='admin')return;const L=packPending();if(!L.length)return;
   if(!confirm('להוסיף '+L.length+' בתי כנסת חדשים ולייצר לכל אחד קוד גבאי?'))return;toast('מוסיף…');const codes=[];
   for(const s of L){try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
   modal(`<p>✅ נוספו ${codes.length} בתי כנסת.</p><p><b>קודי הגבאים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">שליחה לכל גבאי בכפתור 💬 בלוח הניהול.</p>`,'הוספה הושלמה');
 }
+/* ===== 📦 ארכיון בתי כנסת: נמחקו / לא לצרף – נשמרים בצד, אפשר לשחזר ===== */
+let ARCH={};const archList=()=>Object.entries(ARCH).filter(([,o])=>o&&!o.gone);
+async function archPut(id,d,name){const a=Object.assign({},ARCH,{[id]:{d,name:name||d.name||id,at:Date.now()}});await C.F.setDoc(dref('config','archive'),{shuls:a});ARCH=a}
+async function archDrop(id){const a=Object.assign({},ARCH);delete a[id];await C.F.setDoc(dref('config','archive'),{shuls:a});ARCH=a}
+async function packDismiss(){if(!needCloud()||ROLE?.type!=='admin')return;const L=packPending();if(!L.length)return;
+  if(L.length===1){if(!confirm('לא לצרף את "'+L[0].name+'"?\nהוא יעבור לארכיון בלוח הניהול, ולא יופיע כאן יותר.'))return;return packSkip([L[0].id])}
+  modal(`<p>סמנו מה <b>לא</b> לצרף (יעבור לארכיון, ואפשר לשחזר משם):</p>${L.map(s=>`<label class="sw"><span>${esc(s.name)}</span><input type="checkbox" class="pkx" value="${esc(s.id)}"></label>`).join('')}<button class="btn" style="width:100%;margin-top:12px" onclick="packSkip([...document.querySelectorAll('.pkx:checked')].map(x=>x.value))">📦 העברה לארכיון</button>`,'✕ לא לצרף')}
+async function packSkip(ids){if(!ids.length)return toast('לא סומן כלום');try{let a=Object.assign({},ARCH);ids.forEach(id=>{const s=NEW_SHULS.find(x=>x.id===id);if(s)a[id]={d:shulDoc(s),name:s.name,at:Date.now(),pack:1}});await C.F.setDoc(dref('config','archive'),{shuls:a});ARCH=a;closeModal();toast('📦 הועבר לארכיון');render()}catch(e){cerr(e)}}
+function archOpen(){const L=archList().sort((a,b)=>b[1].at-a[1].at);
+  modal(L.length?L.map(([id,o])=>`<div class="card" style="margin:8px 0;padding:10px 12px"><b>${esc(o.name)}</b><div class="muted">${o.pack?'לא צורף':'נמחק'} · ${new Date(o.at).toLocaleDateString('he-IL')}</div><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="archRestore('${esc(id)}')">♻️ שחזור לאפליקציה</button><button class="btn ghost sm" onclick="archForget('${esc(id)}')">🗑️ מחיקה לצמיתות</button></div></div>`).join(''):'<p class="muted">הארכיון ריק.</p>','📦 ארכיון בתי כנסת')}
+async function archRestore(id){const o=ARCH[id];if(!o||!needCloud())return;if(!confirm('להחזיר את "'+o.name+'" לאפליקציה?'))return;try{await C.F.setDoc(dref('shuls',id),o.d);await archDrop(id);closeModal();toast('♻️ שוחזר – אפשר ליצור קוד גבאי בלוח הניהול',5000)}catch(e){cerr(e)}}
+async function archForget(id){const o=ARCH[id];if(!o)return;if(!confirm('למחוק את "'+o.name+'" לצמיתות?'+(o.pack?'':'\nלא יהיה אפשר לשחזר.')))return;try{if(NEW_SHULS.some(x=>x.id===id)){ARCH[id]={name:o.name,at:o.at,pack:1,gone:1,d:{}};await C.F.setDoc(dref('config','archive'),{shuls:ARCH})}else await archDrop(id);archOpen()}catch(e){cerr(e)}}
 /* ===== 🙋 מארגנים מניין – מניין ספונטני ===== */
 const MNY_T=['מנחה','ערבית','שחרית','מנחה וערבית','תפילה אחרת'];
 const myUid=()=>C.auth&&C.auth.currentUser?C.auth.currentUser.uid:'';
