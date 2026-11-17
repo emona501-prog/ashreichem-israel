@@ -2272,9 +2272,18 @@ async function pdfText(buf){await loadJs(CDN+'pdfjs-dist@3.11.174/build/pdf.min.
     for(let i=1;i<=Math.min(pdf.numPages,3);i++){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2.2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
       await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;t+=await ocrImg(cv,`עמוד ${i}:`)+'\n'}}
   return t}
+/* וורד: כל שורה בטבלה הופכת לשורה אחת – "שחרית 07:30" – במקום תא מתחת לתא */
+const TM_CELL=/^\s*(\d{1,2}[:.]\d{2}(\s*[-–]\s*\d{1,2}[:.]\d{2})?)\s*$/;
+function htmlLines(html){const d=new DOMParser().parseFromString('<div>'+html+'</div>','text/html');const out=[];
+  const walk=el=>{for(const n of el.children){const tg=n.tagName;
+    if(tg==='TABLE'){n.querySelectorAll('tr').forEach(tr=>{const cs=[...tr.children].map(c=>c.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);if(!cs.length)return;
+      const tx=cs.filter(c=>!TM_CELL.test(c)),tm=cs.filter(c=>TM_CELL.test(c));out.push(tx.concat(tm).join(' '))})}
+    else if(/^(UL|OL|DIV|BLOCKQUOTE)$/.test(tg))walk(n);
+    else{const t=n.textContent.replace(/\s+/g,' ').trim();if(t)out.push(t)}}};
+  walk(d.body.firstChild);return out.join('\n')}
 async function spFile(f){if(!f)return;const nm=(f.name||'').toLowerCase();
   try{let t='';
-    if(/\.docx$/.test(nm)){spSt('⏳ קורא את קובץ הוורד…');await loadJs(CDN+'mammoth@1.8.0/mammoth.browser.min.js');t=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value}
+    if(/\.docx$/.test(nm)){spSt('⏳ קורא את קובץ הוורד…');await loadJs(CDN+'mammoth@1.8.0/mammoth.browser.min.js');t=htmlLines((await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()})).value)}
     else if(/\.doc$/.test(nm))return spSt('⚠️ קובץ וורד ישן (.doc) לא נתמך. שמרו אותו כ-docx, או צלמו מסך והעלו תמונה.');
     else if(/\.pdf$/.test(nm)||f.type==='application/pdf'){spSt('⏳ קורא את ה-PDF…');t=await pdfText(await f.arrayBuffer())}
     else if((f.type||'').startsWith('image/')){t=await ocrImg(f,'')}
