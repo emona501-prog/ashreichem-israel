@@ -1997,6 +1997,8 @@ function smartParse(txt){
     if(!tgt){it.tm='';return}const r=parseRel(tgt.tm),off=(it.sgn==='-'?-1:1)*it.n;
     if(r){const tot=(r.s==='-'?-r.n:r.n)+off;it.tm='@'+r.b+(tot<0?'-':'+')+Math.abs(tot)}else{const[hh,mm]=tgt.tm.split(':').map(Number);const x=hh*60+mm+off;it.tm=String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
     it.note=(it.note?it.note+' · ':'')+minTxt(it.n)+(it.sgn==='-'?' לפני ':' אחרי ')+it.ref});
+  // ערבית "לפני השקיעה" בשבת = בעצם ליל שבת (יום שישי)
+  out.forEach(it=>{if(it.kind==='ערבית'&&it.d==='sat'&&/^@(set-|candle)/.test(it.tm||'')){it.d='fri';it.note=(it.note?it.note+' · ':'')+'ליל שבת'}});
   return{items:out,notes,info};
 }
 let SP=null;
