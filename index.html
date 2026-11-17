@@ -291,6 +291,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .map-srch{margin-top:8px}.map-hint{font-size:.88rem;background:rgba(36,69,107,.07);border-radius:12px;padding:8px 10px;margin:8px 0;line-height:1.6}
 .map-st{font-size:.88rem;margin:0 0 8px;color:var(--muted,#667)}.map-st:empty{display:none}
 #viewPill{bottom:calc(150px + env(safe-area-inset-bottom))}
+.sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -778,13 +779,15 @@ function shuls(){
   const q=(ST.q||'').trim();
   const list=S.shuls.filter(inNh).filter(s=>!q||(s.name+s.address+s.nh+s.nusach).includes(q))
     .sort((a,b)=>(U.favs.includes(b.id)-U.favs.includes(a.id))||a.name.localeCompare(b.name,'he'));
-  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🕍 בתי כנסת</h2><button class="btn sm" onclick="go('map')">🗺️ במפה</button></div>
+  const dp=ROLE?.type==='admin'?dupPairs().length:0;
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🕍 בתי כנסת <span class="muted" style="font-size:.95rem">(${list.length})</span></h2><button class="btn sm" onclick="go('map')">🗺️ במפה</button></div>
+  ${dp?`<button class="adq-sp" style="background:linear-gradient(135deg,#b3541e,#f0a35e);margin:8px 0" onclick="dupsV()">⚠️ <b>${dp} כפילויות אפשריות</b> – לחצו לבדיקה</button>`:''}
   <input class="search" placeholder="🔍 חיפוש לפי שם, רחוב או נוסח" value="${esc(q)}" oninput="ST.q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{render();const i=$('.search');i.focus();i.setSelectionRange(i.value.length,i.value.length)},350)" aria-label="חיפוש בית כנסת">
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
   ${list.map(s=>`<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
     <div class="thumb" style="${(s.thumb||s.photos[0])?`background-image:url(${s.thumb||s.photos[0]})`:shulLogo(s)?`background:#fff url(${shulLogo(s)}) center/88% no-repeat`:''}">${(s.thumb||s.photos[0]||shulLogo(s))?'':ic('shul','fill')}</div>
-    <div style="flex:1;min-width:0"><b>${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
+    <div style="flex:1;min-width:0"><b>${s.no?`<span class="sh-no">${s.no}</span>`:''}${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
     <button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
   </div>`).join('')||`<div class="empty-msg">לא נמצאו בתי כנסת</div>`}`;
 }
@@ -2436,7 +2439,7 @@ function listenPublic(){
   C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender();setTimeout(()=>{try{mnyPop()}catch(e){}},300)},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
 }
-function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}
+function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;setTimeout(ensureNos,1500);if(!S.neighborhoods.includes('ארמון הנציב')){S.neighborhoods.push('ארמון הנציב');save();saveConfig()}
   // בתי כנסת שנוספו עם שכונה שגויה (מזרח תלפיות = ארמון הנציב)
   Object.entries(NH_FIX).forEach(([id,nh])=>{const x=shul(id);if(x&&x.nh!==nh&&!x._nhfix){x._nhfix=1;C.F.updateDoc(dref('shuls',id),{nh}).catch(()=>{})}})}
 const NH_FIX={chibatyer:'ארמון הנציב',mishkanreuven:'ארמון הנציב',israelhatzair:'ארמון הנציב'};
@@ -2512,11 +2515,27 @@ const codeOf=sid=>(C.secrets[sid]&&C.secrets[sid].code)||'';
 function sendCode(id){const s=shul(id),c=codeOf(id);if(!c)return toast('עוד לא הוגדר קוד לבית הכנסת הזה');window.open('https://wa.me/?text='+encodeURIComponent(`שלום ${s.gabbai||''},\nזה קוד הכניסה שלך לעריכת "${s.name}" באפליקציית ${S.settings.appName}:\n*${c}*\nנכנסים דרך 🔑 בפינה העליונה, בוחרים את בית הכנסת ומקלידים את הקוד.\n${location.origin+location.pathname}`))}
 
 /* ----- בתי כנסת ותמונות ----- */
+/* ===== 🛡️ הגנה מכפילויות + מספור בתי כנסת ===== */
+const dupName=n=>String(n||'').replace(/["'״׳\-–,.()]/g,' ').replace(/(^|\s)(בית ה?כנסת|ביה"?כ|בהכ"?נ|ביהכ"?נ|קהילת|ובית ה?מדרש|ה?מרכזי)(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();
+const dupAddr=a=>{const m=String(a||'').replace(/רחוב|רח'|,?\s*ירושלים/g,' ').replace(/\(.*?\)/g,' ').match(/([א-ת"' ]{2,}?)\s*(\d+)/);return m?m[1].replace(/\s+/g,' ').trim()+' '+m[2]:''};
+function dupOf(x,exceptId){const n=dupName(x.name),a=dupAddr(x.address);
+  return S.shuls.filter(s=>s.id!==exceptId&&s.id!==x.id).filter(s=>{const sn=dupName(s.name),sa=dupAddr(s.address);
+    return (n.length>=3&&(sn===n||(n.length>=5&&(sn.includes(n)||n.includes(sn))&&sn.length>=5)))||(a&&sa&&a===sa)})}
+function dupMsg(L){return L.map(s=>`• ${s.name}${s.address?' – '+s.address:''}`).join('\n')}
+function dupPairs(){const out=[],seen=new Set();S.shuls.forEach(x=>dupOf(x).forEach(y=>{const k=[x.id,y.id].sort().join('|');if(!seen.has(k)){seen.add(k);out.push([x,y])}}));return out}
+function dupsV(){const P=dupPairs();modal(P.length?`<p>נמצאו ${P.length} זוגות שנראים כמו אותו בית כנסת. בדקו – ומחקו את הכפול (הוא יעבור לארכיון, אפשר לשחזר):</p>`+P.map(([a,b])=>`<div class="card" style="margin:8px 0;padding:10px">${[a,b].map(x=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><div style="flex:1"><b>${esc(x.name)}</b><div class="muted" style="font-size:.85rem">${esc(x.address||'')} · ${(x.prayers||[]).length} תפילות${x.no?' · מס׳ '+x.no:''}${codeOf(x.id)?' · יש קוד גבאי':''}</div></div><button class="btn sec sm" onclick="closeModal();go('shul',{id:'${x.id}'})">פתיחה</button><button class="btn red sm" onclick="closeModal();delShul('${x.id}')">🗑️</button></div>`).join('')}</div>`).join(''):'<p>✅ לא נמצאו כפילויות.</p>','🔍 בדיקת כפילויות')}
+/* מספר קבוע לכל בית כנסת (מס׳ 1, 2, 3…) – ניתן לפי סדר ההוספה ולא משתנה */
+const shulNo=x=>x&&x.no?x.no:0;
+function ensureNos(){if(ROLE?.type!=='admin'||!S.cloud||ensureNos.done)return;ensureNos.done=1;let mx=Math.max(0,...S.shuls.map(x=>+x.no||0));
+  S.shuls.filter(x=>!x.no).sort((a,b)=>(a.created||0)-(b.created||0)||a.name.localeCompare(b.name,'he')).forEach(x=>{x.no=++mx;C.F.updateDoc(dref('shuls',x.id),{no:x.no}).catch(()=>{})})}
+const nextNo=()=>Math.max(0,...S.shuls.map(x=>+x.no||0))+1;
 async function saveShul(){
   if(!ED.name.trim())return toast('נא למלא שם');if(!needCloud())return;
   ED.gabbaim=(ED.gabbaim||[]).filter(g=>(g.name||'').trim()||(g.phone||'').trim());const g0=ED.gabbaim[0]||{};ED.gabbai=g0.name||'';ED.phone=g0.phone||'';
   if(!ED.gabbaim.some(g=>telOk(g.phone))&&!confirm('⚠️ לא הוזן טלפון של גבאי – זה פרט חובה. לשמור בכל זאת?'))return;
   const isNew=!shul(ED.id);if(isNew&&ROLE?.type!=='admin')return;if(!isNew&&!canEdit(ED.id))return;
+  {const D=dupOf(ED,ED.id);if(D.length&&!(isNew?confirm('⚠️ ייתכן שבית הכנסת הזה כבר קיים במערכת:\n'+dupMsg(D)+'\n\nלהוסיף בכל זאת?'):true))return;if(D.length&&!isNew&&!ED._dupOk){ED._dupOk=1;toast('⚠️ שימו לב: יש בית כנסת דומה – '+D[0].name,5000)}}
+  if(isNew&&!ED.no)ED.no=nextNo();if(isNew&&!ED.created)ED.created=Date.now();
   const code=(ED.code||'').trim();const oldCode=codeOf(ED.id);
   if(ROLE?.type==='admin'&&code&&code!==oldCode&&code.length<6)return toast('קוד גבאי חייב להיות לפחות 6 תווים');
   const doc=shulDoc(ED);if(!isNew&&shul(ED.id).login)doc.login=shul(ED.id).login;
@@ -2700,7 +2719,8 @@ const packPending=()=>NEW_SHULS.filter(s=>!shul(s.id)&&!ARCH[s.id]);
 async function importPack(){
   if(!needCloud()||ROLE?.type!=='admin')return;const L=packPending();if(!L.length)return;
   if(!confirm('להוסיף '+L.length+' בתי כנסת חדשים ולייצר לכל אחד קוד גבאי?'))return;toast('מוסיף…');const codes=[];
-  for(const s of L){try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
+  const skip=L.filter(s=>dupOf(s).length);if(skip.length&&!confirm('⚠️ נראה שאלה כבר קיימים במערכת:\n'+skip.map(s=>'• '+s.name+' ← '+dupOf(s)[0].name).join('\n')+'\n\nאישור = לדלג עליהם (מומלץ) · ביטול = להוסיף הכול'))skip.length=0;
+  for(const s of L){if(skip.includes(s)){try{await packSkip([s.id])}catch(e){}continue}s.no=nextNo();s.created=Date.now();try{await C.F.setDoc(dref('shuls',s.id),shulDoc(s));S.shuls.push({...s});const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(s.id,c))codes.push(s.name+': '+c)}catch(e){cerr(e)}}
   modal(`<p>✅ נוספו ${codes.length} בתי כנסת.</p><p><b>קודי הגבאים:</b></p><div style="white-space:pre-line;font-weight:700">${esc(codes.join('\n'))}</div><p class="muted">שליחה לכל גבאי בכפתור 💬 בלוח הניהול.</p>`,'הוספה הושלמה');
 }
 /* ===== 📦 ארכיון בתי כנסת: נמחקו / לא לצרף – נשמרים בצד, אפשר לשחזר ===== */
@@ -2837,7 +2857,8 @@ function reqValidate(){
   if(!e.gabbaim.some(g=>telOk(g.phone)))return'טלפון של גבאי';if(!e.prayers.length)return'לפחות זמן תפילה אחד';return'';
 }
 async function reqSubmit(){
-  const miss=reqValidate();if(miss)return toast('חסר: '+miss);if(!termsChk('rqT'))return;const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
+  const miss=reqValidate();if(miss)return toast('חסר: '+miss);if(!termsChk('rqT'))return;
+  {const D=dupOf(ED);if(D.length){modal(`<div style="text-align:center;font-size:2.4rem">🕍</div><p><b>בית הכנסת הזה כבר קיים באפליקציה:</b></p><div class="card hl">${D.map(s=>`<b>${esc(s.name)}</b><div class="muted">${esc(s.address||'')}</div>`).join('<hr>')}</div><p>אין צורך למלא שוב 🙂 כדי לעדכן אותו – מבקשים <b>קוד גבאי</b>:</p><button class="btn" style="width:100%;min-height:50px" onclick="closeModal();codeReq();setTimeout(()=>{const s=$('#crS');if(s)s.value='${D[0].id}'},60)">🔑 בקשת קוד גבאי לבית הכנסת הזה</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">זה בית כנסת אחר – חזרה לטופס</button><button class="btn ghost sm" style="width:100%;margin-top:4px" onclick="ED._dupForce=1;closeModal();reqSubmit()">שליחה בכל זאת</button>`,'כבר קיים');if(!ED._dupForce)return}}const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
   const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
   try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',data:shulDoc(ED)})}catch(e){return cerr(e)}
   relayAdmin('req','📥 בקשת הצטרפות חדשה',ED.name||'בית כנסת');
@@ -2862,6 +2883,7 @@ function reqsV(){
 }
 function reqApprove(rid,edit){
   const r=(S.reqs||[]).find(x=>x.id===rid);if(!r)return;
+  {const D=dupOf(r.data);if(D.length&&!confirm('⚠️ הבקשה נראית כמו בית כנסת שכבר קיים:\n'+dupMsg(D)+'\n\nלהמשיך בכל זאת? (ביטול = לא לאשר עכשיו)'))return}
   ED={...JSON.parse(JSON.stringify(r.data)),id:'s'+uid(),photos:[],code:String(Math.floor(100000+Math.random()*900000)),_fromReq:rid};
   ED.prayers=(ED.prayers||[]).map(p=>({...p,id:p.id||uid()}));ED.events=(ED.events||[]).map(x=>({...x,id:x.id||uid()}));
   if(edit)drawEd(true);else saveShul();
