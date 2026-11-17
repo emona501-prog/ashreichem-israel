@@ -257,6 +257,11 @@ mark.tx-hl{background:linear-gradient(transparent 35%,#ffe27a 35%);color:inherit
 .inst-cta{width:100%;display:flex;align-items:center;gap:12px;text-align:start;background:linear-gradient(135deg,#e6f6fd,#d3ecfb);border:1px solid #9fd3ee;border-radius:18px;padding:8px 14px 8px 10px;margin:10px 0;font:inherit;color:inherit;cursor:pointer;box-shadow:0 3px 10px rgba(30,120,180,.12)}
 .inst-cta img{width:66px;height:66px;flex:none;filter:drop-shadow(0 3px 6px rgba(20,100,160,.25));animation:instB 3s ease-in-out infinite}.inst-cta b{display:block;color:#0d5c8c;font-size:1.05rem}.inst-cta small{color:#3b6a86}.inst-cta>div{flex:1}.inst-cta>span{font-size:1.3rem;color:#0d5c8c}
 body.nomotion .inst-cta img{animation:none}@keyframes instB{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}body.dark .inst-cta{background:linear-gradient(135deg,#13324a,#18405e);border-color:#2b6a92}body.dark .inst-cta b,body.dark .inst-cta>span{color:#9fd8ff}body.dark .inst-cta small{color:#a9c6da}
+.edc{position:relative;border:1px solid var(--line);border-inline-start:6px solid var(--tc);border-radius:14px;padding:8px 10px 10px;margin-bottom:10px;background:var(--card,#fff);background:color-mix(in srgb,var(--tc) 7%,var(--card,#fff));box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.ed-hd{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.95rem;padding-bottom:6px;margin-bottom:2px;border-bottom:1px dashed color-mix(in srgb,var(--tc) 35%,transparent)}
+.ed-hd b{color:var(--tc);filter:brightness(.8)}.ed-hd span{color:var(--muted,#667)}.ed-hd .ed-tm{margin-inline-start:auto;font-weight:700;color:var(--ink,#222)}
+.ed-no{width:24px;height:24px;border-radius:50%;background:var(--tc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex:none}
+.ed2.edc{border-style:solid}.ed-new{animation:edNew 1.6s ease}@keyframes edNew{0%,40%{box-shadow:0 0 0 4px var(--tc)}100%{box-shadow:0 1px 4px rgba(0,0,0,.05)}}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -2060,6 +2065,12 @@ function logoPick(f){if(!f)return;if(!/^image\//.test(f.type))return toast('נא
     let u=c.toDataURL('image/webp',.85);if(!/^data:image\/webp/.test(u))u=c.toDataURL('image/png');
     if(u.length>180000)u=c.toDataURL('image/jpeg',.82);
     ED.logo=u;$('#edLogo').innerHTML=logoEdHtml();toast('✔️ הלוגו מוכן – לחצו "שמירה" למטה')};im.onerror=()=>toast('לא הצלחנו לפתוח את התמונה');im.src=r.result};r.readAsDataURL(f)}
+/* ===== 🎨 עריכה ברורה: כל תפילה / פעילות בכרטיס צבעוני משלה ===== */
+const ED_CLR={'שחרית':'#e6a817','מנחה':'#e0742c','ערבית':'#5b5bd6','מוסף':'#2f9c8f','קבלת שבת':'#c2508f','זמן':'#7a8796'};
+const EV_CLR={'שיעור תורה':'#3b9b57','ילדים':'#e0558a','צעירים':'#1f9bc4','תהילים':'#a0702a','נשים':'#9b55c9','ציבורי':'#c99a1a'};
+function edClr(t,ev){return(ev?EV_CLR:ED_CLR)[t]||'#7a8796'}
+function edAdd(arr,o){ED[arr].push(o);drawEd();setTimeout(()=>{const el=document.querySelector(`.edc[data-id="${o.id}"]`);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('ed-new')}},80)}
+function edSort(){const o=['שחרית','מוסף','מנחה','קבלת שבת','ערבית'],dd=Object.keys(DAYSETS);const oi=t=>{const k=o.indexOf(t);return k<0?9:k};const dg=d=>({fri:1,sat:2,mz:3}[d]||0);ED.prayers.sort((a,b)=>(dg(a.d)-dg(b.d))||(oi(a.t)-oi(b.t))||String(resolveTm(a.tm,nextDateIn(a.d))).localeCompare(resolveTm(b.tm,nextDateIn(b.d))));drawEd();toast('סודר ✔️')}
 function editShul(id){
   if(id&&!canEdit(id))return;
   ED=id?JSON.parse(JSON.stringify(shul(id))):{id:'s'+uid(),name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',gabbai:'',phone:'',code:String(Math.floor(100000+Math.random()*900000)),notes:'',photos:[],prayers:[],events:[]};
@@ -2091,19 +2102,19 @@ function drawEd(isNew){
 
   <h3 style="margin-top:16px">🕰️ זמני תפילות</h3>
   <button class="btn sp-btn" onclick="smartPaste()">✨ קיבלתם את הזמנים בהודעה? הדביקו – והמערכת תסדר לבד</button>
-  ${e.prayers.map((p,i)=>`<div class="ed">
-    <select class="inp" onchange="ED.prayers[${i}].t=this.value">${PT.map(x=>`<option ${x===p.t?'selected':''}>${x}</option>`).join('')}</select>
-    <select class="inp" onchange="ED.prayers[${i}].d=this.value">${dsOpts(p.d)}</select>
+  ${e.prayers.map((p,i)=>`<div class="ed edc" data-id="${p.id||''}" style="--tc:${edClr(p.t)}"><div class="ed-hd"><span class="ed-no">${i+1}</span><b>${esc(p.t)}</b><span>· ${esc(DAYSETS[p.d]?.l||'')}</span><span class="ed-tm">${esc(isRel(p.tm)?relLabel(p.tm,p.d):(p.tm||''))}</span></div>
+    <select class="inp" onchange="ED.prayers[${i}].t=this.value;drawEd()">${PT.map(x=>`<option ${x===p.t?'selected':''}>${x}</option>`).join('')}</select>
+    <select class="inp" onchange="ED.prayers[${i}].d=this.value;drawEd()">${dsOpts(p.d)}</select>
     <button class="btn red sm" aria-label="מחיקה" onclick="ED.prayers.splice(${i},1);drawEd()">✕</button>
     ${tmCtl('prayers',i,p.tm)}
     <input class="inp" style="grid-column:1/-1" placeholder="הערה (לא חובה)" value="${esc(p.n)}" oninput="ED.prayers[${i}].n=this.value">
   </div>`).join('')}
-  <button class="btn sec sm" onclick="ED.prayers.push({id:uid(),t:'מנחה',d:'wk',tm:'13:30',n:''});drawEd()">➕ הוספת תפילה</button>
+  <div class="btns"><button class="btn sec sm" onclick="edAdd('prayers',{id:uid(),t:'מנחה',d:'wk',tm:'13:30',n:''})">➕ הוספת תפילה</button>${e.prayers.length>2?`<button class="btn ghost sm" onclick="edSort()">↕️ סידור לפי יום ותפילה</button>`:''}</div>
 
   <h3 style="margin-top:16px">📚 שיעורים ופעילויות</h3>
-  ${e.events.map((x,i)=>`<div class="ed2">
+  ${e.events.map((x,i)=>`<div class="ed2 edc" data-id="${x.id||''}" style="--tc:${edClr(x.c,1)}"><div class="ed-hd full"><span class="ed-no">${i+1}</span><b>${esc(x.title||'פעילות חדשה')}</b><span>· ${esc(x.c||'')} · ${esc(DAYSETS[x.d]?.l||'')}</span></div>
     <input class="inp full" placeholder="שם השיעור / הפעילות" value="${esc(x.title)}" oninput="ED.events[${i}].title=this.value">
-    <select class="inp" onchange="ED.events[${i}].c=this.value">${CATS.map(c=>`<option ${c===x.c?'selected':''}>${c}</option>`).join('')}</select>
+    <select class="inp" onchange="ED.events[${i}].c=this.value;drawEd()">${CATS.map(c=>`<option ${c===x.c?'selected':''}>${c}</option>`).join('')}</select>
     <select class="inp" onchange="ED.events[${i}].d=this.value">${dsOpts(x.d)}</select>
  ${tmCtl('events',i,x.tm)}
     <label class="muted full" style="display:flex;align-items:center;gap:8px">שעת סיום (לא חובה)<input class="inp" style="flex:1" type="time" value="${x.end||''}" onchange="ED.events[${i}].end=this.value"></label>
@@ -2111,7 +2122,7 @@ function drawEd(isNew){
     <input class="inp full" placeholder="הערה" value="${esc(x.n)}" oninput="ED.events[${i}].n=this.value">
     <button class="btn red sm full" onclick="ED.events.splice(${i},1);drawEd()">מחיקת פעילות</button>
   </div>`).join('')}
-  <button class="btn sec sm" onclick="ED.events.push({id:uid(),title:'',c:'שיעור תורה',d:'wk',tm:'20:00',end:'',who:'',n:''});drawEd()">➕ הוספת שיעור / פעילות</button>
+  <button class="btn sec sm" onclick="edAdd('events',{id:uid(),title:'',c:'שיעור תורה',d:'wk',tm:'20:00',end:'',who:'',n:''})">➕ הוספת שיעור / פעילות</button>
 
   ${rq?termsBox('rqT'):''}
   <div class="btns" style="margin-top:20px;position:sticky;bottom:-26px;background:var(--card);padding:10px 0">
