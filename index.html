@@ -2197,6 +2197,17 @@ function spInfo(line,info){const L=line.replace(/^[•\-–*\d.)\s]+/,'').trim()
     const nm=L.replace(tel[0],' ').replace(/(?:טלפון|טל'|טל|נייד|פלאפון|ה?גבאי|לפרטים|ליצירת קשר|איש קשר|של|ה)(?=[\s:\-–]|$)/g,' ').replace(/[:\-–,.()]/g,' ').replace(/\s+/g,' ').trim();
     (info.gab=info.gab||[]).push({name:nm.length<30?nm:'',phone:tel[0].replace(/\s/g,'')});return true}
   if((m=L.match(/^(?:ה?גבאי(?:ם)?)\s*[:\-–]\s*(.+)$/))){(info.gab=info.gab||[]).push({name:m[1].trim(),phone:''});return true}
+  /* כתוב חופשי בלי נקודתיים: "בית הכנסת לב דוד נוסח ירושלמי רחוב שלמה בן יוסף 245 ירושלים" */
+  if(!/\d{1,2}:\d{2}/.test(L)){let hit=false,r=L;
+    const NU=/נוסח\s+(עדות המזרח|ספרד(?:י|ים)?|אשכנז(?:י|ים)?|ירושלמי|תימני|חב"ד|חב״ד|ספרדי ירושלמי|ארם צובא|מרוקאי|[^\s,.]+)/;
+    if((m=r.match(NU))){if(!info.nusach)info.nusach=m[1].trim();r=r.replace(m[0],' ');hit=true}
+    const AD=/(?:ב?רחוב|ב?רח['׳]|ב?שד['׳]|ב?שדרות|כתובת)\s+([^,.\d]+?\s*\d+[א-ת]?)(?=\s|,|\.|$)/;
+    if((m=r.match(AD))){if(!info.address)info.address=m[1].replace(/\s+/g,' ').trim();r=r.replace(m[0],' ');hit=true}
+    if((m=r.match(/^(?:בית ה?כנסת|ביה"כ|בית כנסת|בהכ"נ|ביהכ"נ|קהילת)\s+(.+)$/))){
+      let n=m[1].replace(/\s+/g,' ').replace(/\s*(ירושלים|ת"ו|תובב"א)(?=[\s,.]|$).*$/,'').replace(/[,.\s]+$/,'').trim();
+      if(n&&n.length<45&&!info.name){info.name=(/^קהילת/.test(m[0])?'קהילת ':/^(בית|ביה|בהכ)/.test(m[0])?'בית הכנסת ':'')+n;hit=true}else if(n)hit=true}
+    if(hit)return true;
+    if(/^(זמני (ה)?תפילות|פרשת השבוע|שבת שלום|שבוע טוב|בס"ד|ב"ה|בס״ד|ב״ה)/.test(L))return true}
   return false}
 function smartParse(txt){
   const out=[],notes=[],info={};let ctx='wk6';
@@ -2209,7 +2220,7 @@ function smartParse(txt){
     // מציאת תחילת קטעים (מילת מפתח שלא קודמת לה "לפני/אחרי")
     const hits=[];SP_KW.forEach(([k,...r])=>{let i=-1;while((i=line.indexOf(k,i+1))>=0){const before=line.slice(Math.max(0,i-7),i);if(/(לפני|אחרי|לאחר|אחר)\s*$/.test(before))continue;if(hits.some(h=>i>=h.i&&i<h.i+h.k.length))continue;hits.push({i,k,r})}});
     hits.sort((a,b)=>a.i-b.i||b.k.length-a.k.length);const H=hits.filter((h,j)=>!hits.some((g,jj)=>jj!==j&&h.i>=g.i&&h.i<g.i+g.k.length&&g.k.length>h.k.length));
-    if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת|שבת( קודש)?|מוצאי שבת|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני)/.test(line)&&line.length>3)notes.push(line);return}
+    if(!H.length){if(line.length<25&&/:\s*$|^(ב?ימות החול|ב?ימי החול|ערב שבת( קודש)?|שבת( קודש)?|מוצאי שבת( קודש)?|מוצ"ש|יום שישי|חול)[:.\s]*$/.test(line))return;if(!/^(שלום|היי|הי|בוקר טוב|ערב טוב|זמני)/.test(line)&&line.length>3)notes.push(line);return}
     H.forEach((h,j)=>{
       let c=line.slice(h.i,j+1<H.length?H[j+1].i:line.length).replace(/(^|\s)(תפילת|תפלת|ו)\s*$/,'').trim();
       let ct=c;if(j===0){const pre=line.slice(0,h.i).trim();if(pre&&/לפני|אחרי|לאחר|\d/.test(pre))ct=pre+' '+c}
