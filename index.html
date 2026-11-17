@@ -286,6 +286,8 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .st-bar i{background:#4a7fc1}.st-bar em{background:#3ea86b}.st-bar span{position:absolute;bottom:-17px;font-size:.68rem;color:var(--muted,#778)}
 #viewPill{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));inset-inline-end:12px;z-index:880;border:2px solid #f3d78e;background:#24456b;color:#fff;font:inherit;font-weight:800;font-size:.92rem;border-radius:999px;padding:9px 16px;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer}
 .view-sw{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:inherit;font:inherit;font-size:.85rem;border-radius:999px;padding:5px 12px;cursor:pointer}
+.map-lbl{background:rgba(255,255,255,.95);border:1px solid #24456b;border-radius:8px;padding:1px 6px;font:700 11px/1.3 system-ui,sans-serif;color:#24456b;box-shadow:0 1px 3px rgba(0,0,0,.2);direction:rtl;white-space:nowrap;cursor:pointer}.map-lbl::before{display:none}
+.map-miss{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.map-miss button{border:1px dashed #24456b;background:transparent;border-radius:999px;padding:4px 10px;font:inherit;font-size:.82rem;color:inherit;cursor:pointer}#shMap.picking{outline:4px solid #e6a817;cursor:crosshair}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -2129,14 +2131,17 @@ function codeSendWa(id){const m=(S.ibAll||[]).find(x=>x.id===id);if(!m)return;co
   const t=`שלום ${m.name||''} 👋\nהקוד האישי שלך ל"${sh?sh.name:''}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nהקוד אישי – לא להעביר הלאה 🙏`;
   window.open('https://wa.me/'+waNum(m.phone)+'?text='+encodeURIComponent(t),'_blank')}
 /* ===== 🗺️ מפת בתי הכנסת ===== */
-function walkUrl(x){const ll=shulLL(x);return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+(ll?ll[0]+','+ll[1]:encodeURIComponent((x.address||x.name)+', ירושלים'))}
+function areaOf(x){return /ארמון/.test(x.nh||'')?'ארמון הנציב':/ארנונה|תלפיות/.test(x.nh||'')?'תלפיות':''}
+function walkUrl(x){const ll=shulLL(x);return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+(ll?ll[0]+','+ll[1]:encodeURIComponent([String(x.name||'').split(/ [–-] /)[0],String(x.address||'').replace(/,?\s*ירושלים.*$/,''),areaOf(x),'ירושלים'].filter(Boolean).join(', ')))}
 let _map=null,_mapLL=null,GEO={};try{GEO=JSON.parse(localStorage.getItem('ash_geo')||'{}')}catch(e){}
 const MAP_C=[31.7525,35.2205];
 function shulLL(x){if(x.lat&&x.lng)return[+x.lat,+x.lng];const g=GEO[x.id];return g&&g.a===(x.address||'')?[g.lat,g.lng]:null}
 function mapLoad(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(c);const j=document.createElement('script');j.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';j.onload=ok;j.onerror=no;document.head.appendChild(j)})}
-async function geocode(x){const a=(x.address||'').replace(/\(.*?\)/g,'').replace(/פינת.*$/,'').trim();if(!a)return null;
-  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=il&accept-language=he&q='+encodeURIComponent(a+', ירושלים'));const j=await r.json();if(!j[0])return null;
-    const ll={lat:+(+j[0].lat).toFixed(6),lng:+(+j[0].lon).toFixed(6)};if(Math.abs(ll.lat-MAP_C[0])>.06||Math.abs(ll.lng-MAP_C[1])>.06)return null;
+async function geocode(x){const a=(x.address||'').replace(/\(.*?\)/g,'').replace(/פינת.*$/,'').replace(/^רחוב\s+/,'').replace(/\s*[-–]\s*.*$/,'').replace(/,?\s*ירושלים.*$/,'').trim();if(!a)return null;
+  const NB='https://nominatim.openstreetmap.org/search?format=json&limit=3&countrycodes=il&accept-language=he&viewbox=35.18,31.78,35.26,31.73&bounded=1&';
+  const tries=[NB+'street='+encodeURIComponent(a)+'&city='+encodeURIComponent('ירושלים'),NB+'q='+encodeURIComponent(a+', ירושלים'),NB+'q='+encodeURIComponent(a)];
+  try{let hit=null;for(const u of tries){const r=await fetch(u);const j=await r.json();hit=(j||[]).find(h=>Math.abs(h.lat-MAP_C[0])<.035&&Math.abs(h.lon-MAP_C[1])<.04);if(hit)break;await new Promise(z=>setTimeout(z,1100))}
+    if(!hit)return null;const ll={lat:+(+hit.lat).toFixed(6),lng:+(+hit.lon).toFixed(6)};
     GEO[x.id]={...ll,a:x.address||''};try{localStorage.setItem('ash_geo',JSON.stringify(GEO))}catch(e){}
     if(ROLE?.type==='admin'&&S.cloud)C.F.updateDoc(dref('shuls',x.id),ll).catch(()=>{});return[ll.lat,ll.lng]}catch(e){return null}}
 function shulNext(x){const d=new Date().getDay(),nm=nowMin();const p=collect('prayers',d,p=>p.s.id===x.id&&['שחרית','מנחה','ערבית'].includes(p.t)).find(p=>toMin(p.tm)>=nm);return p?`${p.t} ${p.tm}`:''}
@@ -2152,12 +2157,15 @@ async function mapInit(){const el=$('#shMap');if(!el)return;try{await mapLoad()}
   const list=S.shuls.filter(inNh),miss=[];const grp=[];
   const add=(x,ll)=>{const nx=shulNext(x),lg=shulLogo(x);
     const ic=L.divIcon({className:'',html:`<div class="map-pin${nx?' on':''}">${lg?`<img src="${lg}" alt="">`:'🕍'}</div>`,iconSize:[40,40],iconAnchor:[20,38],popupAnchor:[0,-34]});
-    L.marker(ll,{icon:ic,title:x.name}).addTo(_map).bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button></div><div class="map-btns"><a class="gm" href="https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}&travelmode=walking" target="_blank" rel="noopener">🚶 ברגל</a><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a></div></div>`);grp.push(ll)};
+    const mk=L.marker(ll,{icon:ic,title:x.name}).addTo(_map);mk.bindTooltip(esc(String(x.name).replace(/^בית (ה)?כנסת /,'').split(/ [–-] /)[0]),{permanent:true,direction:'bottom',offset:[0,2],className:'map-lbl',interactive:true});mk.on('tooltipclick',()=>mk.openPopup());mk.getTooltip()?.on?.('click',()=>mk.openPopup());mk.bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button></div><div class="map-btns"><a class="gm" href="https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}&travelmode=walking" target="_blank" rel="noopener">🚶 ברגל</a><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a></div></div>`);grp.push(ll)};
   list.forEach(x=>{const ll=shulLL(x);if(ll)add(x,ll);else if(x.address)miss.push(x)});
   if(grp.length>1&&!_mapLL)_map.fitBounds(grp,{padding:[30,30],maxZoom:16});
   mapList();const st=$('#mapSt');
   if(miss.length){if(st)st.textContent=`⏳ ממקם עוד ${miss.length} בתי כנסת לפי הכתובת…`;for(const x of miss){const ll=await geocode(x);if(!_map||!$('#shMap'))return;if(ll){add(x,ll);mapList()}await new Promise(r=>setTimeout(r,1100))}}
-  const no=list.filter(x=>!shulLL(x)).length;if(st)st.textContent=no?`ℹ️ ${no} בתי כנסת עוד לא ממוקמים על המפה (חסרה כתובת מדויקת)`:''}
+  const nol=list.filter(x=>!shulLL(x)),no=nol.length;if(st)st.innerHTML=no?`ℹ️ ${no} בתי כנסת עוד לא ממוקמים על המפה${ROLE?.type==='admin'?` – <b>אפשר לסמן אותם בעצמך:</b><div class="map-miss">${nol.map(x=>`<button onclick="mapPick('${x.id}')">📍 ${esc(String(x.name).split(/ [–-] /)[0])}</button>`).join('')}</div>`:''}`:'';
+  _map.on('click',async e=>{if(!_mapPickId)return;const id=_mapPickId,x=shul(id);_mapPickId=null;$('#shMap').classList.remove('picking');if(!x)return;const ll={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6)};
+    try{await C.F.updateDoc(dref('shuls',id),ll);x.lat=ll.lat;x.lng=ll.lng;toast('✔️ '+x.name+' סומן על המפה');mapInit()}catch(err){cerr(err)}})}
+let _mapPickId=null;function mapPick(id){_mapPickId=id;$('#shMap').classList.add('picking');$('#shMap').scrollIntoView({behavior:'smooth',block:'center'});toast('👆 גע במפה בדיוק במקום של '+(shul(id)?.name||'בית הכנסת'),5000)}
 function mapList(){const box=$('#mapList');if(!box)return;const L2=S.shuls.filter(inNh).map(x=>({x,ll:shulLL(x)})).filter(o=>o.ll);
   if(_mapLL)L2.forEach(o=>o.d=distM(_mapLL,o.ll));L2.sort((a,b)=>(a.d??0)-(b.d??0)||a.x.name.localeCompare(b.x.name,'he'));
   box.innerHTML=_mapLL?`<h3>📍 הקרובים אליך</h3>`+L2.slice(0,8).map(o=>{const nx=shulNext(o.x);return `<div class="row" onclick="go('shul',{id:'${o.x.id}'})"><div class="time" style="font-size:1rem;min-width:58px">${o.d<1000?Math.round(o.d/10)*10+' מ׳':(o.d/1000).toFixed(1)+' ק״מ'}</div><div class="main"><b>${esc(String(o.x.name).split(/ [–-] /)[0])}</b><span class="muted">${esc(o.x.address||'')}${nx?' · ⏰ '+esc(nx):''}</span></div></div>`}).join(''):''}
