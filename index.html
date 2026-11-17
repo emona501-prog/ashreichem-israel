@@ -876,9 +876,14 @@ function more(){
 }
 function updates(){
   const l=[...S.ticker].sort((a,b)=>b.dt-a.dt);
-  return `<h2>📢 עדכונים</h2>${l.map(u=>`<div class="card"><div>${esc(u.text)}</div><div class="muted">${u.sid&&shul(u.sid)?esc(shul(u.sid).name)+' · ':''}${new Date(u.dt).toLocaleDateString('he-IL')}</div>${(ROLE?.type==='admin'||(u.sid&&canEdit(u.sid)))?`<button class="btn red sm" style="margin-top:6px" onclick="delUpd('${u.id}')">מחיקה</button>`:''}</div>`).join('')||'<div class="empty-msg">אין עדכונים</div>'}`;
+  const canAdd=ROLE?.type==='admin'||ROLE?.type==='gabbai';
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">📢 עדכונים</h2>${canAdd?`<button class="btn sm" onclick="postUpdate('${ROLE?.type==='gabbai'?ROLE.sid:''}')">➕ עדכון חדש</button>`:''}</div><div style="height:10px"></div>${l.map(u=>`<div class="card"><div style="white-space:pre-line">${linkify(u.text)}</div><div class="muted">${u.sid&&shul(u.sid)?esc(shul(u.sid).name)+' · ':''}${new Date(u.dt).toLocaleDateString('he-IL')}${u.ed?' · נערך':''}</div>${(ROLE?.type==='admin'||(u.sid&&canEdit(u.sid)))?`<div class="btns" style="margin-top:6px"><button class="btn sec sm" onclick="editUpd('${u.id}')">✏️ עריכה</button><button class="btn red sm" onclick="if(confirm('למחוק את העדכון?'))delUpd('${u.id}')">🗑️ מחיקה</button></div>`:''}</div>`).join('')||'<div class="empty-msg">אין עדכונים</div>'}`;
 }
 function openUpdates(){go('updates')}
+function editUpd(id){const u=S.ticker.find(x=>x.id===id);if(!u)return;
+  modal(`<label class="f">נוסח העדכון (יופיע בפס הרץ למעלה)</label>${fmtBar('uet')}<textarea class="inp fmt-ta" id="uet" maxlength="160" oninput="fmtPrev('uet');$('#uec').textContent=this.value.length+'/160'">${esc(u.text)}</textarea><div class="muted" style="font-size:.8rem;text-align:left" id="uec">${u.text.length}/160</div><div class="fmt-pv" id="uet_pv"></div>
+  <button class="btn" style="width:100%;margin-top:12px" onclick="saveUpd('${id}')">💾 שמירה</button>`,'✏️ עריכת עדכון');setTimeout(()=>fmtPrev('uet'),30)}
+async function saveUpd(id){const t=$('#uet').value.trim();if(!t)return toast('העדכון ריק');if(!needCloud())return;try{await C.F.updateDoc(dref('ticker',id),{text:t,ed:Date.now()});const u=S.ticker.find(x=>x.id===id);if(u){u.text=t;u.ed=Date.now()}closeModal();toast('✔️ העדכון נשמר');render()}catch(e){cerr(e)}}
 //@delUpd
 /* ===== הילולות ===== */
 function hill(){
