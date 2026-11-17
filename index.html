@@ -297,6 +297,8 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .lim-go{flex:none;font-size:.8rem;padding:5px 10px;border-radius:999px;background:#eef3f9;color:var(--pri,#24456b);text-decoration:none;font-weight:700}
 .lim-night{background:#1f2f4d;color:#f3d78e;border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:.88rem}
 .lim-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:center;margin-bottom:10px}
+.ed-hint{background:#fff7e0;border:1px solid #f0d58c;border-radius:10px;padding:8px 10px;font-size:.85rem;margin:0 0 8px;line-height:1.5}
+.lnk{border:0;background:none;color:var(--pri,#24456b);font:inherit;font-weight:800;text-decoration:underline;cursor:pointer;padding:0}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
@@ -2378,6 +2380,13 @@ function edLocHtml(){const ok=ED.lat&&ED.lng;return `<div class="muted" style="f
 const ED_CLR={'שחרית':'#e6a817','מנחה':'#e0742c','ערבית':'#5b5bd6','מוסף':'#2f9c8f','קבלת שבת':'#c2508f','זמן':'#7a8796'};
 const EV_CLR={'שיעור תורה':'#3b9b57','ילדים':'#e0558a','צעירים':'#1f9bc4','תהילים':'#a0702a','נשים':'#9b55c9','ציבורי':'#c99a1a'};
 function edClr(t,ev){return(ev?EV_CLR:ED_CLR)[t]||'#7a8796'}
+/* סט תפילות שבת מוכן – הגבאי רק מתקן את השעות */
+function edShabSet(){const has=(t,d)=>ED.prayers.some(p=>p.t===t&&p.d===d);
+  const L=[['מנחה','fri','@set-15','מנחה ערב שבת'],['קבלת שבת','fri','@set-0',''],['שחרית','sat','08:00',''],['מוסף','sat','10:30',''],['מנחה','sat','@set-30',''],['ערבית','mz','@tzeit+0','מוצאי שבת']].filter(([t,d])=>!has(t,d));
+  if(!L.length)return toast('תפילות השבת כבר ברשימה');
+  L.forEach(([t,d,tm,n])=>ED.prayers.push({id:uid(),t,d,tm,n:''}));drawEd();
+  setTimeout(()=>{const f=[...document.querySelectorAll('.edc')].find(x=>x.dataset.id===ED.prayers[ED.prayers.length-L.length].id);if(f){f.scrollIntoView({behavior:'smooth',block:'center'});f.classList.add('ed-new')}},80);
+  toast(`נוספו ${L.length} תפילות שבת – בדקו ותקנו את השעות לפי בית הכנסת`)}
 function edAdd(arr,o){ED[arr].push(o);drawEd();setTimeout(()=>{const el=document.querySelector(`.edc[data-id="${o.id}"]`);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('ed-new')}},80)}
 function edSort(){const o=['שחרית','מוסף','מנחה','קבלת שבת','ערבית'],dd=Object.keys(DAYSETS);const oi=t=>{const k=o.indexOf(t);return k<0?9:k};const dg=d=>({fri:1,sat:2,mz:3}[d]||0);ED.prayers.sort((a,b)=>(dg(a.d)-dg(b.d))||(oi(a.t)-oi(b.t))||String(resolveTm(a.tm,nextDateIn(a.d))).localeCompare(resolveTm(b.tm,nextDateIn(b.d))));drawEd();toast('סודר ✔️')}
 function editShul(id){
@@ -2419,9 +2428,10 @@ function drawEd(isNew){
     ${tmCtl('prayers',i,p.tm)}
     <input class="inp" style="grid-column:1/-1" placeholder="הערה (לא חובה)" value="${esc(p.n)}" oninput="ED.prayers[${i}].n=this.value">
   </div>`).join('')}
-  <div class="btns"><button class="btn sec sm" onclick="edAdd('prayers',{id:uid(),t:'מנחה',d:'wk',tm:'13:30',n:''})">➕ הוספת תפילה</button>${e.prayers.length>2?`<button class="btn ghost sm" onclick="edSort()">↕️ סידור לפי יום ותפילה</button>`:''}</div>
+  <div class="btns"><button class="btn sec sm" onclick="edAdd('prayers',{id:uid(),t:'מנחה',d:'wk',tm:'13:30',n:''})">➕ הוספת תפילה</button><button class="btn sec sm" onclick="edShabSet()">🕯️ הוספת תפילות שבת</button>${e.prayers.length>2?`<button class="btn ghost sm" onclick="edSort()">↕️ סידור לפי יום ותפילה</button>`:''}</div>
 
   <h3 style="margin-top:16px">📚 שיעורים ופעילויות</h3>
+  <div class="ed-hint">כאן מוסיפים רק <b>שיעורים ופעילויות</b>. תפילות (גם של שבת) מוסיפים למעלה, ב<button class="lnk" onclick="document.getElementById('edPr').scrollIntoView({behavior:'smooth',block:'start'})">🕰️ זמני תפילות ↑</button></div>
   ${e.events.map((x,i)=>`<div class="ed2 edc" data-id="${x.id||''}" style="--tc:${edClr(x.c,1)}"><div class="ed-hd full"><span class="ed-no">${i+1}</span><b>${esc(x.title||'פעילות חדשה')}</b><span>· ${esc(x.c||'')} · ${esc(DAYSETS[x.d]?.l||'')}</span></div>
     <input class="inp full" placeholder="שם השיעור / הפעילות" value="${esc(x.title)}" oninput="ED.events[${i}].title=this.value">
     <select class="inp" onchange="ED.events[${i}].c=this.value;drawEd()">${CATS.map(c=>`<option ${c===x.c?'selected':''}>${c}</option>`).join('')}</select>
