@@ -2147,7 +2147,7 @@ async function geocode(x){const a=(x.address||'').replace(/\(.*?\)/g,'').replace
     if(!hit)return null;const ll={lat:+(+hit.lat).toFixed(6),lng:+(+hit.lon).toFixed(6)};
     GEO[x.id]={...ll,a:x.address||''};try{localStorage.setItem('ash_geo',JSON.stringify(GEO))}catch(e){}
     if((REAL_ROLE||ROLE)?.type==='admin'&&S.cloud)C.F.updateDoc(dref('shuls',x.id),ll).catch(()=>{});return[ll.lat,ll.lng]}catch(e){return null}}
-function shulNext(x){const d=new Date().getDay(),nm=nowMin();const p=collect('prayers',d,p=>p.s.id===x.id&&['שחרית','מנחה','ערבית'].includes(p.t)).find(p=>toMin(p.tm)>=nm);return p?`${p.t} ${p.tm}`:''}
+function shulNext(x){const d=new Date().getDay(),nm=nowMin();let p=null;try{p=collect('prayers',d,p=>['שחרית','מנחה','ערבית'].includes(p.t)).find(p=>p.s&&p.s.id===x.id&&toMin(p.tm)>=nm)}catch(e){}return p?`${p.t} ${p.tm}`:''}
 function distM(a,b){const r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)**2;return 6371000*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function mapV(){setTimeout(mapInit,30);const L=S.shuls.filter(inNh);
   return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🗺️ בתי הכנסת במפה</h2><button class="btn sec sm" onclick="go('shuls')">☰ רשימה</button></div>${nhChips()}
@@ -2161,22 +2161,33 @@ function mapFind(q,go2){q=String(q||'').trim();if(q.length<2)return;const x=S.sh
   const ll=shulLL(x);if(ll&&_map&&_mk[x.id]){_map.flyTo(ll,17);setTimeout(()=>_mk[x.id].openPopup(),700);$('#mapQ').blur();return}
   if((REAL_ROLE||ROLE)?.type==='admin'){mapPick(x.id);return}
   modal(`<p><b>${esc(x.name)}</b> עוד לא סומן על המפה.</p><div class="btns"><button class="btn" onclick="closeModal();go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button><a class="btn sec" href="${walkUrl(x)}" target="_blank" rel="noopener">🚶 ניווט</a></div>`,'🗺️ '+esc(x.name))}
+let _mlay=null,_geoRun=false,_geoMsg='';
+let _mapPickId=null;function mapPick(id){_mapPickId=id;const m=$('#shMap');if(m){m.classList.add('picking');m.scrollIntoView({behavior:'smooth',block:'center'})}toast('👆 גע במפה בדיוק במקום של '+(shul(id)?.name||'בית הכנסת'),6000)}
+function mapSt(h){_geoMsg=h;const st=$('#mapSt');if(st)st.innerHTML=h}
 async function mapInit(){const el=$('#shMap');if(!el)return;try{await mapLoad()}catch(e){el.innerHTML='<div class="empty-msg">לא הצלחנו לטעון את המפה – בדקו חיבור לאינטרנט</div>';return}
-  if(_map){try{_map.remove()}catch(e){}_map=null}
-  _map=L.map(el,{zoomControl:true,attributionControl:true}).setView(_mapLL||MAP_C,15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_map);
-  const list=S.shuls.filter(inNh),miss=[];const grp=[];
-  const add=(x,ll)=>{const nx=shulNext(x),lg=shulLogo(x);
-    const ic=L.divIcon({className:'',html:`<div class="map-pin${nx?' on':''}">${lg?`<img src="${lg}" alt="">`:'🕍'}</div>`,iconSize:[40,40],iconAnchor:[20,38],popupAnchor:[0,-34]});
-    const mk=L.marker(ll,{icon:ic,title:x.name}).addTo(_map);_mk[x.id]=mk;mk.bindTooltip(esc(String(x.name).replace(/^בית (ה)?כנסת /,'').split(/ [–-] /)[0]),{permanent:true,direction:'bottom',offset:[0,2],className:'map-lbl',interactive:true});mk.on('tooltipclick',()=>mk.openPopup());mk.getTooltip()?.on?.('click',()=>mk.openPopup());mk.bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button></div><div class="map-btns"><a class="gm" href="https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}&travelmode=walking" target="_blank" rel="noopener">🚶 ברגל</a><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a></div></div>`);grp.push(ll)};
-  list.forEach(x=>{const ll=shulLL(x);if(ll)add(x,ll);else if(x.address)miss.push(x)});
-  if(grp.length>1&&!_mapLL)_map.fitBounds(grp,{padding:[30,30],maxZoom:16});
-  mapList();const st=$('#mapSt');
-  if(miss.length){let k=0;for(const x of miss){k++;if(st)st.innerHTML=`⏳ מחפש את בתי הכנסת לפי הכתובת… <b>${k}/${miss.length}</b> (${grp.length} כבר על המפה)`;const ll=await geocode(x);if(!_map||!$('#shMap'))return;if(ll){add(x,ll);mapList()}await new Promise(r=>setTimeout(r,1100))}}
-  const nol=list.filter(x=>!shulLL(x)),no=nol.length;if(st)st.innerHTML=no?`ℹ️ ${no} בתי כנסת עוד לא ממוקמים על המפה${(REAL_ROLE||ROLE)?.type==='admin'?` – <b>אפשר לסמן אותם בעצמך:</b><div class="map-miss">${nol.map(x=>`<button onclick="mapPick('${x.id}')">📍 ${esc(String(x.name).split(/ [–-] /)[0])}</button>`).join('')}</div>`:''}`:'';
-  _map.on('click',async e=>{if(!_mapPickId)return;const id=_mapPickId,x=shul(id);_mapPickId=null;$('#shMap').classList.remove('picking');if(!x)return;const ll={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6)};
-    try{await C.F.updateDoc(dref('shuls',id),ll);x.lat=ll.lat;x.lng=ll.lng;toast('✔️ '+x.name+' סומן על המפה');mapInit()}catch(err){cerr(err)}})}
-let _mapPickId=null;function mapPick(id){_mapPickId=id;$('#shMap').classList.add('picking');$('#shMap').scrollIntoView({behavior:'smooth',block:'center'});toast('👆 גע במפה בדיוק במקום של '+(shul(id)?.name||'בית הכנסת'),5000)}
+  try{if(_map){try{_map.remove()}catch(e){}_map=null}
+    _map=L.map(el,{zoomControl:true,attributionControl:true}).setView(_mapLL||MAP_C,15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_map);
+    _mlay=L.layerGroup().addTo(_map);
+    _map.on('click',async e=>{if(!_mapPickId)return;const id=_mapPickId,x=shul(id);_mapPickId=null;$('#shMap')?.classList.remove('picking');if(!x)return;const ll={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6)};
+      x.lat=ll.lat;x.lng=ll.lng;GEO[id]={...ll,a:x.address||''};try{localStorage.setItem('ash_geo',JSON.stringify(GEO))}catch(err){}
+      try{await C.F.updateDoc(dref('shuls',id),ll);toast('✔️ '+x.name+' סומן על המפה')}catch(err){toast('סומן אצלך – השמירה לכולם לא הצליחה')}mapPaint(true)});
+  }catch(e){console.warn(e);el.innerHTML='<div class="empty-msg">שגיאה בטעינת המפה</div>';return}
+  mapPaint(true);if(_geoMsg)mapSt(_geoMsg);geoRun()}
+function mapPaint(fit){if(!_map||!_mlay)return;_mlay.clearLayers();const list=S.shuls.filter(inNh),grp=[];
+  list.forEach(x=>{const ll=shulLL(x);if(!ll)return;try{const nx=shulNext(x),lg=shulLogo(x);
+    const ic=L.divIcon({className:'',html:`<div class="map-pin${nx?' on':''}">${lg?`<img src="${lg}" alt="">`:'🕍'}</div>`,iconSize:[40,40],iconAnchor:[20,38],popupAnchor:[0,-34],tooltipAnchor:[0,4]});
+    const mk=L.marker(ll,{icon:ic,title:x.name});_mk[x.id]=mk;
+    mk.bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button></div><div class="map-btns"><a class="gm" href="https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}&travelmode=walking" target="_blank" rel="noopener">🚶 ברגל</a><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a></div></div>`);
+    mk.addTo(_mlay);
+    try{mk.bindTooltip(esc(String(x.name).replace(/^בית (ה)?כנסת /,'').split(/ [–-] /)[0]),{permanent:true,direction:'bottom',className:'map-lbl'}).openTooltip()}catch(e){}
+    grp.push(ll)}catch(e){console.warn('pin',x.id,e)}});
+  if(fit&&grp.length>1&&!_mapLL)try{_map.fitBounds(grp,{padding:[30,30],maxZoom:16})}catch(e){}else if(fit&&grp.length===1&&!_mapLL)_map.setView(grp[0],16);
+  mapList();
+  const nol=list.filter(x=>!shulLL(x));if(!_geoRun)mapSt(!list.length?'אין בתי כנסת באזור שנבחר':nol.length?`📍 על המפה: <b>${grp.length}</b> · עוד לא סומנו: <b>${nol.length}</b>${(REAL_ROLE||ROLE)?.type==='admin'?` – <b>לחצו על שם כדי לסמן אותו:</b><div class="map-miss">${nol.map(x=>`<button onclick="mapPick('${x.id}')">📍 ${esc(String(x.name).split(/ [–-] /)[0])}</button>`).join('')}</div>`:''}`:`✅ כל ${grp.length} בתי הכנסת על המפה`)}
+async function geoRun(){if(_geoRun)return;const miss=S.shuls.filter(x=>!shulLL(x)&&x.address&&!x._geoFail);if(!miss.length)return;_geoRun=true;let k=0,ok=0;
+  for(const x of miss){k++;mapSt(`⏳ מחפש את בתי הכנסת לפי הכתובת… <b>${k}/${miss.length}</b> (נמצאו ${ok})`);let ll=null;try{ll=await geocode(x)}catch(e){}if(ll){ok++;mapPaint(false)}else x._geoFail=1;await new Promise(r=>setTimeout(r,1100))}
+  _geoRun=false;_geoMsg='';mapPaint(false)}
 function mapList(){const box=$('#mapList');if(!box)return;const L2=S.shuls.filter(inNh).map(x=>({x,ll:shulLL(x)})).filter(o=>o.ll);
   if(_mapLL)L2.forEach(o=>o.d=distM(_mapLL,o.ll));L2.sort((a,b)=>(a.d??0)-(b.d??0)||a.x.name.localeCompare(b.x.name,'he'));
   box.innerHTML=_mapLL?`<h3>📍 הקרובים אליך</h3>`+L2.slice(0,8).map(o=>{const nx=shulNext(o.x);return `<div class="row" onclick="go('shul',{id:'${o.x.id}'})"><div class="time" style="font-size:1rem;min-width:58px">${o.d<1000?Math.round(o.d/10)*10+' מ׳':(o.d/1000).toFixed(1)+' ק״מ'}</div><div class="main"><b>${esc(String(o.x.name).split(/ [–-] /)[0])}</b><span class="muted">${esc(o.x.address||'')}${nx?' · ⏰ '+esc(nx):''}</span></div></div>`}).join(''):''}
