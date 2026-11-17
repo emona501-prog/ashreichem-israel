@@ -303,6 +303,10 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .adimg{position:relative;margin:10px 0;border-radius:18px;overflow:hidden;background:var(--card,#fff);border:1px solid #e8c873;box-shadow:0 4px 14px rgba(168,116,44,.15);cursor:pointer;animation:adIn .5s ease}
 .adimg img{display:block;width:100%;max-height:340px;object-fit:contain;background:#f6f1e4}.adimg-b{padding:8px 12px 10px;display:flex;flex-direction:column}.adimg-b small{color:#8a5a12}
 .adimg .adpop-c{position:absolute;top:8px;inset-inline-end:8px;background:rgba(0,0,0,.45);color:#fff;z-index:2}
+.near-r{flex-wrap:wrap}.near-r .near-main{flex:1 1 100%}
+.near-r .near-side{display:flex!important;flex-direction:row;width:100%;gap:6px;margin-top:6px}
+.near-r .near-side .near-go,.near-r .near-side .near-rem{flex:1;width:auto!important;min-height:40px;flex-direction:row;gap:6px;font-size:.95rem;padding:6px 8px;grid-column:auto}
+.near-r .near-side .near-go span,.near-r .near-side .near-rem span{font-size:.9rem}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -1636,6 +1640,10 @@ function sayStop(){try{const T=NAT.P('TextToSpeech');if(T)T.stop().catch(()=>{})
 /* הדפסה: בדפדפן – חלון ההדפסה הרגיל; באפליקציית האנדרואיד – מסך ההדפסה של הטלפון (מדפסת / שמירה כ-PDF) */
 function prDo(f,html){const W=NAT.P('WebPrint');if(W){W.printHtml({html:html||f.srcdoc||'',name:document.title||'אשריכם ישראל'}).catch(()=>toast('ההדפסה לא הצליחה'));return}f.contentWindow.focus();f.contentWindow.print()}
 /* שיתוף מתוך האפליקציה (טקסט, תמונות, עמודי עלון) – דרך חלון השיתוף של אנדרואיד */
+/* ניקוי ההתראות שכבר נקראו והמספר על האייקון – כשנכנסים לאפליקציה */
+function clearNotifs(){try{navigator.clearAppBadge&&navigator.clearAppBadge().catch(()=>{})}catch(e){}
+  try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.getNotifications&&r.getNotifications().then(ns=>ns.forEach(n=>n.close())).catch(()=>{}))).catch(()=>{})}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(clearNotifs,800)});setTimeout(clearNotifs,1500);
 function natSetup(){if(!NAT.on||natSetup.done)return;natSetup.done=1;document.documentElement.classList.add('native');
   const Sh=NAT.P('Share'),FS=NAT.P('Filesystem');if(!Sh)return;
   try{navigator.canShare=d=>!!d&&(!d.files||!!FS)}catch(e){}
