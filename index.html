@@ -267,9 +267,10 @@ body.nomotion .inst-cta img{animation:none}@keyframes instB{0%,100%{transform:tr
 .map-pin{width:40px;height:40px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#fff;border:3px solid #24456b;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:18px;overflow:hidden}
 .map-pin>*{transform:rotate(45deg)}.map-pin img{width:30px;height:30px;object-fit:contain}.map-pin.on{border-color:#2e8b57}
 .map-pop{direction:rtl;text-align:right;font-family:inherit;min-width:180px}.map-pop b{font-size:1rem}.map-nx{margin:4px 0;color:#2e7d4f}
-.map-btns{display:flex;gap:6px;margin-top:6px}.map-btns>*{flex:1;border:0;border-radius:10px;padding:7px 6px;background:#24456b;color:#fff!important;font:inherit;font-size:.85rem;text-align:center;text-decoration:none;cursor:pointer}.map-btns a{background:#33ccff}
+.map-btns{display:flex;gap:6px;margin-top:6px}.map-btns>*{flex:1;border:0;border-radius:10px;padding:7px 6px;background:#24456b;color:#fff!important;font:inherit;font-size:.85rem;text-align:center;text-decoration:none;cursor:pointer}.map-btns a{background:#33ccff}.map-btns a.gm{background:#1a73e8}
 .gab-code{width:100%;display:flex;align-items:center;gap:12px;text-align:start;background:#fff8e6;border:2px solid #e8c873;border-radius:16px;padding:12px 14px;margin-bottom:12px;font:inherit;color:inherit;cursor:pointer}.gab-code>span:first-child{font-size:2rem}.gab-code b{display:block;font-size:1.05rem}.gab-code small{color:#8a5a12}.gab-code>div{flex:1}
 body.dark .gab-code{background:#3a2f17;border-color:#7a6230}
+.near-side{display:grid!important;grid-template-columns:1fr 1fr;gap:5px;align-content:stretch}.near-side .near-go{width:52px;min-height:44px;padding:4px 0}.near-side .near-rem{grid-column:1/-1}
 .apk-cta{width:100%;display:flex;gap:12px;align-items:center;text-align:start;background:linear-gradient(135deg,#1b3554,#2d5a8a);color:#fff;border:1px solid rgba(243,215,142,.55);border-radius:16px;padding:12px 14px;margin:4px 0 6px;font:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(36,69,107,.25)}
 .apk-cta>span{font-size:1.9rem}.apk-cta b{display:block;color:#f3d78e;font-size:1.05rem}.apk-cta small{opacity:.9}
 .apk-w,.apk-safe{border-radius:14px;padding:10px 12px;margin-top:10px;line-height:1.75;font-size:.95rem}
@@ -694,7 +695,7 @@ function nearest(){
         <span class="near-t">${esc(p.tm)}</span>
         <span class="near-x"><b>${esc(p.t)}</b><span>${esc(p.s.name)}</span>${p.n?`<small>${esc(p.n)}</small>`:''}</span>
       </button>
-      <div class="near-side"><a class="near-go" href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener" aria-label="ניווט ל${esc(p.s.name)}">🚗<span>נווט</span></a><button class="near-rem" onclick="remind('${p.s.id}','prayers','${p.id}',1)" aria-label="תזכורת">${ic('alarm','sm')}<span>תזכיר</span></button></div>
+      <div class="near-side"><a class="near-go" href="${walkUrl(p.s)}" target="_blank" rel="noopener" aria-label="ניווט ברגל ל${esc(p.s.name)}">🚶<span>ברגל</span></a><a class="near-go" href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener" aria-label="ניווט ברכב ל${esc(p.s.name)}">🚗<span>ווייז</span></a><button class="near-rem" onclick="remind('${p.s.id}','prayers','${p.id}',1)" aria-label="תזכורת">${ic('alarm','sm')}<span>תזכיר</span></button></div>
     </div>`}).join('')}
   </section>`;
 }
@@ -756,7 +757,7 @@ function shulPage(){
   <div class="muted">📍 ${esc(s.address)} · ${esc(s.nh)}${s.nusach?' · נוסח '+esc(s.nusach):''}</div>
   ${s.access?`<div class="muted">♿ ${esc(s.access)}</div>`:''}
   <div class="btns" style="margin:12px 0">
-    <a class="btn sm" href="https://waze.com/ul?q=${maps}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט</a>
+    <a class="btn sm" href="${walkUrl(s)}" target="_blank" rel="noopener">🚶 ברגל</a><a class="btn sm" href="https://waze.com/ul?q=${maps}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a>
     <button class="btn sec sm" onclick="shareShul('${s.id}')">💬 שתף</button>
     <button class="btn sec sm" onclick="printCenter('shul','${s.id}')">${ic('printer','bi')}הדפסה</button><button class="btn sec sm" onclick="sayToggle(()=>shulSay('${s.id}'))">${ic('speaker','bi')}הקראה</button>
     <button class="btn sec sm" onclick="fav('${s.id}')">${U.favs.includes(s.id)?'★ במועדפים':'☆ מועדף'}</button>
@@ -2089,6 +2090,7 @@ function codeSendWa(id){const m=(S.ibAll||[]).find(x=>x.id===id);if(!m)return;co
   const t=`שלום ${m.name||''} 👋\nהקוד האישי שלך ל"${sh?sh.name:''}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nהקוד אישי – לא להעביר הלאה 🙏`;
   window.open('https://wa.me/'+waNum(m.phone)+'?text='+encodeURIComponent(t),'_blank')}
 /* ===== 🗺️ מפת בתי הכנסת ===== */
+function walkUrl(x){const ll=shulLL(x);return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+(ll?ll[0]+','+ll[1]:encodeURIComponent((x.address||x.name)+', ירושלים'))}
 let _map=null,_mapLL=null,GEO={};try{GEO=JSON.parse(localStorage.getItem('ash_geo')||'{}')}catch(e){}
 const MAP_C=[31.7525,35.2205];
 function shulLL(x){if(x.lat&&x.lng)return[+x.lat,+x.lng];const g=GEO[x.id];return g&&g.a===(x.address||'')?[g.lat,g.lng]:null}
@@ -2111,7 +2113,7 @@ async function mapInit(){const el=$('#shMap');if(!el)return;try{await mapLoad()}
   const list=S.shuls.filter(inNh),miss=[];const grp=[];
   const add=(x,ll)=>{const nx=shulNext(x),lg=shulLogo(x);
     const ic=L.divIcon({className:'',html:`<div class="map-pin${nx?' on':''}">${lg?`<img src="${lg}" alt="">`:'🕍'}</div>`,iconSize:[40,40],iconAnchor:[20,38],popupAnchor:[0,-34]});
-    L.marker(ll,{icon:ic,title:x.name}).addTo(_map).bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ניווט</a></div></div>`);grp.push(ll)};
+    L.marker(ll,{icon:ic,title:x.name}).addTo(_map).bindPopup(`<div class="map-pop"><b>${esc(x.name)}</b><div>${esc(x.address||'')}</div>${nx?`<div class="map-nx">⏰ הקרוב היום: <b>${esc(nx)}</b></div>`:''}<div class="map-btns"><button onclick="go('shul',{id:'${x.id}'})">🕍 לדף בית הכנסת</button></div><div class="map-btns"><a class="gm" href="https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}&travelmode=walking" target="_blank" rel="noopener">🚶 ברגל</a><a href="https://waze.com/ul?ll=${ll[0]},${ll[1]}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a></div></div>`);grp.push(ll)};
   list.forEach(x=>{const ll=shulLL(x);if(ll)add(x,ll);else if(x.address)miss.push(x)});
   if(grp.length>1&&!_mapLL)_map.fitBounds(grp,{padding:[30,30],maxZoom:16});
   mapList();const st=$('#mapSt');
