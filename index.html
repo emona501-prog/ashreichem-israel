@@ -305,6 +305,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .ad-wa.sm{padding:9px;font-size:.95rem;margin-top:8px}
 .ad-st{display:flex;gap:12px;margin-top:8px;font-size:.85rem;font-weight:700;color:#6b5320;background:#fbf3df;border-radius:10px;padding:6px 10px;width:max-content}.ad-rst{border:0;background:none;color:#8a5a12;font:inherit;font-size:.78rem;text-decoration:underline;cursor:pointer;padding:0}
 .ad-st.sm{font-size:.75rem;padding:3px 8px;margin-top:4px}
+.cd-box{border-radius:12px;padding:10px;margin-top:8px;display:flex;flex-direction:column;gap:8px}.cd-box.no{background:#fde8e8}.cd-box.ok{background:#e3f6ea}.cd-box>div:first-child{font-weight:800}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
@@ -1144,6 +1145,14 @@ function codeInvite(sid){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין
 function codeResend(sid){const s=shul(sid),g=gabPh(s),c=codeOf(sid);if(!c)return toast('הקוד לא נטען – נסו שוב בעוד רגע');if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
   const t=`שלום ${g.name||''} 👋\nתזכורת – הקוד האישי שלך ל"${s.name}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nאחרי הכניסה אפשר לעדכן את זמני התפילות לבד. תודה רבה! 🙏`;
   window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+function codeBox(sid){const has=!!codeOf(sid);
+  return `<div class="cd-box ${has?'ok':'no'}">${has?`<div>✅ לבית הכנסת יש קוד</div><button class="btn sm" style="background:#1fa855" onclick="codeResend('${sid}')">📤 שליחת הקוד לגבאי בוואטסאפ</button>`
+  :`<div>❌ לבית הכנסת עוד אין קוד</div><div class="btns" style="gap:6px"><button class="btn sm" style="background:#1fa855" onclick="codeMakeSend('${sid}')">🔑 יצירת קוד ושליחה לגבאי</button><button class="btn sec sm" onclick="codeInvite('${sid}')">💬 הזמנה לבקש קוד</button></div>`}
+  <div class="muted" style="font-size:.78rem">ההודעה נפתחת בוואטסאפ ישר לטלפון של הגבאי (מרשימת הגבאים) – רק לוחצים "שליחה".</div></div>`}
+async function codeMakeSend(sid){if(!gabPh(shul(sid))&&!(ED&&ED.id===sid&&(ED.gabbaim||[]).some(g=>telOk(g.phone||''))))return toast('אין טלפון של גבאי – הוסיפו טלפון גבאי ושמרו קודם');
+  if(!confirm('ליצור עכשיו קוד גבאי חדש ולשלוח אותו לגבאי בוואטסאפ?'))return;const c=String(Math.floor(100000+Math.random()*900000));toast('יוצר קוד…');
+  if(!await setGabbaiCode(sid,c))return;const s=shul(sid);if(s&&!s.login)s.login='set';if(ED&&ED.id===sid){ED.code=c;if(!gabPh(s)&&s)s.gabbaim=ED.gabbaim}
+  toast('הקוד נוצר 🔑');codeResend(sid);if(ED&&ED.id===sid)drawEd()}
 function codesV(){if(!window._secTry&&(!C.secrets||!Object.keys(C.secrets).length)){window._secTry=1;loadSecrets()}const G=codeGroups();
   const row=(s,btn)=>{const g=gabPh(s);return `<div class="row"><div class="main"><b>${s.no?`<span class="sh-no sm">${s.no}</span> `:''}${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${g?`👤 ${esc(g.name||'')} ${esc(g.phone)}`:'⚠️ אין טלפון גבאי'}${s.gIn?` · נכנס לאחרונה ${new Date(s.gIn).toLocaleDateString('he-IL')}`:''}</span></div>${btn}</div>`};
   return `<h2>🔑 מצב קודי גבאים</h2>
@@ -2507,7 +2516,7 @@ function drawEd(isNew){
     <button class="btn red sm" onclick="ED.gabbaim.splice(${i},1);drawEd()">מחיקה</button>
   </div>`).join('')}
   <button class="btn sec sm" onclick="ED.gabbaim.push({name:'',phone:'',pub:true});drawEd()">➕ הוספת גבאי / איש קשר</button>
-  ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">`:''}
+  ${adm?`<label class="f">🔑 קוד כניסה לגבאי – לפחות 6 תווים (רק המנהל רואה)</label><input class="inp" value="${esc(e.code||'')}" oninput="ED.code=this.value" placeholder="${e.code?'':'עוד לא הוגדר קוד'}">${shul(e.id)?codeBox(e.id):''}`:''}
   <label class="f">הודעה קבועה / הערות</label>${fmtBar('edN')}<textarea class="inp fmt-ta" id="edN" oninput="ED.notes=this.value;fmtPrev('edN')">${esc(e.notes)}</textarea><div class="fmt-pv" id="edN_pv"></div>
 
   <h3 style="margin-top:16px" id="edPr">🕰️ זמני תפילות</h3>
