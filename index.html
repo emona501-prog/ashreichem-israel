@@ -309,6 +309,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
+.pro-go{display:flex;flex-direction:column;gap:6px;margin-top:10px}.pro-how{padding-inline-start:18px;margin:4px 0;line-height:1.6;font-size:.92rem}.pro-how li{margin-bottom:6px}
 .pro-live{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff4d6;border-radius:12px;padding:10px}.pro-live.on{background:#e3f6ea}
 .pro-b{display:inline-block;font-size:.7rem;background:linear-gradient(135deg,#e8c873,#c9972c);color:#3b2a06;border-radius:999px;padding:2px 8px;vertical-align:middle;font-weight:800}
 .pro-card{border:2px solid #e8c873;background:linear-gradient(135deg,#fffaf0,#fff)}.pro-card.off{border-style:dashed}
@@ -891,7 +892,9 @@ function proPay(sid){const s=shul(sid);modal(`<div style="text-align:center;font
 /* ---- מנהל: הפעלה / הארכה / ביטול ---- */
 async function proSet(sid,months){if(ROLE?.type!=='admin')return;const cur=(PRO[sid]&&PRO[sid].until)||0,base=Math.max(Date.now(),cur);
   const until=months?base+months*30.44*864e5:0;try{await C.F.setDoc(dref('config','pro'),{[sid]:{until,at:Date.now()}},{merge:true});PRO[sid]={until};toast(months?'⭐ המנוי הוארך עד '+dmy(until):'המנוי בוטל');closeModal();render()}catch(e){cerr(e)}}
-function proAdmin(sid){const s=shul(sid),p=proInfo(s);modal(`<b>${esc(s.name)}</b><div class="muted" style="margin:4px 0 10px">${p.on?`פעיל עד ${dmy(p.until)}${p.trial?' (ניסיון)':''}`:p.used?'הסתיים '+dmy(p.until):'לא הופעל'}</div>
+function proAdmin(sid){const s=shul(sid),p=proInfo(s);modal(`<b>${esc(s.name)}</b>
+  <div class="pro-go"><button class="btn" onclick="closeModal();proModal('${sid}')">⭐ כלי הפרו – עריכה</button><button class="btn sec" onclick="closeModal();go('shul',{id:'${sid}'})">👁️ איך זה נראה לציבור</button><button class="btn sec" onclick="window.open('${APP_URL}?tv=${sid}','_blank')">📺 המסך לבית הכנסת</button></div>
+  <h4 style="margin:12px 0 2px">💳 המנוי</h4><div class="muted" style="margin:4px 0 10px">${p.on?`פעיל עד ${dmy(p.until)}${p.trial?' (ניסיון)':''}`:p.used?'הסתיים '+dmy(p.until):'לא הופעל'}</div>
   <div class="btns" style="gap:6px"><button class="btn sm" onclick="proSet('${sid}',1)">+ חודש</button><button class="btn sm" onclick="proSet('${sid}',3)">+ 3 חודשים</button><button class="btn sm" onclick="proSet('${sid}',12)">+ שנה</button>${PRO[sid]&&PRO[sid].until?`<button class="btn red sm" onclick="proSet('${sid}',0)">ביטול המנוי</button>`:''}</div>
   ${gabPh(s)?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="proRemind('${sid}')">💬 תזכורת תשלום לגבאי</button>`:''}`,'⭐ מנוי פרו')}
 function proRemind(sid){const s=shul(sid),g=gabPh(s),p=proInfo(s);if(!g)return;
@@ -913,7 +916,14 @@ function proAdminCard(){const L=S.shuls.map(s=>({s,p:proInfo(s)})).filter(x=>x.p
   <div class="pro-live ${proLive()?'on':''}"><div><b>${proLive()?'✅ פתוח לגבאים':'🔒 מצב בדיקה – רק אתה רואה'}</b><div class="muted" style="font-size:.8rem">${proLive()?'כל גבאי רואה את ההצעה בדף בית הכנסת שלו':'הגבאים לא רואים את גרסת הפרו עד שתפתח'}</div></div><button class="btn sm ${proLive()?'ghost':''}" onclick="proLiveSet(${!proLive()})">${proLive()?'🔒 להסתיר':'🚀 לפתוח לגבאים'}</button></div>
   <button class="btn sec" style="width:100%;margin:8px 0" onclick="proDemoPick()">🧪 הדגמה – לראות איך הכל נראה</button>
   ${L.map(({s,p})=>`<div class="row" role="button" onclick="proAdmin('${s.id}')" style="cursor:pointer"><div class="main"><b>${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${p.on?(p.trial?'🎁 ניסיון':'✅ משלם')+' · עד '+dmy(p.until)+(p.days<=14?' ⚠️':''):'⛔ הסתיים '+dmy(p.until)}</span></div><span>‹</span></div>`).join('')||'<div class="muted">עוד אף בית כנסת לא הפעיל פרו. אפשר להפעיל ידנית מעריכת בית כנסת.</div>'}
-  <div class="muted" style="font-size:.78rem;margin-top:6px">לחיצה על בית כנסת – הארכה אחרי תשלום, ביטול ותזכורת בוואטסאפ.</div></div>`}
+  <div class="muted" style="font-size:.78rem;margin-top:6px">לחיצה על בית כנסת ← עריכת כלי הפרו, צפייה בדף, המסך, והמנוי.</div></div>
+  <div class="card"><h3>📖 איך זה עובד – צעד אחר צעד</h3><ol class="pro-how">
+  <li><b>הפעלה:</b> הגבאי נכנס לדף בית הכנסת שלו ולוחץ "🎁 3 חודשים חינם". (אתה יכול להפעיל בעצמך: בחר בית כנסת למעלה ← "+ חודש".)</li>
+  <li><b>עריכה:</b> "⭐ כלי הפרו" – חמש לשוניות: 📌 הודעה · 💝 תרומות · 📜 עליות · 📎 קבצים · 📺 מסך. ממלאים ולוחצים "שמירה".</li>
+  <li><b>תרומות:</b> ממלאים מספר לביט, קישור פייבוקס או קישור לאשראי (נדרים פלוס), יעד וכמה נאסף. בדף בית הכנסת מופיעים כפתורי תרומה ופס התקדמות. <u>הכסף עובר ישירות לבית הכנסת</u> – האפליקציה לא נוגעת בכסף; את "נאסף עד כה" הגבאי מעדכן ידנית.</li>
+  <li><b>עליות:</b> בוחרים שבת, כותבים שם וטלפון לכל עלייה, ולוחצים 📨 – נפתח וואטסאפ עם הודעה מוכנה לעולה. הרשימה מוצגת בדף ובמסך עד סוף השבת.</li>
+  <li><b>מסך:</b> פותחים את הקישור בטלוויזיה חכמה / מחשב שמחובר למסך – לוח דיגיטלי שמתעדכן לבד.</li>
+  <li><b>תשלום:</b> אחרי 3 חודשים – 29 ₪ לחודש בביט/פייבוקס אליך; אתה מאריך כאן בלחיצה.</li></ol></div>`}
 
 /* ---- תצוגה בדף בית הכנסת (לכולם, רק כשפרו פעיל) ---- */
 function proPinHtml(s){return isPro(s)&&s.pin&&s.pin.t?`<div class="card pro-pin"><b>📌 ${esc(s.pin.h||'הודעה מהגבאי')}</b><div style="white-space:pre-line;margin-top:4px">${fmtTxt(s.pin.t)}</div></div>`:''}
