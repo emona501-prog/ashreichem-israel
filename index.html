@@ -2502,7 +2502,7 @@ function drawEd(isNew){
   <label class="f">שם בית הכנסת</label><input class="inp" value="${esc(e.name)}" oninput="ED.name=this.value">
   <label class="f">🏛️ לוגו / סמל בית הכנסת <span class="muted">(לא חובה)</span></label><div id="edLogo">${logoEdHtml()}</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div><label class="f">שכונה</label><select class="inp" onchange="ED.nh=this.value">${S.neighborhoods.map(n=>`<option ${n===e.nh?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
+    <div><label class="f">שכונה${rq?' <span style="color:#b91c1c">*</span>':''}</label><select class="inp" onchange="ED.nh=this.value">${rq?`<option value="" ${!e.nh?'selected':''}>— בחרו שכונה —</option>`:''}${S.neighborhoods.map(n=>`<option ${n===e.nh?'selected':''}>${esc(n)}</option>`).join('')}${rq?`<option value="__other" ${e.nh==='__other'?'selected':''}>🌍 שכונה אחרת</option>`:''}</select></div>
     <div><label class="f">נוסח</label><input class="inp" list="nus" value="${esc(e.nusach)}" oninput="ED.nusach=this.value"><datalist id="nus"><option>ספרד</option><option>אשכנז</option><option>עדות המזרח</option><option>תימני</option><option>חב״ד</option></datalist></div>
   </div>
   <label class="f">כתובת</label><input class="inp" id="edAddr" value="${esc(e.address)}" oninput="ED.address=this.value">
@@ -3146,23 +3146,44 @@ function gabSend(){
 /* ===== 📝 הרשמה עצמית של בית כנסת (גבאי ממלא – המנהל מאשר בלחיצה) ===== */
 function reqStart(){
   if(!needCloud())return;
-  ED={id:'r'+uid(),_req:1,name:'',nh:S.neighborhoods[0]||'',address:'',nusach:'',access:'',gabbai:'',phone:'',notes:'',photos:[],
+  ED={id:'r'+uid(),_req:1,name:'',nh:'',address:'',nusach:'',access:'',gabbai:'',phone:'',notes:'',photos:[],
     gabbaim:[{name:U.name||'',phone:U.phone||'',pub:true}],
     prayers:[{id:uid(),t:'שחרית',d:'wk6',tm:'07:00',n:''},{id:uid(),t:'מנחה',d:'wk',tm:'@set-15',n:''},{id:uid(),t:'ערבית',d:'wk',tm:'@tzeit+0',n:''},
       {id:uid(),t:'קבלת שבת',d:'fri',tm:'@candle+20',n:''},{id:uid(),t:'שחרית',d:'sat',tm:'08:00',n:''},{id:uid(),t:'מנחה',d:'sat',tm:'@set-40',n:''},{id:uid(),t:'ערבית',d:'mz',tm:'@tzeit+0',n:''}],
     events:[]};
   drawEd(true);
 }
+/* ===== 📍 הגבלת אזור: רק ארנונה–תלפיות וארמון הנציב ===== */
+const AREA_OK=/תלפיות|ארנונה|ארמון|הנציב|רמת רחל/;
+function areaBox(){const B={a:31.737,b:31.763,c:35.207,d:35.247};
+  S.shuls.forEach(x=>{const g=shulLL(x);if(g&&Math.abs(g[0]-MAP_C[0])<.03&&Math.abs(g[1]-MAP_C[1])<.04){B.a=Math.min(B.a,g[0]-.004);B.b=Math.max(B.b,g[0]+.004);B.c=Math.min(B.c,g[1]-.004);B.d=Math.max(B.d,g[1]+.004)}});return B}
+/* 'in' / 'out' / 'unknown' – "מחוץ לאזור" רק כשבטוחים: גם השכונה במפה וגם המיקום מחוץ לתחום */
+async function areaCheck(addr){const a=String(addr||'').replace(/\(.*?\)/g,'').replace(/,?\s*ירושלים.*$/,'').trim();if(!a)return{r:'unknown'};
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=il&accept-language=he&q='+encodeURIComponent(a+', ירושלים'));const j=await r.json();const h=j&&j[0];if(!h)return{r:'unknown'};
+    const ll={lat:+(+h.lat).toFixed(6),lng:+(+h.lon).toFixed(6)},ad=h.address||{},where=[ad.neighbourhood,ad.suburb,ad.quarter,ad.city_district].filter(Boolean).join(' ');
+    const B=areaBox(),inBox=ll.lat>=B.a&&ll.lat<=B.b&&ll.lng>=B.c&&ll.lng<=B.d,nameOk=AREA_OK.test(where);
+    const city=ad.city||ad.town||ad.village||'';if(city&&!/ירושלים/.test(city))return{r:'out',where:city};
+    if(nameOk||inBox)return{r:'in',ll};if(where)return{r:'out',where};return{r:'unknown'}}catch(e){return{r:'unknown'}}}
+function outArea(where){const L=S.neighborhoods.filter(n=>n!=='__other').join(' ו');
+  modal(`<div style="text-align:center;font-size:2.6rem">📍</div><h2 style="text-align:center;margin:4px 0">האפליקציה מוגבלת לשכונות שלנו</h2>
+  <p style="text-align:center">"${esc(S.settings.appName||'אשריכם ישראל')}" פועלת כרגע רק בשכונות <b>${esc(L)}</b>.${where?`<br><span class="muted">הכתובת שהזנתם נמצאת ב: ${esc(where)}</span>`:''}</p>
+  <div class="card hl" style="text-align:center"><b>🕍 רוצים אפליקציה כזו גם בשכונה שלכם?</b><br>נשמח להקים גם לכם – עם כל בתי הכנסת, זמני התפילות והמניינים של השכונה.</div>
+  <button class="btn" style="width:100%;background:#25d366;color:#fff;margin-top:8px" onclick="window.open('https://wa.me/${adminWa()}?text='+encodeURIComponent('שלום, אני גבאי ואני מעוניין לשמוע פרטים על אפליקציה כזו לשכונה שלנו 🙏'))">💬 לפרטים בוואטסאפ</button>
+  <div class="muted" style="text-align:center;font-size:.85rem;margin-top:8px">טעות? בית הכנסת כן נמצא באזור – בדקו את הכתובת ונסו שוב, או כתבו לנו בוואטסאפ.</div>
+  <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="drawEd(true)">↩️ חזרה לטופס</button>`,'📍 מחוץ לאזור')}
 function reqValidate(){
   const e=ED;e.gabbaim=(e.gabbaim||[]).filter(g=>(g.name||'').trim()||(g.phone||'').trim());
-  if(!e.name.trim())return'שם בית הכנסת';if(!(e.address||'').trim())return'כתובת';
+  if(!e.name.trim())return'שם בית הכנסת';if(!e.nh)return'שכונה';if(!(e.address||'').trim()||!/\d/.test(e.address))return'כתובת מלאה (רחוב ומספר)';
   if(!e.gabbaim.some(g=>telOk(g.phone)))return'טלפון של גבאי';if(!e.prayers.length)return'לפחות זמן תפילה אחד';return'';
 }
 async function reqSubmit(){
   const miss=reqValidate();if(miss)return toast('חסר: '+miss);if(!termsChk('rqT'))return;
   {const D=dupOf(ED);if(D.length){modal(`<div style="text-align:center;font-size:2.4rem">🕍</div><p><b>בית הכנסת הזה כבר קיים באפליקציה:</b></p><div class="card hl">${D.map(s=>`<b>${esc(s.name)}</b><div class="muted">${esc(s.address||'')}</div>`).join('<hr>')}</div><p>אין צורך למלא שוב 🙂 כדי לעדכן אותו – מבקשים <b>קוד גבאי</b>:</p><button class="btn" style="width:100%;min-height:50px" onclick="closeModal();codeReq();setTimeout(()=>{const s=$('#crS');if(s)s.value='${D[0].id}'},60)">🔑 בקשת קוד גבאי לבית הכנסת הזה</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">זה בית כנסת אחר – חזרה לטופס</button><button class="btn ghost sm" style="width:100%;margin-top:4px" onclick="ED._dupForce=1;closeModal();reqSubmit()">שליחה בכל זאת</button>`,'כבר קיים');if(!ED._dupForce)return}}const uidv=myUid();if(!uidv)return toast('רגע… מתחבר לשרת');
+  if(ED.nh==='__other')return outArea();
+  toast('📍 בודק את הכתובת…');const geo=await areaCheck(ED.address);if(geo.r==='out')return outArea(geo.where);
+  if(geo.ll){ED.lat=geo.ll.lat;ED.lng=geo.ll.lng}
   const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
-  try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',data:shulDoc(ED)})}catch(e){return cerr(e)}
+  try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',geo:geo.r,data:shulDoc(ED)})}catch(e){return cerr(e)}
   relayAdmin('req','📥 בקשת הצטרפות חדשה',ED.name||'בית כנסת');
   const nm=ED.name;closeModal();
   modal(`<div style="text-align:center;font-size:3rem">🎉</div><h2 style="text-align:center">הפרטים נשלחו בהצלחה!</h2>
@@ -3177,7 +3198,7 @@ function reqsV(){
   return `<button class="btn ghost sm" onclick="go('admin')">→ לוח ניהול</button><h2 style="margin-top:10px">📥 בקשות הצטרפות של בתי כנסת</h2>
   <div class="muted" style="margin-bottom:10px">הגבאים מילאו את הפרטים בעצמם. בודקים, מתקנים אם צריך – ובלחיצה אחת בית הכנסת עולה לאפליקציה עם קוד גבאי.</div>
   ${L.map(r=>{const d=r.data,gs=(d.gabbaim||[]);return `<div class="card"><h3 style="margin-bottom:2px">🕍 ${esc(d.name)}</h3>
-    <div class="muted">📍 ${esc(d.address||'')} · ${esc(d.nh||'')}${d.nusach?' · נוסח '+esc(d.nusach):''}</div>
+    <div class="muted">📍 ${esc(d.address||'')} · ${esc(d.nh||'')}${d.nusach?' · נוסח '+esc(d.nusach):''}</div>${r.geo==='in'?'<div class="badge" style="background:#e3f6ea;color:#15693a">✅ הכתובת אומתה – בתוך האזור</div>':r.geo==='unknown'?'<div class="badge" style="background:#fff4d6;color:#8a5a12">⚠️ לא הצלחנו לאמת את הכתובת במפה – בדקו שהיא באזור</div>':''}
     <div class="muted">👤 ${gs.map(g=>esc(g.name)+' '+esc(g.phone)).join(' · ')}</div>
     <div style="margin-top:6px"><span class="badge">🕰️ ${(d.prayers||[]).length} זמני תפילה</span> <span class="badge">📚 ${(d.events||[]).length} שיעורים/פעילויות</span> <span class="badge gold">${new Date(r.dt).toLocaleDateString('he-IL')}</span></div>
     ${d.notes?`<div class="muted" style="margin-top:6px;white-space:pre-line">${esc(d.notes).slice(0,300)}</div>`:''}
