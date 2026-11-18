@@ -875,7 +875,7 @@ let PRO_DEMO={};
 const isPro=s=>{if(!PRO_ON)return false;const id=typeof s==='string'?s:s&&s.id;if(PRO_DEMO[id])return true;if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return false;return proInfo(s).on};
 const proLive=()=>!!S.settings.proLive;
 const dmy=t=>new Date(t).toLocaleDateString('he-IL');
-function proBadge(s){const p=proInfo(s);return p.on?`<span class="pro-b">⭐ פרו</span>`:''}
+function proBadge(s){return isPro(s)?`<span class="pro-b">⭐ פרו</span>`:''}
 /* כרטיס בדף בית הכנסת – רק לגבאי/מנהל */
 function proEdCard(s){if(!PRO_ON)return'';if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return `<div class="card pro-card off" style="opacity:.85"><b>⭐ גרסת פרו – בבנייה 🚧</b><div class="muted" style="font-size:.85rem">כלים חדשים לניהול בית הכנסת: תרומות, עליות לתורה, מסך לבית הכנסת ועוד. נעדכן כשזה יהיה מוכן 🙏</div></div>`;if(PRO_DEMO[s.id])return `<div class="card pro-card"><b>🧪 מצב הדגמה (רק אצלך, לא נשמר)</b><div class="btns" style="margin-top:8px"><button class="btn" onclick="proModal('${s.id}')">⭐ כלי הפרו</button><button class="btn sec" onclick="window.open('${APP_URL}?tv=${s.id}&demo=1','_blank')">📺 המסך</button><button class="btn ghost" onclick="proDemoEnd('${s.id}')">⏹️ סיום הדגמה</button></div></div>`;const p=proInfo(s);
   if(p.on)return `<div class="card pro-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>⭐ גרסת פרו ${p.trial?'– תקופת ניסיון':''}</b><span class="muted" style="font-size:.8rem">עד ${dmy(p.until)} (${p.days} ימים)</span></div>
