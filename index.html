@@ -309,6 +309,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
+.pay-c{border:2px dashed #f3b7c6;background:#fff5f8}
 .pay-b{display:flex;justify-content:center;width:100%;margin-top:10px;background:#d63c6b;color:#fff;font-weight:800;font-size:1.05rem;padding:12px;border-radius:14px;text-decoration:none;box-sizing:border-box}
 .pro-go{display:flex;flex-direction:column;gap:6px;margin-top:10px}.pro-how{padding-inline-start:18px;margin:4px 0;line-height:1.6;font-size:.92rem}.pro-how li{margin-bottom:6px}
 .pro-live{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff4d6;border-radius:12px;padding:10px}.pro-live.on{background:#e3f6ea}
@@ -1004,6 +1005,16 @@ function tvTick(){if(!TVSID)return;let el=document.getElementById('tvRoot');if(!
   el.innerHTML=tvV()}
 if(TVSID){setInterval(tvTick,15000);setTimeout(tvTick,300);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tvTick();try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}})}
 
+
+/* 💳 חיבור נדרים פלוס – הגבאי מדביק לבד */
+function payConnect(sid){const s=shul(sid);if(!s||!canEdit(sid))return;
+  modal(`<div class="muted">1️⃣ בממשק הניהול של נדרים פלוס – העתיקו את הקישור לעמוד התרומות של בית הכנסת (לא מוצאים? התמיכה של נדרים פלוס תשלח לכם).<br>2️⃣ הדביקו אותו כאן ולחצו שמירה.</div>
+  <input class="inp" id="payIn" dir="ltr" style="margin-top:10px" placeholder="https://..." value="${esc(s.payUrl||'')}">
+  <button class="btn sec sm" style="margin-top:6px" onclick="navigator.clipboard&&navigator.clipboard.readText().then(t=>{$('#payIn').value=t.trim()}).catch(()=>toast('לחצו לחיצה ארוכה בתיבה ← הדבק'))">📋 הדבקה</button>
+  <button class="btn" style="width:100%;margin-top:10px;background:#d63c6b" onclick="paySave('${sid}')">💾 שמירה</button>
+  ${s.payUrl?`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="$('#payIn').value='';paySave('${sid}')">🗑️ הסרת הקישור</button>`:''}`,'💳 חיבור נדרים פלוס')}
+async function paySave(sid){const v=($('#payIn').value||'').trim();if(v&&!/^https:\/\/\S+\.\S+/.test(v))return toast('הקישור צריך להתחיל ב-https://');if(!needCloud())return;
+  try{await C.F.updateDoc(dref('shuls',sid),{payUrl:v});shul(sid).payUrl=v;closeModal();toast(v?'✅ חובר! הכפתור מופיע בדף בית הכנסת':'הקישור הוסר');render()}catch(e){cerr(e)}}
 function shulPage(){
   const s=shul(ST.id);if(!s)return'<div class="empty-msg">בית הכנסת לא נמצא</div>';
   if(!ST._v){countView(s.id);ST._v=1}loadPhotos(s.id);
@@ -1024,6 +1035,7 @@ function shulPage(){
   ${ed&&missingOf(s).length?`<div class="card" style="background:#fdeee0;border-color:#f0b37e"><b>⚠️ חסרים פרטים חשובים:</b> ${missingOf(s).join(', ')}<div class="muted">הציבור צריך את הפרטים האלה. לחצו "עריכת פרטים וזמנים" כדי להשלים.</div></div>`:''}
   ${(()=>{const gs=gabbaimOf(s).filter(g=>g.pub!==false&&(g.name||g.phone));return gs.length?`<div class="card"><h3>👤 גבאים ואנשי קשר</h3>${gs.map(g=>`<div class="row"><div class="main"><b>${esc(g.name||'גבאי')}</b>${g.phone?`<span class="muted" style="direction:ltr;text-align:right">${esc(g.phone)}</span>`:''}</div>${telOk(g.phone)?`<a class="btn sec sm" href="tel:${esc(g.phone)}" aria-label="חיוג">📞</a><a class="btn sec sm" href="https://wa.me/${waNum(g.phone)}" target="_blank" rel="noopener" aria-label="וואטסאפ">💬</a>`:''}</div>`).join('')}</div>`:''})()}
   ${ed?`<div class="card" style="background:#e5f4ec"><b>✏️ מצב עריכה</b><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="editShul('${s.id}')">עריכת פרטים וזמנים</button><button class="btn sm sec" onclick="addPhoto('${s.id}')">📷 הוספת תמונה</button><button class="btn sm sec" onclick="postUpdate('${s.id}')">📢 עדכון לפס הרץ</button><button class="btn sm ghost" onclick="viewAs(true)">👁️ תצוגה רגילה</button></div></div>`:''}
+  ${ed&&!s.payUrl?`<div class="card pay-c"><b>💳 עובדים עם נדרים פלוס?</b><div class="muted" style="font-size:.85rem;margin:2px 0 8px">הדביקו את הקישור לעמוד התרומות של בית הכנסת – ויופיע כאן כפתור "תשלום נדרים ותרומות" לכל המתפללים. הכסף עובר ישירות לבית הכנסת.</div><button class="btn" style="width:100%;background:#d63c6b" onclick="payConnect('${s.id}')">💳 לחיבור – הדבקת קישור</button></div>`:''}
   ${ed?proEdCard(s):''}${proPinHtml(s)}${proDonHtml(s)}${proAliyotHtml(s)}
   ${s.notes?`<div class="card hl" style="white-space:pre-line"><b>ℹ️ הודעות בית הכנסת</b>\n${linkify(s.notes)}</div>`:''}
   <div class="card"><h3>🕰️ זמני תפילות</h3>
@@ -1229,7 +1241,7 @@ function adAutoEnd(){const d=$('#awdd').value,t=$('#awtm').value;if(!d||$('#au')
 //@sendAd
 //@adSt
 /* קיצור דרך: פתיחת העריכה ישר על השדה הנכון, עם הדגשה */
-const ED_FOCUS={logo:'#edLogo',loc:'#edLoc',addr:'#edAddr',phone:'#edGab',prayers:'#edPr',paste:'#edSp',notes:'#edN'};
+const ED_FOCUS={pay:'#edPay',logo:'#edLogo',loc:'#edLoc',addr:'#edAddr',phone:'#edGab',prayers:'#edPr',paste:'#edSp',notes:'#edN'};
 function editAt(id,f){editShul(id);setTimeout(()=>{let el=$(ED_FOCUS[f]||'');
   if(f==='phone'){if(!ED.gabbaim.length||ED.gabbaim.every(g=>(g.phone||'').trim())){ED.gabbaim.push({name:'',phone:'',pub:true});drawEd();}const ph=[...document.querySelectorAll('#modals input[inputmode="tel"]')].find(i=>!telOk(i.value))||document.querySelector('#modals input[inputmode="tel"]');el=ph||$('#edGab')}
   if(!el)return;const box=el.closest('label')?el:el;box.scrollIntoView({behavior:'smooth',block:'center'});
@@ -1247,6 +1259,7 @@ const GAB_TIPS=[
 function gabMsgs(s){const L=[],miss=missingOf(s),d=new Date().getDay();
   if(miss.length){const k=missKey(miss[0]);L.push({t:`גבאי יקר, חסרים עוד כמה פרטים בבית הכנסת: <b>${miss.join(', ')}</b>.<br>בוא נשלים – זה לוקח דקה! 😊`,b:{phone:'📞 להוספת טלפון',addr:'📍 להוספת כתובת',prayers:'🕰️ להוספת זמני תפילה'}[k],a:`closeModal();editAt('${s.id}','${k==='prayers'?'paste':k}')`})}
   if(!shulLogo(s)&&!(s.photos||[]).length)L.push({t:'לבית הכנסת עוד אין לוגו או תמונה 🏛️<br>עם סמל – זה נראה הרבה יותר מכובד ברשימה!',b:'🏛️ להוספת לוגו',a:`closeModal();editAt('${s.id}','logo')`});
+  if(!s.payUrl)L.push({t:'בית הכנסת עובד עם <b>נדרים פלוס</b>? 💳<br>הדבק כאן את הקישור לעמוד התרומות שלכם – ויופיע כפתור "תשלום נדרים" לכל המתפללים!',b:'💳 לחיבור נדרים פלוס',a:`closeModal();payConnect('${s.id}')`});
   if(!shulLL(s))L.push({t:'בית הכנסת עוד לא מסומן על המפה 🗺️<br>כשאתה בבית הכנסת – לחיצה אחת: "📍 אני בבית הכנסת עכשיו".',b:'📍 לסימון על המפה',a:`closeModal();editAt('${s.id}','loc')`});
   if(d===4||d===5)L.push({t:'שבת מתקרבת! 🕯️<br>בדקת שזמני השבת של בית הכנסת נכונים לשבוע הזה?',b:'🕰️ לבדיקת הזמנים',a:`closeModal();editAt('${s.id}','prayers')`});
   if(s.upd&&Date.now()-s.upd>30*864e5)L.push({t:`עברו כבר <b>${Math.floor((Date.now()-s.upd)/864e5)} ימים</b> מהעדכון האחרון 📅<br>אם השתנה משהו – אל תשכח לעדכן!`,b:'✏️ לעדכון הזמנים',a:`closeModal();editAt('${s.id}','prayers')`});
@@ -2673,7 +2686,7 @@ function drawEd(isNew){
   <label class="f">כתובת</label><input class="inp" id="edAddr" value="${esc(e.address)}" oninput="ED.address=this.value">
   <label class="f">🗺️ מיקום על המפה</label><div id="edLoc">${edLocHtml()}</div>
   <label class="f">♿ נגישות</label><input class="inp" value="${esc(e.access||'')}" placeholder="לדוגמה: נגיש / יש מדרגות" oninput="ED.access=this.value">
-  <label class="f">💳 קישור לתשלום נדרים ותרומות <span class="muted" style="font-weight:400">(נדרים פלוס או אחר – לא חובה)</span></label><input class="inp" dir="ltr" value="${esc(e.payUrl||'')}" placeholder="https://..." oninput="ED.payUrl=this.value.trim()">
+  <label class="f">💳 קישור לתשלום נדרים ותרומות <span class="muted" style="font-weight:400">(נדרים פלוס או אחר – לא חובה)</span></label><input class="inp" id="edPay" dir="ltr" value="${esc(e.payUrl||'')}" placeholder="https://..." oninput="ED.payUrl=this.value.trim()">
   <div class="muted" style="font-size:.78rem;margin-top:2px">מדביקים את הקישור לעמוד התרומות של בית הכנסת – ובדף בית הכנסת יופיע כפתור "תשלום נדרים ותרומות". הכסף עובר ישירות לבית הכנסת.</div>
   <h3 style="margin-top:16px" id="edGab">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
   ${e.gabbaim.map((g,i)=>`<div class="ed2">
