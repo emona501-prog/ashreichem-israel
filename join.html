@@ -3,19 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>אשריכם ישראל – אפליקציה לשכונה שלכם</title>
+<title>אשריכם ישראל – יצירת קשר</title>
 <meta property="og:title" content="רוצים אפליקציה כזו גם לשכונה שלכם?">
-<meta property="og:description" content="לחצו ושלחו הודעה בוואטסאפ – חי אפליקציות">
+<meta property="og:description" content="לחיצה – ושולחים הודעה בוואטסאפ · חי אפליקציות">
 <meta property="og:image" content="https://emona501-prog.github.io/ashreichem-israel/icon-512.png">
-<script>
-var t='שלום, אני גבאי ואני מעוניין לשמוע פרטים על האפליקציה שלכם 🙏';
-location.replace('https://wa.me/972546137202?text='+encodeURIComponent(t));
-</script>
-<style>body{font-family:system-ui,sans-serif;background:#1b2f4a;color:#fff;text-align:center;padding:60px 20px}a{color:#e8c873;font-size:20px;font-weight:700}</style>
+<style>body{font-family:system-ui,sans-serif;background:#1b2f4a;color:#fff;text-align:center;padding:60px 20px;margin:0}
+a.b{display:inline-block;margin-top:18px;background:#25d366;color:#0b2a17;font-size:22px;font-weight:800;padding:16px 30px;border-radius:999px;text-decoration:none}</style>
 </head>
 <body>
-<p>פותח וואטסאפ…</p>
-<p><a id="go" href="https://wa.me/972546137202">לא נפתח? לחצו כאן</a></p>
-<script>document.getElementById('go').href='https://wa.me/972546137202?text='+encodeURIComponent(t);</script>
+<p style="font-size:20px">פותח וואטסאפ…</p>
+<a class="b" id="go" href="#">💬 לפתיחת הוואטסאפ</a>
+<script>
+var PH='972546137202',T='שלום, אני גבאי ואני מעוניין לשמוע פרטים על האפליקציה שלכם 🙏',E=encodeURIComponent(T);
+var app='whatsapp://send?phone='+PH+'&text='+E, web='https://wa.me/'+PH+'?text='+E;
+var and=/android/i.test(navigator.userAgent);
+var intent='intent://send?phone='+PH+'&text='+E+'#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url='+encodeURIComponent(web)+';end';
+var direct=and?intent:app;
+document.getElementById('go').href=direct;
+location.href=direct;
+setTimeout(function(){if(!document.hidden)document.getElementById('go').href=web},2500);
+</script>
 </body>
 </html>
