@@ -309,6 +309,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
+.pro-live{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff4d6;border-radius:12px;padding:10px}.pro-live.on{background:#e3f6ea}
 .pro-b{display:inline-block;font-size:.7rem;background:linear-gradient(135deg,#e8c873,#c9972c);color:#3b2a06;border-radius:999px;padding:2px 8px;vertical-align:middle;font-weight:800}
 .pro-card{border:2px solid #e8c873;background:linear-gradient(135deg,#fffaf0,#fff)}.pro-card.off{border-style:dashed}
 .pro-pin{background:#fff7e0;border-color:#f0d58c}.pro-don{border-color:#f3b7c6;background:#fff5f8}.don-b{background:#d63c6b}.don-b.bit{background:#1d6fd1}
@@ -866,11 +867,13 @@ const PRO_PRICE=29,TRIAL_D=90,ALIYOT=['כהן','לוי','שלישי','רביעי
 function proInfo(s){s=typeof s==='string'?shul(s):s;if(!s)return{on:false};const now=Date.now();
   const paid=(PRO[s.id]&&PRO[s.id].until)||0,tr=s.proTrial?s.proTrial+TRIAL_D*864e5:0,until=Math.max(paid,tr);
   return{on:until>now,until,trial:tr>now&&tr>=paid,paid:paid>now,used:!!s.proTrial,ended:!!until&&until<=now,days:Math.ceil((until-now)/864e5)}}
-const isPro=s=>proInfo(s).on;
+let PRO_DEMO={};
+const isPro=s=>{const id=typeof s==='string'?s:s&&s.id;if(PRO_DEMO[id])return true;if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return false;return proInfo(s).on};
+const proLive=()=>!!S.settings.proLive;
 const dmy=t=>new Date(t).toLocaleDateString('he-IL');
 function proBadge(s){const p=proInfo(s);return p.on?`<span class="pro-b">⭐ פרו</span>`:''}
 /* כרטיס בדף בית הכנסת – רק לגבאי/מנהל */
-function proEdCard(s){const p=proInfo(s);
+function proEdCard(s){if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return `<div class="card pro-card off" style="opacity:.85"><b>⭐ גרסת פרו – בבנייה 🚧</b><div class="muted" style="font-size:.85rem">כלים חדשים לניהול בית הכנסת: תרומות, עליות לתורה, מסך לבית הכנסת ועוד. נעדכן כשזה יהיה מוכן 🙏</div></div>`;if(PRO_DEMO[s.id])return `<div class="card pro-card"><b>🧪 מצב הדגמה (רק אצלך, לא נשמר)</b><div class="btns" style="margin-top:8px"><button class="btn" onclick="proModal('${s.id}')">⭐ כלי הפרו</button><button class="btn sec" onclick="window.open('${APP_URL}?tv=${s.id}&demo=1','_blank')">📺 המסך</button><button class="btn ghost" onclick="proDemoEnd('${s.id}')">⏹️ סיום הדגמה</button></div></div>`;const p=proInfo(s);
   if(p.on)return `<div class="card pro-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>⭐ גרסת פרו ${p.trial?'– תקופת ניסיון':''}</b><span class="muted" style="font-size:.8rem">עד ${dmy(p.until)} (${p.days} ימים)</span></div>
   <div class="muted" style="font-size:.85rem;margin:4px 0 8px">תרומות · עליות לתורה · הודעה מוצמדת · קבצים וקישורים · מסך לבית הכנסת</div>
   <button class="btn" style="width:100%" onclick="proModal('${s.id}')">⭐ כלי הפרו של בית הכנסת</button>${p.trial&&p.days<=14?`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="proPay('${s.id}')">💳 להמשך המנוי – ${PRO_PRICE} ₪ לחודש</button>`:''}</div>`;
@@ -894,8 +897,21 @@ function proAdmin(sid){const s=shul(sid),p=proInfo(s);modal(`<b>${esc(s.name)}</
 function proRemind(sid){const s=shul(sid),g=gabPh(s),p=proInfo(s);if(!g)return;
   const t=`שלום ${g.name||''} 👋\n${p.on?'מנוי הפרו של':'תקופת הפרו של'} "${s.name}" ${p.on?'מסתיים ב-'+dmy(p.until):'הסתיימה'}.\nלהמשך – ${PRO_PRICE} ₪ לחודש (או ${PRO_PRICE*10} ₪ לשנה) בביט/פייבוקס למספר הזה.\nתודה רבה! 🙏`;
   window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+
+/* ---- 🧪 הדגמה למנהל: הכל מקומי, לא נשמר, אף אחד לא רואה ---- */
+const DEMO_DATA=()=>({pin:{h:'מזל טוב!',t:'מזל טוב למשפחת כהן להולדת הנכד! 🎉\nהשבת: קידוש אחרי התפילה.'},
+  don:{h:'שיפוץ עזרת הנשים',t:'כל תרומה מקרבת את סיום השיפוץ 🙏',bit:'050-0000000',pbx:'https://payboxapp.page.link/demo',link:'',goal:'80000',raised:'31500'},
+  files:[{t:'דף מקורות – שיעור הפרשה',u:'https://example.com/source.pdf'},{t:'שיעור הרב בזום',u:'https://zoom.us/j/123'}],
+  aliyot:{date:iso(nextSat()),list:[{a:'כהן',n:'אהרון כהן',p:''},{a:'לוי',n:'משה לוי',p:''},{a:'שלישי',n:'דוד ישראלי',p:''},{a:'רביעי',n:'יעקב אברהם',p:''},{a:'מפטיר',n:'יוסף מזרחי',p:''}]}});
+function proDemo(sid){if(ROLE?.type!=='admin')return;const s=shul(sid);if(!s)return;PRO_DEMO[sid]={keep:{pin:s.pin,don:s.don,files:s.files,aliyot:s.aliyot}};Object.assign(s,DEMO_DATA());closeModal();go('shul',{id:sid});toast('🧪 מצב הדגמה – רק אצלך, שום דבר לא נשמר')}
+function proDemoEnd(sid){const d=PRO_DEMO[sid];if(!d)return;Object.assign(shul(sid),d.keep);delete PRO_DEMO[sid];render();toast('ההדגמה הסתיימה')}
+async function proLiveSet(v){if(v&&!confirm('לפתוח את גרסת הפרו לכל הגבאים?\nכל גבאי יראה בדף בית הכנסת שלו את ההצעה ל-3 חודשים חינם.'))return;S.settings.proLive=!!v;await saveConfig();toast(v?'⭐ גרסת הפרו פתוחה לגבאים':'🔒 גרסת הפרו מוסתרת מהגבאים');render()}
+function proDemoPick(){modal(`<div class="muted">בחרו בית כנסת להדגמה. ייפתח הדף שלו עם נתוני דוגמה (תרומות, עליות, הודעה, קבצים) – רק אצלכם, ושום דבר לא נשמר.</div>
+  ${S.shuls.slice().sort((a,b)=>(a.no||999)-(b.no||999)).map(s=>`<button class="row" style="width:100%;border:0;background:none;text-align:right;font:inherit;cursor:pointer" onclick="proDemo('${s.id}')"><div class="main"><b>${esc(s.name)}</b></div><span>‹</span></button>`).join('')}`,'🧪 הדגמת גרסת פרו')}
 function proAdminCard(){const L=S.shuls.map(s=>({s,p:proInfo(s)})).filter(x=>x.p.used||x.p.on).sort((a,b)=>a.p.until-b.p.until);
   return `<div class="card"><h3>⭐ מנויי פרו (${L.filter(x=>x.p.on).length} פעילים)</h3>
+  <div class="pro-live ${proLive()?'on':''}"><div><b>${proLive()?'✅ פתוח לגבאים':'🔒 מצב בדיקה – רק אתה רואה'}</b><div class="muted" style="font-size:.8rem">${proLive()?'כל גבאי רואה את ההצעה בדף בית הכנסת שלו':'הגבאים לא רואים את גרסת הפרו עד שתפתח'}</div></div><button class="btn sm ${proLive()?'ghost':''}" onclick="proLiveSet(${!proLive()})">${proLive()?'🔒 להסתיר':'🚀 לפתוח לגבאים'}</button></div>
+  <button class="btn sec" style="width:100%;margin:8px 0" onclick="proDemoPick()">🧪 הדגמה – לראות איך הכל נראה</button>
   ${L.map(({s,p})=>`<div class="row" role="button" onclick="proAdmin('${s.id}')" style="cursor:pointer"><div class="main"><b>${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${p.on?(p.trial?'🎁 ניסיון':'✅ משלם')+' · עד '+dmy(p.until)+(p.days<=14?' ⚠️':''):'⛔ הסתיים '+dmy(p.until)}</span></div><span>‹</span></div>`).join('')||'<div class="muted">עוד אף בית כנסת לא הפעיל פרו. אפשר להפעיל ידנית מעריכת בית כנסת.</div>'}
   <div class="muted" style="font-size:.78rem;margin-top:6px">לחיצה על בית כנסת – הארכה אחרי תשלום, ביטול ותזכורת בוואטסאפ.</div></div>`}
 
@@ -913,8 +929,8 @@ function proAliyotHtml(s){const a=isPro(s)&&aliyotNow(s);if(!a)return'';
   return `<div class="card"><h3>📜 עולים לתורה – ${esc(parTitle(fromIso(a.date)))}</h3>${a.list.filter(x=>x.n).map(x=>`<div class="row"><div class="time" style="font-size:.95rem">${esc(x.a)}</div><div class="main"><b>${esc(x.n)}</b></div></div>`).join('')}</div>`}
 
 /* ---- עורך הפרו (גבאי / מנהל) ---- */
-let PE=null;
-function proModal(sid){const s=shul(sid);if(!s||!canEdit(sid))return;if(!isPro(s)&&ROLE?.type!=='admin')return proPay(sid);
+let PE=null,PE_DEMO=0;
+function proModal(sid){const s=shul(sid);if(!s||!canEdit(sid))return;if(!isPro(s)&&ROLE?.type!=='admin')return proPay(sid);if(PRO_DEMO[sid])PE_DEMO=1;else PE_DEMO=0;
   const sat=iso(nextSat());const al=s.aliyot&&s.aliyot.date>=iso(new Date())?s.aliyot:{date:sat,list:[]};
   PE={sid,pin:Object.assign({h:'',t:''},s.pin),don:Object.assign({h:'',t:'',bit:'',pbx:'',link:'',goal:'',raised:''},s.don),files:(s.files||[]).map(f=>({...f})),
     aliyot:{date:al.date,list:ALIYOT.map(a=>Object.assign({a,n:'',p:''},(al.list||[]).find(x=>x.a===a)||{})).concat((al.list||[]).filter(x=>!ALIYOT.includes(x.a)))}};
@@ -942,16 +958,17 @@ function drawPro(){const P=PE,s=shul(P.sid),v=(o,k)=>esc(o[k]||''),inp=(o,k,ph,x
 function alSend(i){const x=PE.aliyot.list[i],s=shul(PE.sid);if(!x.n||!telOk(x.p||''))return toast('צריך שם וטלפון נייד');
   const t=`שלום ${x.n} 👋\nנקבעת לעלייה לתורה – *${x.a}* – ב${parTitle(fromIso(PE.aliyot.date))}, בבית הכנסת ${s.name}.\nשבת שלום! 🙏`;
   window.open('https://wa.me/'+waNum(x.p)+'?text='+encodeURIComponent(t),'_blank')}
-async function proSave(){const P=PE;if(!P||!needCloud())return;const n=x=>String(x||'').replace(/[^\d.]/g,'');
+async function proSave(){const P=PE;if(!P)return;if(!PE_DEMO&&!needCloud())return;const n=x=>String(x||'').replace(/[^\d.]/g,'');
   const o={pin:{h:P.pin.h.trim(),t:P.pin.t.trim()},don:{h:P.don.h.trim(),t:P.don.t.trim(),bit:P.don.bit.trim(),pbx:P.don.pbx.trim(),link:P.don.link.trim(),goal:n(P.don.goal),raised:n(P.don.raised)},
     files:P.files.filter(f=>f.u&&/^https?:\/\//.test(f.u.trim())).map(f=>({t:f.t.trim(),u:f.u.trim()})),aliyot:{date:P.aliyot.date,list:P.aliyot.list.filter(x=>x.n||x.p).map(x=>({a:x.a,n:x.n.trim(),p:x.p.trim()}))}};
   if([o.don.pbx,o.don.link].some(u=>u&&!/^https?:\/\//.test(u)))return toast('קישור צריך להתחיל ב-https://');
+  if(PE_DEMO){Object.assign(shul(P.sid),o);PE=null;closeModal();toast('🧪 הדגמה: מוצג אצלך בלבד, לא נשמר');render();return}
   try{await C.F.updateDoc(dref('shuls',P.sid),o);Object.assign(shul(P.sid),o);PE=null;closeModal();toast('✔️ נשמר');render()}catch(e){cerr(e)}}
 
 /* ===================== 📺 מסך לבית הכנסת (?tv=sid) ===================== */
 const TVSID=new URLSearchParams(location.search).get('tv');
 function tvPrayers(s,dt){const day=dt.getDay(),L=[];(s.prayers||[]).forEach(x=>{const ds=DAYSETS[x.d];if(!ds||!ds.d.includes(day)||x.t==='זמן')return;const tm=resolveTm(x.tm,dt);if(tm)L.push({t:x.t,tm,n:x.n||''})});return L.sort((a,b)=>toMin(a.tm)-toMin(b.tm))}
-function tvV(){const s=shul(TVSID);if(!s)return`<div class="tv-msg">⏳ טוען…</div>`;
+function tvV(){const s=shul(TVSID);if(s&&/demo=1/.test(location.search)&&!PRO_DEMO[s.id]){PRO_DEMO[s.id]={keep:{}};Object.assign(s,DEMO_DATA())}if(!s)return`<div class="tv-msg">⏳ טוען…</div>`;
   if(!isPro(s))return`<div class="tv-msg">📺 המסך לבית הכנסת זמין בגרסת פרו<br><small>${esc(s.name)}</small></div>`;
   const now=new Date(),z=zmanim(now),nowM=now.getHours()*60+now.getMinutes(),P0=tvPrayers(s,now),nx=P0.find(p=>toMin(p.tm)>=nowM-5),ni=Math.max(0,P0.indexOf(nx)),P=P0.length>9?P0.slice(Math.max(0,Math.min(ni-2,P0.length-9)),Math.max(0,Math.min(ni-2,P0.length-9))+9):P0;
   const w=now.getDay(),sat=w===5||w===6,al=aliyotNow(s),d=s.don&&(s.don.bit||s.don.pbx||s.don.link)?s.don:null;
@@ -2900,7 +2917,7 @@ function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
 }
-function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30,relay:S.settings.relay||''},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
+function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30,relay:S.settings.relay||'',proLive:!!S.settings.proLive},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
 function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;Object.keys(o).forEach(k=>{if(k[0]==='_')delete o[k]});return o}
 
 /* ----- כניסה ----- */
