@@ -309,6 +309,22 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
+.pro-b{display:inline-block;font-size:.7rem;background:linear-gradient(135deg,#e8c873,#c9972c);color:#3b2a06;border-radius:999px;padding:2px 8px;vertical-align:middle;font-weight:800}
+.pro-card{border:2px solid #e8c873;background:linear-gradient(135deg,#fffaf0,#fff)}.pro-card.off{border-style:dashed}
+.pro-pin{background:#fff7e0;border-color:#f0d58c}.pro-don{border-color:#f3b7c6;background:#fff5f8}.don-b{background:#d63c6b}.don-b.bit{background:#1d6fd1}
+.don-g{margin:6px 0}.don-gb{height:12px;border-radius:99px;background:#f1e3e8;overflow:hidden}.don-gb div{height:100%;background:linear-gradient(90deg,#d63c6b,#f08aa8);border-radius:99px}
+.pro-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}.pro-tabs button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:.85rem;cursor:pointer}.pro-tabs button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
+.al-r{display:flex;gap:6px;align-items:center;margin-top:6px}.al-r b{flex:none;width:52px;font-size:.85rem}.al-r .inp{flex:1;min-width:0;margin:0}
+body.tv-on>*:not(#tvRoot){display:none!important}#tvRoot{position:fixed;inset:0;z-index:99999;background:#0f1d33;color:#fff;overflow:hidden;font-family:Heebo,system-ui,sans-serif}
+.tv{display:flex;flex-direction:column;height:100vh;padding:2.2vh 2.5vw;box-sizing:border-box;gap:2vh}
+.tv header{display:flex;justify-content:space-between;align-items:center;width:100%}.tv-n{display:flex;align-items:center;gap:1.5vw}.tv-n img{height:9vh;border-radius:1.2vh;background:#fff}.tv-n b{display:block;font-size:4.6vh}.tv-n span{font-size:2.6vh;color:#c9d6e8}
+.tv-clock{font-size:11vh;font-weight:800;color:#e8c873;font-variant-numeric:tabular-nums;line-height:1}
+.tv-main{flex:1;display:grid;grid-template-columns:1.1fr 1fr 1.15fr;gap:2vw;min-height:0;width:100%}.tv-col{background:rgba(255,255,255,.06);border-radius:2vh;padding:2vh 1.6vw;overflow:hidden;display:flex;flex-direction:column;gap:.6vh}
+.tv h2{margin:0 0 .8vh;font-size:3.2vh;color:#e8c873}.tv-r{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;font-size:2.9vh;padding:.55vh 1vw;border-radius:1vh}.tv-r span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.tv-r b{flex:none}.tv-r b{font-variant-numeric:tabular-nums}.tv-r small{font-size:2vh;color:#c9d6e8}
+.tv-r.nx{background:#e8c873;color:#1b2f4a;font-weight:800}.tv-r.nx small{color:#3b4f6b}.tv-r.sm{font-size:2.6vh;padding:.4vh .6vw}.tv-next{margin-top:auto;font-size:2.8vh;background:#1f3b63;border-radius:1.4vh;padding:1.2vh 1vw;text-align:center}
+.tv-box{background:rgba(255,255,255,.07);border-radius:1.6vh;padding:1.4vh 1vw;font-size:2.7vh;line-height:1.35}.tv-box.pin{background:#fff3cf;color:#3b2a06}.tv-box.pin h2{color:#8a5a12}.tv-box.don .muted{color:#f3d7e0}.tv-bit{margin-top:.8vh;font-size:3vh}
+.tv-foot{height:6vh;background:#e8c873;color:#1b2f4a;border-radius:1.4vh;overflow:hidden;display:flex;align-items:center;font-size:3vh;font-weight:700}.tv-tick{width:100%;overflow:hidden}.tv-tick span{display:inline-block;white-space:nowrap;animation:tvt 45s linear infinite}@keyframes tvt{from{transform:translateX(-100vw)}to{transform:translateX(100%)}}
+.tv-msg{display:flex;align-items:center;justify-content:center;height:100vh;font-size:5vh;text-align:center;line-height:1.5}.tv-e{color:#c9d6e8;font-size:2.6vh}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
@@ -843,6 +859,122 @@ function shuls(){
 }
 function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();pushTags();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
 function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d013','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
+/* ===================== ⭐ גרסת פרו לבית כנסת ===================== */
+/* ניסיון 3 חודשים חינם (proTrial על בית הכנסת) · מנוי בתשלום: config/pro {sid:{until}} – רק המנהל כותב */
+let PRO={};
+const PRO_PRICE=29,TRIAL_D=90,ALIYOT=['כהן','לוי','שלישי','רביעי','חמישי','שישי','שביעי','מפטיר'];
+function proInfo(s){s=typeof s==='string'?shul(s):s;if(!s)return{on:false};const now=Date.now();
+  const paid=(PRO[s.id]&&PRO[s.id].until)||0,tr=s.proTrial?s.proTrial+TRIAL_D*864e5:0,until=Math.max(paid,tr);
+  return{on:until>now,until,trial:tr>now&&tr>=paid,paid:paid>now,used:!!s.proTrial,ended:!!until&&until<=now,days:Math.ceil((until-now)/864e5)}}
+const isPro=s=>proInfo(s).on;
+const dmy=t=>new Date(t).toLocaleDateString('he-IL');
+function proBadge(s){const p=proInfo(s);return p.on?`<span class="pro-b">⭐ פרו</span>`:''}
+/* כרטיס בדף בית הכנסת – רק לגבאי/מנהל */
+function proEdCard(s){const p=proInfo(s);
+  if(p.on)return `<div class="card pro-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>⭐ גרסת פרו ${p.trial?'– תקופת ניסיון':''}</b><span class="muted" style="font-size:.8rem">עד ${dmy(p.until)} (${p.days} ימים)</span></div>
+  <div class="muted" style="font-size:.85rem;margin:4px 0 8px">תרומות · עליות לתורה · הודעה מוצמדת · קבצים וקישורים · מסך לבית הכנסת</div>
+  <button class="btn" style="width:100%" onclick="proModal('${s.id}')">⭐ כלי הפרו של בית הכנסת</button>${p.trial&&p.days<=14?`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="proPay('${s.id}')">💳 להמשך המנוי – ${PRO_PRICE} ₪ לחודש</button>`:''}</div>`;
+  return `<div class="card pro-card off"><b>⭐ גרסת פרו לבית הכנסת שלכם</b>
+  <div class="muted" style="font-size:.88rem;margin:4px 0 8px">💝 תרומות בלחיצה · 📜 עליות לתורה עם הודעה לעולים · 📌 הודעה מוצמדת · 📎 קבצים וזום לשיעורים · 📺 מסך טלוויזיה לבית הכנסת</div>
+  ${p.used?`<div class="muted" style="font-size:.85rem;margin-bottom:6px">תקופת הניסיון הסתיימה ב-${dmy(p.until)}.</div><button class="btn" style="width:100%" onclick="proPay('${s.id}')">💳 חידוש – ${PRO_PRICE} ₪ לחודש</button>`
+  :`<button class="btn" style="width:100%" onclick="proTrial('${s.id}')">🎁 3 חודשים חינם – להפעלה</button><div class="muted" style="font-size:.78rem;text-align:center;margin-top:4px">אחר כך רק ${PRO_PRICE} ₪ לחודש · בלי התחייבות</div>`}</div>`}
+async function proTrial(sid){const s=shul(sid);if(!s||!needCloud())return;if(s.proTrial)return toast('תקופת הניסיון כבר נוצלה');
+  if(!confirm('להפעיל 3 חודשים של גרסת פרו – בחינם?\nבסוף התקופה אפשר להמשיך ב-'+PRO_PRICE+' ₪ לחודש, או להפסיק בלי כלום.'))return;
+  try{await C.F.updateDoc(dref('shuls',sid),{proTrial:Date.now()});s.proTrial=Date.now();relayAdmin('req','⭐ ניסיון פרו הופעל',s.name);toast('⭐ גרסת פרו הופעלה – 3 חודשים חינם!');render();setTimeout(()=>proModal(sid),400)}catch(e){cerr(e)}}
+function proPay(sid){const s=shul(sid);modal(`<div style="text-align:center;font-size:2.4rem">⭐</div><h2 style="text-align:center;margin:4px 0">מנוי פרו – ${PRO_PRICE} ₪ לחודש</h2>
+  <p style="text-align:center">משלמים בביט או בפייבוקס למספר <b dir="ltr">${esc(S.settings.adminPhone||'054-6137202')}</b>, ושולחים לנו הודעה – ונפעיל את המנוי.</p>
+  <div class="card hl" style="text-align:center">💡 תשלום שנתי מראש: <b>${PRO_PRICE*10} ₪</b> במקום ${PRO_PRICE*12} ₪ (חודשיים מתנה)</div>
+  <button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${adminWa()}?text='+encodeURIComponent('שלום, שילמתי על מנוי פרו לבית הכנסת ${esc(s?s.name:'').replace(/'/g,'')} 🙏'))">💬 שילמתי – הודעה בוואטסאפ</button>`,'💳 מנוי פרו')}
+/* ---- מנהל: הפעלה / הארכה / ביטול ---- */
+async function proSet(sid,months){if(ROLE?.type!=='admin')return;const cur=(PRO[sid]&&PRO[sid].until)||0,base=Math.max(Date.now(),cur);
+  const until=months?base+months*30.44*864e5:0;try{await C.F.setDoc(dref('config','pro'),{[sid]:{until,at:Date.now()}},{merge:true});PRO[sid]={until};toast(months?'⭐ המנוי הוארך עד '+dmy(until):'המנוי בוטל');closeModal();render()}catch(e){cerr(e)}}
+function proAdmin(sid){const s=shul(sid),p=proInfo(s);modal(`<b>${esc(s.name)}</b><div class="muted" style="margin:4px 0 10px">${p.on?`פעיל עד ${dmy(p.until)}${p.trial?' (ניסיון)':''}`:p.used?'הסתיים '+dmy(p.until):'לא הופעל'}</div>
+  <div class="btns" style="gap:6px"><button class="btn sm" onclick="proSet('${sid}',1)">+ חודש</button><button class="btn sm" onclick="proSet('${sid}',3)">+ 3 חודשים</button><button class="btn sm" onclick="proSet('${sid}',12)">+ שנה</button>${PRO[sid]&&PRO[sid].until?`<button class="btn red sm" onclick="proSet('${sid}',0)">ביטול המנוי</button>`:''}</div>
+  ${gabPh(s)?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="proRemind('${sid}')">💬 תזכורת תשלום לגבאי</button>`:''}`,'⭐ מנוי פרו')}
+function proRemind(sid){const s=shul(sid),g=gabPh(s),p=proInfo(s);if(!g)return;
+  const t=`שלום ${g.name||''} 👋\n${p.on?'מנוי הפרו של':'תקופת הפרו של'} "${s.name}" ${p.on?'מסתיים ב-'+dmy(p.until):'הסתיימה'}.\nלהמשך – ${PRO_PRICE} ₪ לחודש (או ${PRO_PRICE*10} ₪ לשנה) בביט/פייבוקס למספר הזה.\nתודה רבה! 🙏`;
+  window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+function proAdminCard(){const L=S.shuls.map(s=>({s,p:proInfo(s)})).filter(x=>x.p.used||x.p.on).sort((a,b)=>a.p.until-b.p.until);
+  return `<div class="card"><h3>⭐ מנויי פרו (${L.filter(x=>x.p.on).length} פעילים)</h3>
+  ${L.map(({s,p})=>`<div class="row" role="button" onclick="proAdmin('${s.id}')" style="cursor:pointer"><div class="main"><b>${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${p.on?(p.trial?'🎁 ניסיון':'✅ משלם')+' · עד '+dmy(p.until)+(p.days<=14?' ⚠️':''):'⛔ הסתיים '+dmy(p.until)}</span></div><span>‹</span></div>`).join('')||'<div class="muted">עוד אף בית כנסת לא הפעיל פרו. אפשר להפעיל ידנית מעריכת בית כנסת.</div>'}
+  <div class="muted" style="font-size:.78rem;margin-top:6px">לחיצה על בית כנסת – הארכה אחרי תשלום, ביטול ותזכורת בוואטסאפ.</div></div>`}
+
+/* ---- תצוגה בדף בית הכנסת (לכולם, רק כשפרו פעיל) ---- */
+function proPinHtml(s){return isPro(s)&&s.pin&&s.pin.t?`<div class="card pro-pin"><b>📌 ${esc(s.pin.h||'הודעה מהגבאי')}</b><div style="white-space:pre-line;margin-top:4px">${fmtTxt(s.pin.t)}</div></div>`:''}
+function donBar(d){if(!d||!+d.goal)return'';const pc=Math.min(100,Math.round(100*(+d.raised||0)/+d.goal));
+  return `<div class="don-g"><div class="don-gb"><div style="width:${pc}%"></div></div><div class="muted" style="font-size:.85rem">${(+d.raised||0).toLocaleString('he-IL')} ₪ מתוך ${(+d.goal).toLocaleString('he-IL')} ₪ · ${pc}%</div></div>`}
+function proDonHtml(s){const d=s.don;if(!isPro(s)||!d||!(d.bit||d.pbx||d.link))return'';
+  return `<div class="card pro-don"><h3>💝 ${esc(d.h||'תרומה לבית הכנסת')}</h3>${d.t?`<div style="white-space:pre-line;margin-bottom:6px">${fmtTxt(d.t)}</div>`:''}${donBar(d)}
+  <div class="btns" style="gap:6px;margin-top:8px">${d.pbx?`<a class="btn sm don-b" href="${esc(d.pbx)}" target="_blank" rel="noopener" onclick="countAd('d_${s.id}','wa')">💳 תרומה בפייבוקס</a>`:''}${d.link?`<a class="btn sm don-b" href="${esc(d.link)}" target="_blank" rel="noopener">💳 תרומה באשראי</a>`:''}${d.bit?`<button class="btn sm don-b bit" onclick="donBit('${esc(d.bit)}')">📱 ביט: ${esc(d.bit)}</button>`:''}</div></div>`}
+function donBit(ph){try{navigator.clipboard.writeText(ph.replace(/\D/g,''))}catch(e){}toast('📋 המספר הועתק – פתחו את ביט ובחרו "העברה"',4000)}
+function proLinksHtml(s){const L=(s.files||[]).filter(f=>f.u);return isPro(s)&&L.length?`<div class="card"><h3>📎 קבצים וקישורים</h3>${L.map(f=>`<a class="row" href="${esc(f.u)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><span style="font-size:1.3rem">${/zoom|meet/.test(f.u)?'🎥':/\.pdf/i.test(f.u)?'📄':'🔗'}</span><div class="main"><b>${esc(f.t||f.u)}</b></div><span>‹</span></a>`).join('')}</div>`:''}
+function aliyotNow(s){const a=s.aliyot;if(!a||!a.date||!(a.list||[]).some(x=>x.n))return null;const d=fromIso(a.date);d.setHours(23,59,0,0);return d>=new Date()?a:null}
+function proAliyotHtml(s){const a=isPro(s)&&aliyotNow(s);if(!a)return'';
+  return `<div class="card"><h3>📜 עולים לתורה – ${esc(parTitle(fromIso(a.date)))}</h3>${a.list.filter(x=>x.n).map(x=>`<div class="row"><div class="time" style="font-size:.95rem">${esc(x.a)}</div><div class="main"><b>${esc(x.n)}</b></div></div>`).join('')}</div>`}
+
+/* ---- עורך הפרו (גבאי / מנהל) ---- */
+let PE=null;
+function proModal(sid){const s=shul(sid);if(!s||!canEdit(sid))return;if(!isPro(s)&&ROLE?.type!=='admin')return proPay(sid);
+  const sat=iso(nextSat());const al=s.aliyot&&s.aliyot.date>=iso(new Date())?s.aliyot:{date:sat,list:[]};
+  PE={sid,pin:Object.assign({h:'',t:''},s.pin),don:Object.assign({h:'',t:'',bit:'',pbx:'',link:'',goal:'',raised:''},s.don),files:(s.files||[]).map(f=>({...f})),
+    aliyot:{date:al.date,list:ALIYOT.map(a=>Object.assign({a,n:'',p:''},(al.list||[]).find(x=>x.a===a)||{})).concat((al.list||[]).filter(x=>!ALIYOT.includes(x.a)))}};
+  drawPro()}
+function drawPro(){const P=PE,s=shul(P.sid),v=(o,k)=>esc(o[k]||''),inp=(o,k,ph,x='')=>`<input class="inp" value="${v(P[o],k)}" placeholder="${ph}" oninput="PE.${o}.${k}=this.value" ${x}>`;
+  modal(`<div class="pro-tabs">${[['pin','📌 הודעה'],['don','💝 תרומות'],['al','📜 עליות'],['files','📎 קבצים'],['tv','📺 מסך']].map(([k,l])=>`<button class="${(P.tab||'pin')===k?'on':''}" onclick="PE.tab='${k}';drawPro()">${l}</button>`).join('')}</div>
+  ${(P.tab||'pin')==='pin'?`<div class="muted">הודעה שמופיעה בראש דף בית הכנסת ובמסך בבית הכנסת. למשל: "מזל טוב למשפחת כהן להולדת הנכד!"</div>
+    <label class="f">כותרת</label>${inp('pin','h','הודעה מהגבאי')}<label class="f">ההודעה</label><textarea class="inp" rows="4" oninput="PE.pin.t=this.value">${v(P.pin,'t')}</textarea>`:''}
+  ${P.tab==='don'?`<div class="muted">כפתורי תרומה בדף בית הכנסת. אפשר למלא אחד או כמה.</div>
+    <label class="f">כותרת</label>${inp('don','h','תרומה לבית הכנסת')}<label class="f">הסבר קצר</label><textarea class="inp" rows="2" oninput="PE.don.t=this.value" placeholder="למשל: לשיפוץ עזרת הנשים">${v(P.don,'t')}</textarea>
+    <label class="f">📱 מספר לביט</label>${inp('don','bit','050-0000000','inputmode="tel"')}<label class="f">💳 קישור פייבוקס</label>${inp('don','pbx','https://payboxapp.page.link/...','dir="ltr"')}<label class="f">💳 קישור לתרומה באשראי (נדרים פלוס וכד׳)</label>${inp('don','link','https://...','dir="ltr"')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">🎯 יעד (₪)</label>${inp('don','goal','80000','inputmode="numeric"')}</div><div><label class="f">✅ נאסף עד כה (₪)</label>${inp('don','raised','0','inputmode="numeric"')}</div></div>`:''}
+  ${P.tab==='al'?`<div class="muted">ממלאים שם וטלפון לכל עלייה – ושולחים לכל עולה הודעה בוואטסאפ בלחיצה. הרשימה תופיע בדף בית הכנסת ובמסך עד סוף השבת.</div>
+    <label class="f">📅 שבת</label><input class="inp" type="date" value="${P.aliyot.date}" onchange="PE.aliyot.date=this.value;drawPro()"><div class="muted" style="font-size:.85rem;margin-top:2px">${esc(parTitle(fromIso(P.aliyot.date)))}</div>
+    ${P.aliyot.list.map((x,i)=>`<div class="al-r"><b>${esc(x.a)}</b><input class="inp" value="${esc(x.n)}" placeholder="שם" oninput="PE.aliyot.list[${i}].n=this.value"><input class="inp" value="${esc(x.p)}" placeholder="טלפון" inputmode="tel" oninput="PE.aliyot.list[${i}].p=this.value"><button class="btn sm" style="background:#25d366;flex:none" aria-label="הודעה לעולה" onclick="alSend(${i})">📨</button></div>`).join('')}
+    <button class="btn ghost sm" onclick="PE.aliyot.list.push({a:prompt('שם העלייה (למשל: הוספה, חתן)')||'הוספה',n:'',p:''});drawPro()">➕ עלייה נוספת</button>
+    <button class="btn ghost sm" onclick="PE.aliyot.list.forEach(x=>{x.n='';x.p=''});drawPro()">🧹 ניקוי</button>`:''}
+  ${P.tab==='files'?`<div class="muted">דפי מקורות, קישור לזום לשיעור, הקלטות – כל קישור יופיע בדף בית הכנסת.</div>
+    ${P.files.map((f,i)=>`<div class="al-r"><input class="inp" value="${esc(f.t||'')}" placeholder="שם (למשל: דף מקורות לשיעור)" oninput="PE.files[${i}].t=this.value"><input class="inp" dir="ltr" value="${esc(f.u||'')}" placeholder="https://..." oninput="PE.files[${i}].u=this.value"><button class="btn red sm" style="flex:none" aria-label="מחיקה" onclick="PE.files.splice(${i},1);drawPro()">✕</button></div>`).join('')}
+    <button class="btn ghost sm" onclick="PE.files.push({t:'',u:''});drawPro()">➕ קישור</button>`:''}
+  ${P.tab==='tv'?`<div class="muted">פותחים את הקישור הזה בטלוויזיה חכמה / מחשב שמחובר למסך בבית הכנסת – ומקבלים לוח דיגיטלי: שעה, זמני היום, זמני התפילות, הודעות, עולים לתורה ותרומות. מתעדכן לבד.</div>
+    <div class="card hl" dir="ltr" style="word-break:break-all;font-size:.85rem;margin-top:8px">${APP_URL}?tv=${s.id}</div>
+    <div class="btns"><button class="btn sm" onclick="window.open('${APP_URL}?tv=${s.id}','_blank')">📺 פתיחת המסך</button><button class="btn sec sm" onclick="try{navigator.clipboard.writeText('${APP_URL}?tv=${s.id}');toast('הקישור הועתק')}catch(e){}">📋 העתקת הקישור</button></div>`:''}
+  <button class="btn" style="width:100%;margin-top:14px" onclick="proSave()">💾 שמירה</button>`,'⭐ '+esc(s.name))}
+function alSend(i){const x=PE.aliyot.list[i],s=shul(PE.sid);if(!x.n||!telOk(x.p||''))return toast('צריך שם וטלפון נייד');
+  const t=`שלום ${x.n} 👋\nנקבעת לעלייה לתורה – *${x.a}* – ב${parTitle(fromIso(PE.aliyot.date))}, בבית הכנסת ${s.name}.\nשבת שלום! 🙏`;
+  window.open('https://wa.me/'+waNum(x.p)+'?text='+encodeURIComponent(t),'_blank')}
+async function proSave(){const P=PE;if(!P||!needCloud())return;const n=x=>String(x||'').replace(/[^\d.]/g,'');
+  const o={pin:{h:P.pin.h.trim(),t:P.pin.t.trim()},don:{h:P.don.h.trim(),t:P.don.t.trim(),bit:P.don.bit.trim(),pbx:P.don.pbx.trim(),link:P.don.link.trim(),goal:n(P.don.goal),raised:n(P.don.raised)},
+    files:P.files.filter(f=>f.u&&/^https?:\/\//.test(f.u.trim())).map(f=>({t:f.t.trim(),u:f.u.trim()})),aliyot:{date:P.aliyot.date,list:P.aliyot.list.filter(x=>x.n||x.p).map(x=>({a:x.a,n:x.n.trim(),p:x.p.trim()}))}};
+  if([o.don.pbx,o.don.link].some(u=>u&&!/^https?:\/\//.test(u)))return toast('קישור צריך להתחיל ב-https://');
+  try{await C.F.updateDoc(dref('shuls',P.sid),o);Object.assign(shul(P.sid),o);PE=null;closeModal();toast('✔️ נשמר');render()}catch(e){cerr(e)}}
+
+/* ===================== 📺 מסך לבית הכנסת (?tv=sid) ===================== */
+const TVSID=new URLSearchParams(location.search).get('tv');
+function tvPrayers(s,dt){const day=dt.getDay(),L=[];(s.prayers||[]).forEach(x=>{const ds=DAYSETS[x.d];if(!ds||!ds.d.includes(day)||x.t==='זמן')return;const tm=resolveTm(x.tm,dt);if(tm)L.push({t:x.t,tm,n:x.n||''})});return L.sort((a,b)=>toMin(a.tm)-toMin(b.tm))}
+function tvV(){const s=shul(TVSID);if(!s)return`<div class="tv-msg">⏳ טוען…</div>`;
+  if(!isPro(s))return`<div class="tv-msg">📺 המסך לבית הכנסת זמין בגרסת פרו<br><small>${esc(s.name)}</small></div>`;
+  const now=new Date(),z=zmanim(now),nowM=now.getHours()*60+now.getMinutes(),P0=tvPrayers(s,now),nx=P0.find(p=>toMin(p.tm)>=nowM-5),ni=Math.max(0,P0.indexOf(nx)),P=P0.length>9?P0.slice(Math.max(0,Math.min(ni-2,P0.length-9)),Math.max(0,Math.min(ni-2,P0.length-9))+9):P0;
+  const w=now.getDay(),sat=w===5||w===6,al=aliyotNow(s),d=s.don&&(s.don.bit||s.don.pbx||s.don.link)?s.don:null;
+  const zl=[['עלות השחר',z.alot],['הנץ החמה',z.rise],['סוף זמן ק״ש (גר״א)',z.shmaG],['סוף זמן תפילה',z.tfG],['חצות',z.chatzot],['מנחה גדולה',z.mg],['פלג המנחה',z.plag],['שקיעה',z.set],['צאת הכוכבים',z.tzeit]];
+  const ads=S.ads.filter(a=>adLive(a)&&(!a.sid||a.sid===s.id)).slice(0,8),tick=(S.ticker||[]).slice(0,6).map(t=>t.text||t.t||'').filter(Boolean);
+  return `<div class="tv">
+  <header><div class="tv-n">${shulLogo(s)?`<img src="${shulLogo(s)}" alt="">`:''}<div><b>${esc(s.name)}</b><span>${esc(hebDate(now))} · ${now.toLocaleDateString('he-IL')}${sat?' · '+esc(parTitle(nextSat(now))):''}</span></div></div><div class="tv-clock">${hm(now)}</div></header>
+  <div class="tv-main">
+   <div class="tv-col"><h2>🕰️ תפילות היום</h2>${P.map(p=>`<div class="tv-r${p===nx?' nx':''}"><span>${esc(p.t)}${p.n?` <small>${esc(p.n)}</small>`:''}</span><b>${esc(p.tm)}</b></div>`).join('')||'<div class="tv-e">אין תפילות רשומות להיום</div>'}
+   ${nx?`<div class="tv-next">הבא: <b>${esc(nx.t)}</b> בשעה <b>${esc(nx.tm)}</b>${toMin(nx.tm)>nowM?` · בעוד ${diffTxt(toMin(nx.tm)-nowM).replace(/^בעוד /,'')}`:' · עכשיו'}</div>`:''}</div>
+   <div class="tv-col"><h2>☀️ זמני היום</h2>${zl.map(([l,t])=>`<div class="tv-r${t&&t>now&&!zl.some(([,u])=>u&&u>now&&u<t)?' nx':''}"><span>${l}</span><b>${hm(t)}</b></div>`).join('')}</div>
+   <div class="tv-col">${s.pin&&s.pin.t?`<div class="tv-box pin"><h2>📌 ${esc(s.pin.h||'הודעות')}</h2><div>${fmtTxt(s.pin.t)}</div></div>`:''}
+   ${al?`<div class="tv-box"><h2>📜 עולים לתורה</h2>${al.list.filter(x=>x.n).map(x=>`<div class="tv-r sm"><span>${esc(x.a)}</span><b>${esc(x.n)}</b></div>`).join('')}</div>`:''}
+   ${d?`<div class="tv-box don"><h2>💝 ${esc(d.h||'תרומה לבית הכנסת')}</h2>${d.t?`<div>${fmtTxt(d.t)}</div>`:''}${donBar(d)}${d.bit?`<div class="tv-bit">📱 ביט: <b dir="ltr">${esc(d.bit)}</b></div>`:''}</div>`:''}
+   ${!s.pin?.t&&!al&&!d&&ads[0]?`<div class="tv-box"><h2>📢 ${esc(ads[0].title)}</h2><div>${fmtTxt(ads[0].text).slice(0,400)}</div></div>`:''}</div>
+  </div>
+  ${tick.length||ads.length?`<div class="tv-foot"><div class="tv-tick"><span>${[...tick,...ads.map(a=>'📢 '+a.title)].map(esc).join(' &nbsp;✦&nbsp; ')}</span></div></div>`:''}
+  </div>`}
+function tvTick(){if(!TVSID)return;let el=document.getElementById('tvRoot');if(!el){el=document.createElement('div');el.id='tvRoot';document.body.appendChild(el);document.body.classList.add('tv-on');
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}el.ondblclick=()=>{try{document.documentElement.requestFullscreen()}catch(e){}}}
+  el.innerHTML=tvV()}
+if(TVSID){setInterval(tvTick,15000);setTimeout(tvTick,300);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tvTick();try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}})}
+
 function shulPage(){
   const s=shul(ST.id);if(!s)return'<div class="empty-msg">בית הכנסת לא נמצא</div>';
   if(!ST._v){countView(s.id);ST._v=1}loadPhotos(s.id);
@@ -850,7 +982,7 @@ function shulPage(){
   const maps=encodeURIComponent(s.address+' '+(s.nh||''));
   return `<button class="btn ghost sm" onclick="go('shuls')">→ חזרה</button><div style="height:10px"></div>
   <div class="hero ${(s.photos[0]||s.thumb)?'':'empty'}" style="${(s.photos[0]||s.thumb)?`background-image:url(${s.photos[0]||s.thumb})`:''}">${(s.photos[0]||s.thumb)?'':shulLogo(s)?`<img src="${shulLogo(s)}" alt="" style="height:86%;object-fit:contain">`:ic('shul','fill')}${shulLogo(s)&&(s.photos[0]||s.thumb)?`<img class="hero-logo" src="${shulLogo(s)}" alt="לוגו ${esc(s.name)}">`:''}</div>
-  <h2 style="margin-bottom:2px">${esc(s.name)}</h2>
+  <h2 style="margin-bottom:2px">${esc(s.name)} ${proBadge(s)}</h2>
   <div class="muted">📍 ${esc(s.address)} · ${esc(s.nh)}${s.nusach?' · נוסח '+esc(s.nusach):''}</div>
   ${s.access?`<div class="muted">♿ ${esc(s.access)}</div>`:''}
   <div class="btns" style="margin:12px 0">
@@ -862,6 +994,7 @@ function shulPage(){
   ${ed&&missingOf(s).length?`<div class="card" style="background:#fdeee0;border-color:#f0b37e"><b>⚠️ חסרים פרטים חשובים:</b> ${missingOf(s).join(', ')}<div class="muted">הציבור צריך את הפרטים האלה. לחצו "עריכת פרטים וזמנים" כדי להשלים.</div></div>`:''}
   ${(()=>{const gs=gabbaimOf(s).filter(g=>g.pub!==false&&(g.name||g.phone));return gs.length?`<div class="card"><h3>👤 גבאים ואנשי קשר</h3>${gs.map(g=>`<div class="row"><div class="main"><b>${esc(g.name||'גבאי')}</b>${g.phone?`<span class="muted" style="direction:ltr;text-align:right">${esc(g.phone)}</span>`:''}</div>${telOk(g.phone)?`<a class="btn sec sm" href="tel:${esc(g.phone)}" aria-label="חיוג">📞</a><a class="btn sec sm" href="https://wa.me/${waNum(g.phone)}" target="_blank" rel="noopener" aria-label="וואטסאפ">💬</a>`:''}</div>`).join('')}</div>`:''})()}
   ${ed?`<div class="card" style="background:#e5f4ec"><b>✏️ מצב עריכה</b><div class="btns" style="margin-top:8px"><button class="btn sm" onclick="editShul('${s.id}')">עריכת פרטים וזמנים</button><button class="btn sm sec" onclick="addPhoto('${s.id}')">📷 הוספת תמונה</button><button class="btn sm sec" onclick="postUpdate('${s.id}')">📢 עדכון לפס הרץ</button><button class="btn sm ghost" onclick="viewAs(true)">👁️ תצוגה רגילה</button></div></div>`:''}
+  ${ed?proEdCard(s):''}${proPinHtml(s)}${proDonHtml(s)}${proAliyotHtml(s)}
   ${s.notes?`<div class="card hl" style="white-space:pre-line"><b>ℹ️ הודעות בית הכנסת</b>\n${linkify(s.notes)}</div>`:''}
   <div class="card"><h3>🕰️ זמני תפילות</h3>
     ${gp.length?gp.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(p=>p.t==='זמן'?`<div class="row"><div class="time" style="color:var(--acc);font-size:1.1rem">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.n)}</b></div></div>`:`<div class="row"><div class="time">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.t)}</b>${p.rel||isRel(p.tm)?`<span class="badge" style="margin-inline-start:6px">⏱ ${relLabel(p.tm)}</span>`:''}${p.n?`<span class="muted" style="display:block">${esc(p.n)}</span>`:''}</div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','prayers','${p.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">עדיין לא הוזנו זמנים</div>'}
@@ -869,6 +1002,7 @@ function shulPage(){
   <div class="card"><h3>📚 שיעורים ופעילויות</h3>
     ${ge.length?ge.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(e=>`<div class="row"><div class="time">${e.tm?esc(dispTm(e)):'<small style="font-size:.75rem">'+esc(e.n)+'</small>'}</div><div class="main"><b>${esc(e.title)}</b><span class="muted">${isRel(e.tm)?'⏱ '+relLabel(e.tm)+' · ':''}${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.c)}${e.who?' · '+esc(e.who):''}${e.n?' · '+esc(e.n):''}</span></div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','events','${e.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">אין פעילויות רשומות</div>'}
   </div>
+  ${proLinksHtml(s)}
   ${alonShulSec(s)}
   ${(()=>{const l=S.ads.filter(a=>adLive(a)&&a.sid===s.id);return l.length?`<h3>📢 מודעות</h3>${l.map(adMini).join('')}`:''})()}
   <div class="card"><h3>📷 תמונות מהמקום</h3>
@@ -1145,7 +1279,8 @@ function codeInvite(sid){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין
 function codeResend(sid){const s=shul(sid),g=gabPh(s),c=codeOf(sid);if(!c)return toast('הקוד לא נטען – נסו שוב בעוד רגע');if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
   const t=`שלום ${g.name||''} 👋\nתזכורת – הקוד האישי שלך ל"${s.name}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nאחרי הכניסה אפשר לעדכן את זמני התפילות לבד. תודה רבה! 🙏`;
   window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
-function codeBox(sid){const has=!!codeOf(sid);
+function codeBox(sid){return codeBox0(sid)+`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="closeModal();setTimeout(()=>proAdmin('${sid}'),50)">⭐ מנוי פרו: ${(()=>{const p=proInfo(sid);return p.on?(p.trial?'ניסיון':'פעיל')+' עד '+dmy(p.until):'לא פעיל'})()}</button>`}
+function codeBox0(sid){const has=!!codeOf(sid);
   return `<div class="cd-box ${has?'ok':'no'}">${has?`<div>✅ לבית הכנסת יש קוד</div><button class="btn sm" style="background:#1fa855" onclick="codeResend('${sid}')">📤 שליחת הקוד לגבאי בוואטסאפ</button>`
   :`<div>❌ לבית הכנסת עוד אין קוד</div><div class="btns" style="gap:6px"><button class="btn sm" style="background:#1fa855" onclick="codeMakeSend('${sid}')">🔑 יצירת קוד ושליחה לגבאי</button><button class="btn sec sm" onclick="codeInvite('${sid}')">💬 הזמנה לבקש קוד</button></div>`}
   <div class="muted" style="font-size:.78rem">ההודעה נפתחת בוואטסאפ ישר לטלפון של הגבאי (מרשימת הגבאים) – רק לוחצים "שליחה".</div></div>`}
@@ -2571,6 +2706,7 @@ function admin(){
   <div class="card" style="background:#e5f4ec"><b>📱 הטלפון הזה מוכר כטלפון המנהל</b><div class="muted">נשארים מחוברים תמיד – גם אחרי סגירת האפליקציה. מכאן עורכים כל בית כנסת (✏️ בדף שלו), מוסיפים בתי כנסת חדשים ומאשרים בקשות – בלי קודי גבאים ובלי להקליד סיסמה.</div></div>
   <div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה שבועית לגבאים</h3><div class="muted">פעם בשבוע קופצת לכל גבאי דמות עם הודעה: פרטים חסרים, תזכורת לשבת, עידוד וטיפים.</div><button class="btn sec" style="margin-top:8px" onclick="gabTip(1)">👀 תצוגה מקדימה</button></div>
   ${gmAdminCard()}
+  ${proAdminCard()}
   ${codesCard()}
   ${statsCard()}
   ${top.length?`<div class="card"><h3>🏆 בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}</div>`:''}
@@ -2685,7 +2821,7 @@ const C={ok:false,fs:null,auth:null,A:null,F:null,unsub:{},secrets:{},ready:null
 const strip=o=>JSON.parse(JSON.stringify(o));
 function needCloud(){if(!C.ok){toast('אין חיבור לשרת כרגע – נסו שוב בעוד רגע');return false}return true}
 function cerr(e){console.error(e);toast('⚠️ השמירה בשרת נכשלה'+(e&&e.code==='permission-denied'?' (אין הרשאה)':''))}
-function softRender(){const a=document.activeElement;if($('#modals').innerHTML||(a&&a.closest&&a.closest('#view')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))){window._dirty=1;return}render()}
+function softRender(){if(TVSID)tvTick();const a=document.activeElement;if($('#modals').innerHTML||(a&&a.closest&&a.closest('#view')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))){window._dirty=1;return}render()}
 
 async function cloudInit(){
   try{
@@ -2714,6 +2850,7 @@ const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
   C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.pro=F.onSnapshot(dref('config','pro'),d=>{PRO=d.exists()?d.data():{};softRender();tvTick()},()=>{});
   C.unsub.dupok=F.onSnapshot(dref('config','dupok'),d=>{DUPOK=new Set(d.exists()?(d.data().keys||[]):[]);softRender()},()=>{});
   C.unsub.arch=F.onSnapshot(dref('config','archive'),d=>{ARCH=d.exists()?(d.data().shuls||{}):{};softRender()},()=>{});
   C.unsub.alon=F.onSnapshot(col('alon'),q=>{S.alon=q.docs.map(d=>({...d.data(),id:d.id}));softRender();setTimeout(alonCleanup,4000)},()=>{});
