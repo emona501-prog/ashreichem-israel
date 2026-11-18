@@ -309,6 +309,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
+.pay-b{display:flex;justify-content:center;width:100%;margin-top:10px;background:#d63c6b;color:#fff;font-weight:800;font-size:1.05rem;padding:12px;border-radius:14px;text-decoration:none;box-sizing:border-box}
 .pro-go{display:flex;flex-direction:column;gap:6px;margin-top:10px}.pro-how{padding-inline-start:18px;margin:4px 0;line-height:1.6;font-size:.92rem}.pro-how li{margin-bottom:6px}
 .pro-live{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff4d6;border-radius:12px;padding:10px}.pro-live.on{background:#e3f6ea}
 .pro-b{display:inline-block;font-size:.7rem;background:linear-gradient(135deg,#e8c873,#c9972c);color:#3b2a06;border-radius:999px;padding:2px 8px;vertical-align:middle;font-weight:800}
@@ -1013,6 +1014,7 @@ function shulPage(){
   <h2 style="margin-bottom:2px">${esc(s.name)} ${proBadge(s)}</h2>
   <div class="muted">📍 ${esc(s.address)} · ${esc(s.nh)}${s.nusach?' · נוסח '+esc(s.nusach):''}</div>
   ${s.access?`<div class="muted">♿ ${esc(s.access)}</div>`:''}
+  ${/^https:\/\//.test(s.payUrl||'')?`<a class="btn pay-b" href="${esc(s.payUrl)}" target="_blank" rel="noopener" onclick="countAd('pay_${s.id}','wa')">💳 תשלום נדרים ותרומות</a>`:''}
   <div class="btns" style="margin:12px 0">
     <a class="btn sm" href="${walkUrl(s)}" target="_blank" rel="noopener">🚶 ברגל</a><a class="btn sm" href="https://waze.com/ul?q=${maps}&navigate=yes" target="_blank" rel="noopener">🚗 ווייז</a>
     <button class="btn sec sm" onclick="shareShul('${s.id}')">💬 שתף</button>
@@ -2671,6 +2673,8 @@ function drawEd(isNew){
   <label class="f">כתובת</label><input class="inp" id="edAddr" value="${esc(e.address)}" oninput="ED.address=this.value">
   <label class="f">🗺️ מיקום על המפה</label><div id="edLoc">${edLocHtml()}</div>
   <label class="f">♿ נגישות</label><input class="inp" value="${esc(e.access||'')}" placeholder="לדוגמה: נגיש / יש מדרגות" oninput="ED.access=this.value">
+  <label class="f">💳 קישור לתשלום נדרים ותרומות <span class="muted" style="font-weight:400">(נדרים פלוס או אחר – לא חובה)</span></label><input class="inp" dir="ltr" value="${esc(e.payUrl||'')}" placeholder="https://..." oninput="ED.payUrl=this.value.trim()">
+  <div class="muted" style="font-size:.78rem;margin-top:2px">מדביקים את הקישור לעמוד התרומות של בית הכנסת – ובדף בית הכנסת יופיע כפתור "תשלום נדרים ותרומות". הכסף עובר ישירות לבית הכנסת.</div>
   <h3 style="margin-top:16px" id="edGab">👤 גבאים ואנשי קשר <span class="badge" style="background:#fdeee0;color:#9a4b10">חובה – לפחות טלפון אחד</span></h3>
   ${e.gabbaim.map((g,i)=>`<div class="ed2">
     <input class="inp" placeholder="שם" value="${esc(g.name)}" oninput="ED.gabbaim[${i}].name=this.value">
