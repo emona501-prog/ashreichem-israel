@@ -1,7 +1,7 @@
-# בונה APK חתום של "אשריכם ישראל" (עם הווידג'ט) ומפרסם אותו בעמוד ההורדות (Releases).
-# רץ רק כשמשתנה משהו בתיקיית app (האפליקציה עצמה טוענת את האתר החי, כך ששינויים באתר לא דורשים בנייה חדשה),
-# או בלחיצה ידנית: Actions ← Build APK ← Run workflow.
+# בונה APK של "אשריכם ישראל" ומפרסם אותו אוטומטית בעמוד ההורדות (Releases).
+# רץ בכל שינוי בתיקיית app, או ידנית: Actions ← Build APK ← Run workflow.
 name: Build APK
+
 on:
   push:
     branches: [main]
@@ -9,8 +9,19 @@ on:
       - 'app/**'
       - '.github/workflows/android.yml'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'לפרסם Release? (true/false)'
+        required: false
+        default: 'true'
+
 permissions:
   contents: write
+
+concurrency:
+  group: apk-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,19 +30,25 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+
       - name: פתיחת מפתח החתימה
         env:
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
         run: |
           P="$(printf '%s' "$KEYSTORE_PASS" | tr -d ' \r\n\t')"
-          if [ -z "$P" ]; then echo "::warning::חסר הסוד KEYSTORE_PASS – בונים רק לבדיקה, בלי פרסום (Settings ← Secrets and variables ← Actions)"; exit 0; fi
+          if [ -z "$P" ]; then
+            echo "::warning::חסר הסוד KEYSTORE_PASS – בונים APK בחתימת בדיקה (debug)."
+            exit 0
+          fi
           echo "::add-mask::$P"
           printf '%s' "$P" > "$RUNNER_TEMP/pw"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in signing/release.p12.enc -out "$RUNNER_TEMP/release.jks" -pass file:"$RUNNER_TEMP/pw" || { echo "::error::הסיסמה KEYSTORE_PASS לא נכונה"; exit 1; }
@@ -40,12 +57,16 @@ jobs:
           echo "KS_PASS=$P" >> "$GITHUB_ENV"
           echo "HAVE_KEY=1" >> "$GITHUB_ENV"
           echo "::notice::מפתח החתימה תקין"
+
       - run: npm ci || npm install
+
       - run: npx cap sync android
+
       - name: גרסה
         id: ver
         run: echo "v=$(jq -r .version version.json)" >> "$GITHUB_OUTPUT"
-      - name: בניית APK חתום
+
+      - name: בניית APK
         working-directory: app/android
         env:
           KEYSTORE_PATH: ${{ env.HAVE_KEY == '1' && format('{0}/release.jks', runner.temp) || '' }}
@@ -56,20 +77,24 @@ jobs:
           chmod +x gradlew
           set -o pipefail
           ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee "$RUNNER_TEMP/gradle.log" || { M=$(grep -v "^\s*$" "$RUNNER_TEMP/gradle.log" | grep -B30 -A12 "What went wrong" | head -60 | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g'); echo "::error title=gradle::$M"; exit 1; }
+
       - name: שם הקובץ
         run: cp android/app/build/outputs/apk/release/app-release*.apk ashreichem-israel.apk
-      - name: בדיקה בלבד (בלי חתימה)
-        if: env.HAVE_KEY != '1'
+
+      - name: העלאת קובץ הבנייה
         uses: actions/upload-artifact@v4
         with:
-          name: test-build-unsigned
+          name: ashreichem-israel-apk-${{ github.run_number }}
           path: app/ashreichem-israel.apk
-      - name: פרסום בעמוד ההורדות
-        if: env.HAVE_KEY == '1'
+          if-no-files-found: error
+
+      - name: פרסום ב-Releases
+        if: github.event_name != 'workflow_dispatch' || inputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.v }}
           name: אשריכם ישראל ${{ steps.ver.outputs.v }}
           body_path: app/RELEASE_NOTES.md
           files: app/ashreichem-israel.apk
-          make_latest: true
+          prerelease: ${{ env.HAVE_KEY != '1' }}
+          make_latest: ${{ env.HAVE_KEY == '1' }}
