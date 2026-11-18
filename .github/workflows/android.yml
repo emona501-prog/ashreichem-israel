@@ -34,10 +34,14 @@ jobs:
           echo "אורך הסיסמה אחרי ניקוי: ${#P} (צריך 28)"
           if [ -z "$P" ]; then echo "::warning::חסר הסוד KEYSTORE_PASS – בונים רק לבדיקה, בלי פרסום (Settings ← Secrets and variables ← Actions)"; exit 0; fi
           echo "::add-mask::$P"
-          printf '%s' "$P" > "$RUNNER_TEMP/pw"
-          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in signing/release.p12.enc -out "$RUNNER_TEMP/release.jks" -pass file:"$RUNNER_TEMP/pw" || { echo "::error::הסיסמה KEYSTORE_PASS לא נכונה"; exit 1; }
+          # אם הודבק משהו מסביב לסיסמה (למשל פעמיים) – מחפשים בתוכו את הסיסמה הנכונה (28 תווים)
+          OK=""
+          for C in "$P" $(i=0; while [ $i -le $(( ${#P} - 28 )) ]; do echo "${P:$i:28}"; i=$((i+1)); done); do
+            printf '%s' "$C" > "$RUNNER_TEMP/pw"
+            if openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in signing/release.p12.enc -out "$RUNNER_TEMP/release.jks" -pass file:"$RUNNER_TEMP/pw" 2>/dev/null && keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$C" >/dev/null 2>&1; then OK=1; P="$C"; break; fi
+          done
           rm -f "$RUNNER_TEMP/pw"
-          keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$P" >/dev/null || { echo "::error::הסיסמה KEYSTORE_PASS לא נכונה"; exit 1; }
+          [ -n "$OK" ] || { echo "::error::הסיסמה KEYSTORE_PASS לא נכונה"; exit 1; }
           echo "KS_PASS=$P" >> "$GITHUB_ENV"
           echo "HAVE_KEY=1" >> "$GITHUB_ENV"
           echo "::notice::מפתח החתימה תקין"
