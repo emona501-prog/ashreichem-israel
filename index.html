@@ -304,6 +304,9 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .ad-wa{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;background:#1fa855;color:#fff;font-weight:800;border-radius:14px;padding:12px;text-decoration:none;font-size:1.05rem;box-shadow:0 3px 10px rgba(31,168,85,.3)}
 .ad-wa.sm{padding:9px;font-size:.95rem;margin-top:8px}
 .ad-st{display:flex;gap:12px;margin-top:8px;font-size:.85rem;font-weight:700;color:#6b5320;background:#fbf3df;border-radius:10px;padding:6px 10px;width:max-content}.ad-st.sm{font-size:.75rem;padding:3px 8px;margin-top:4px}
+.cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
+.cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
+.sh-no.sm{font-size:.7rem;padding:1px 6px}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
@@ -654,7 +657,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
@@ -1124,7 +1127,33 @@ function gmAdminCard(){listenGM();const n=gabShuls().length;
   <div class="muted">כותבים הודעה – והדמות מוסרת אותה לכל גבאי, עם כפתור "קראתי".</div>
   <button class="btn" style="width:100%;margin-top:8px" onclick="gmCompose()">📣 הודעה חדשה לגבאים</button>
   ${GM.slice(0,5).map(m=>{const r=Object.keys(GMR[m.id]||{}).length;return`<div class="row" role="button" onclick="gmWho('${m.id}')"><div class="main"><div class="gm-line">${esc(fmtPlain(m.t))}</div><span class="muted" style="font-size:.78rem">${new Date(m.dt).toLocaleDateString('he-IL')}${m.live===false?' · הופסק':''}</span></div><span class="badge">${r}/${n} קראו</span></div>`}).join('')}</div>`}
-function gabTipCheck(){listenGM();const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai'||!S.cloud)return;if(Date.now()-(U.gabTipAt||0)<7*864e5)return;setTimeout(()=>{if(TAB==='home'&&!$('#modals').innerHTML)gabTip()},3000)}
+/* ===== 🔑 מצב קודי גבאים – למי אין קוד, מי קיבל ועוד לא נכנס, מי פעיל ===== */
+function gInMark(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai'||!R.sid||!C.ok)return;const s=shul(R.sid);if(!s)return;
+  const t0=new Date();t0.setHours(0,0,0,0);if((s.gIn||0)>=+t0)return;s.gIn=Date.now();C.F.updateDoc(dref('shuls',R.sid),{gIn:s.gIn}).catch(()=>{})}
+function codeGroups(){const no=[],wait=[],act=[];S.shuls.forEach(s=>{if(!s.login)no.push(s);else if(!s.gIn)wait.push(s);else act.push(s)});
+  act.sort((a,b)=>b.gIn-a.gIn);return{no,wait,act}}
+function codesCard(){const G=codeGroups();
+  return `<div class="card" role="button" onclick="go('codes')" style="cursor:pointer"><h3>🔑 מצב קודי גבאים</h3>
+  <div class="cd-sum"><div class="r"><b>${G.no.length}</b><span>❌ בלי קוד</span></div><div class="y"><b>${G.wait.length}</b><span>⏳ קיבלו קוד ועוד לא נכנסו</span></div><div class="g"><b>${G.act.length}</b><span>✅ נכנסו</span></div></div>
+  <div class="muted" style="font-size:.85rem;margin-top:6px">לחצו לרשימה המלאה ולשליחה בוואטסאפ ‹</div></div>`}
+function gabPh(s){const g=(s.gabbaim||[]).find(x=>telOk(x.phone||''));return g?g:null}
+function codeInvite(sid){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
+  const t=`שלום ${g.name||''} 👋\nבית הכנסת "${s.name}" כבר מופיע באפליקציית *אשריכם ישראל* 🕍\n\nכדי שתוכלו לעדכן לבד את זמני התפילות, מקבלים קוד גבאי אישי:\n1️⃣ נכנסים לקישור: ${APP_URL}?v=gab\n2️⃣ לוחצים "🔑 בית הכנסת שלי כבר מופיע באפליקציה"\n3️⃣ ממלאים שם וטלפון – ותקבלו קוד 🙏\n\nבכל שאלה: 054-6137202`;
+  window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+function codeResend(sid){const s=shul(sid),g=gabPh(s),c=codeOf(sid);if(!c)return toast('הקוד לא נטען – נסו שוב בעוד רגע');if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
+  const t=`שלום ${g.name||''} 👋\nתזכורת – הקוד האישי שלך ל"${s.name}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nאחרי הכניסה אפשר לעדכן את זמני התפילות לבד. תודה רבה! 🙏`;
+  window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+function codesV(){if(!window._secTry&&(!C.secrets||!Object.keys(C.secrets).length)){window._secTry=1;loadSecrets()}const G=codeGroups();
+  const row=(s,btn)=>{const g=gabPh(s);return `<div class="row"><div class="main"><b>${s.no?`<span class="sh-no sm">${s.no}</span> `:''}${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${g?`👤 ${esc(g.name||'')} ${esc(g.phone)}`:'⚠️ אין טלפון גבאי'}${s.gIn?` · נכנס לאחרונה ${new Date(s.gIn).toLocaleDateString('he-IL')}`:''}</span></div>${btn}</div>`};
+  return `<h2>🔑 מצב קודי גבאים</h2>
+  <div class="cd-sum"><div class="r"><b>${G.no.length}</b><span>❌ בלי קוד</span></div><div class="y"><b>${G.wait.length}</b><span>⏳ לא נכנסו</span></div><div class="g"><b>${G.act.length}</b><span>✅ נכנסו</span></div></div>
+  <div class="card"><h3>❌ בלי קוד (${G.no.length})</h3><div class="muted" style="font-size:.85rem">לבתי הכנסת האלה עוד לא נוצר קוד. אפשר לשלוח לגבאי הזמנה לבקש קוד, או ליצור קוד בעצמכם בעריכת בית הכנסת.</div>
+  ${G.no.map(s=>row(s,`<div class="btns" style="flex:none;gap:4px">${gabPh(s)?`<button class="btn sm" style="background:#1fa855" onclick="codeInvite('${s.id}')">💬 הזמנה</button>`:''}<button class="btn sec sm" onclick="editShul('${s.id}')">✏️</button></div>`)).join('')||'<div class="muted">לכולם יש קוד 🎉</div>'}</div>
+  <div class="card"><h3>⏳ קיבלו קוד ועוד לא נכנסו (${G.wait.length})</h3><div class="muted" style="font-size:.85rem">יש להם קוד, אבל עוד לא נכנסו איתו לאפליקציה. אפשר לשלוח להם את הקוד שוב בוואטסאפ.</div>
+  ${G.wait.map(s=>row(s,gabPh(s)?`<button class="btn sm" style="background:#1fa855;flex:none" onclick="codeResend('${s.id}')">📤 שליחת הקוד</button>`:`<button class="btn sec sm" style="flex:none" onclick="editShul('${s.id}')">✏️</button>`)).join('')||'<div class="muted">כולם נכנסו 🎉</div>'}</div>
+  <div class="card"><h3>✅ נכנסו (${G.act.length})</h3>${G.act.map(s=>row(s,'')).join('')||'<div class="muted">עוד אף אחד</div>'}</div>
+  <div class="muted" style="font-size:.78rem;text-align:center;margin:10px">💡 "נכנסו" נספר מהיום והלאה – גבאי שנכנס בעבר יופיע כאן ברגע שיפתח את האפליקציה שוב.</div>`}
+function gabTipCheck(){listenGM();gInMark();const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai'||!S.cloud)return;if(Date.now()-(U.gabTipAt||0)<7*864e5)return;setTimeout(()=>{if(TAB==='home'&&!$('#modals').innerHTML)gabTip()},3000)}
 /* ===== אזור אישי ===== */
 function favHome(){const L=S.shuls.filter(s=>U.favs.includes(s.id));if(!L.length)return'';
   return `<div class="card fav-home"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⭐ בתי הכנסת המועדפים שלי</h3><button class="btn ghost sm" onclick="go('mine')">ניהול ‹</button></div>
@@ -2532,6 +2561,7 @@ function admin(){
   <div class="card" style="background:#e5f4ec"><b>📱 הטלפון הזה מוכר כטלפון המנהל</b><div class="muted">נשארים מחוברים תמיד – גם אחרי סגירת האפליקציה. מכאן עורכים כל בית כנסת (✏️ בדף שלו), מוסיפים בתי כנסת חדשים ומאשרים בקשות – בלי קודי גבאים ובלי להקליד סיסמה.</div></div>
   <div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה שבועית לגבאים</h3><div class="muted">פעם בשבוע קופצת לכל גבאי דמות עם הודעה: פרטים חסרים, תזכורת לשבת, עידוד וטיפים.</div><button class="btn sec" style="margin-top:8px" onclick="gabTip(1)">👀 תצוגה מקדימה</button></div>
   ${gmAdminCard()}
+  ${codesCard()}
   ${statsCard()}
   ${top.length?`<div class="card"><h3>🏆 בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}</div>`:''}
 
