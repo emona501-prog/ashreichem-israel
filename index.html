@@ -724,7 +724,7 @@ function admHome(){
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
-    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${b('⭐','גרסת פרו','',"go('pro')")}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
+    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${PRO_ON?b('⭐','גרסת פרו','',"go('pro')"):''}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
   return'';
 }
@@ -864,17 +864,18 @@ function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});O
 /* ===================== ⭐ גרסת פרו לבית כנסת ===================== */
 /* ניסיון 3 חודשים חינם (proTrial על בית הכנסת) · מנוי בתשלום: config/pro {sid:{until}} – רק המנהל כותב */
 let PRO={};
+const PRO_ON=false; /* גרסת פרו מושבתת זמנית – תחזור כשמערכת התרומות והנדרים תהיה מוכנה */
 const PRO_PRICE=29,TRIAL_D=90,ALIYOT=['כהן','לוי','שלישי','רביעי','חמישי','שישי','שביעי','מפטיר'];
 function proInfo(s){s=typeof s==='string'?shul(s):s;if(!s)return{on:false};const now=Date.now();
   const paid=(PRO[s.id]&&PRO[s.id].until)||0,tr=s.proTrial?s.proTrial+TRIAL_D*864e5:0,until=Math.max(paid,tr);
   return{on:until>now,until,trial:tr>now&&tr>=paid,paid:paid>now,used:!!s.proTrial,ended:!!until&&until<=now,days:Math.ceil((until-now)/864e5)}}
 let PRO_DEMO={};
-const isPro=s=>{const id=typeof s==='string'?s:s&&s.id;if(PRO_DEMO[id])return true;if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return false;return proInfo(s).on};
+const isPro=s=>{if(!PRO_ON)return false;const id=typeof s==='string'?s:s&&s.id;if(PRO_DEMO[id])return true;if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return false;return proInfo(s).on};
 const proLive=()=>!!S.settings.proLive;
 const dmy=t=>new Date(t).toLocaleDateString('he-IL');
 function proBadge(s){const p=proInfo(s);return p.on?`<span class="pro-b">⭐ פרו</span>`:''}
 /* כרטיס בדף בית הכנסת – רק לגבאי/מנהל */
-function proEdCard(s){if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return `<div class="card pro-card off" style="opacity:.85"><b>⭐ גרסת פרו – בבנייה 🚧</b><div class="muted" style="font-size:.85rem">כלים חדשים לניהול בית הכנסת: תרומות, עליות לתורה, מסך לבית הכנסת ועוד. נעדכן כשזה יהיה מוכן 🙏</div></div>`;if(PRO_DEMO[s.id])return `<div class="card pro-card"><b>🧪 מצב הדגמה (רק אצלך, לא נשמר)</b><div class="btns" style="margin-top:8px"><button class="btn" onclick="proModal('${s.id}')">⭐ כלי הפרו</button><button class="btn sec" onclick="window.open('${APP_URL}?tv=${s.id}&demo=1','_blank')">📺 המסך</button><button class="btn ghost" onclick="proDemoEnd('${s.id}')">⏹️ סיום הדגמה</button></div></div>`;const p=proInfo(s);
+function proEdCard(s){if(!PRO_ON)return'';if(!proLive()&&(REAL_ROLE||ROLE)?.type!=='admin')return `<div class="card pro-card off" style="opacity:.85"><b>⭐ גרסת פרו – בבנייה 🚧</b><div class="muted" style="font-size:.85rem">כלים חדשים לניהול בית הכנסת: תרומות, עליות לתורה, מסך לבית הכנסת ועוד. נעדכן כשזה יהיה מוכן 🙏</div></div>`;if(PRO_DEMO[s.id])return `<div class="card pro-card"><b>🧪 מצב הדגמה (רק אצלך, לא נשמר)</b><div class="btns" style="margin-top:8px"><button class="btn" onclick="proModal('${s.id}')">⭐ כלי הפרו</button><button class="btn sec" onclick="window.open('${APP_URL}?tv=${s.id}&demo=1','_blank')">📺 המסך</button><button class="btn ghost" onclick="proDemoEnd('${s.id}')">⏹️ סיום הדגמה</button></div></div>`;const p=proInfo(s);
   if(p.on)return `<div class="card pro-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>⭐ גרסת פרו ${p.trial?'– תקופת ניסיון':''}</b><span class="muted" style="font-size:.8rem">עד ${dmy(p.until)} (${p.days} ימים)</span></div>
   <div class="muted" style="font-size:.85rem;margin:4px 0 8px">תרומות · עליות לתורה · הודעה מוצמדת · קבצים וקישורים · מסך לבית הכנסת</div>
   <button class="btn" style="width:100%" onclick="proModal('${s.id}')">⭐ כלי הפרו של בית הכנסת</button>${p.trial&&p.days<=14?`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="proPay('${s.id}')">💳 להמשך המנוי – ${PRO_PRICE} ₪ לחודש</button>`:''}</div>`;
@@ -1306,7 +1307,7 @@ function codeInvite(sid){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין
 function codeResend(sid){const s=shul(sid),g=gabPh(s),c=codeOf(sid);if(!c)return toast('הקוד לא נטען – נסו שוב בעוד רגע');if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
   const t=`שלום ${g.name||''} 👋\nתזכורת – הקוד האישי שלך ל"${s.name}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nאחרי הכניסה אפשר לעדכן את זמני התפילות לבד. תודה רבה! 🙏`;
   window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
-function codeBox(sid){return codeBox0(sid)+`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="closeModal();setTimeout(()=>proAdmin('${sid}'),50)">⭐ מנוי פרו: ${(()=>{const p=proInfo(sid);return p.on?(p.trial?'ניסיון':'פעיל')+' עד '+dmy(p.until):'לא פעיל'})()}</button>`}
+function codeBox(sid){if(!PRO_ON)return codeBox0(sid);return codeBox0(sid)+`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="closeModal();setTimeout(()=>proAdmin('${sid}'),50)">⭐ מנוי פרו: ${(()=>{const p=proInfo(sid);return p.on?(p.trial?'ניסיון':'פעיל')+' עד '+dmy(p.until):'לא פעיל'})()}</button>`}
 function codeBox0(sid){const has=!!codeOf(sid);
   return `<div class="cd-box ${has?'ok':'no'}">${has?`<div>✅ לבית הכנסת יש קוד</div><button class="btn sm" style="background:#1fa855" onclick="codeResend('${sid}')">📤 שליחת הקוד לגבאי בוואטסאפ</button>`
   :`<div>❌ לבית הכנסת עוד אין קוד</div><div class="btns" style="gap:6px"><button class="btn sm" style="background:#1fa855" onclick="codeMakeSend('${sid}')">🔑 יצירת קוד ושליחה לגבאי</button><button class="btn sec sm" onclick="codeInvite('${sid}')">💬 הזמנה לבקש קוד</button></div>`}
@@ -2733,7 +2734,7 @@ function admin(){
   <div class="card" style="background:#e5f4ec"><b>📱 הטלפון הזה מוכר כטלפון המנהל</b><div class="muted">נשארים מחוברים תמיד – גם אחרי סגירת האפליקציה. מכאן עורכים כל בית כנסת (✏️ בדף שלו), מוסיפים בתי כנסת חדשים ומאשרים בקשות – בלי קודי גבאים ובלי להקליד סיסמה.</div></div>
   <div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה שבועית לגבאים</h3><div class="muted">פעם בשבוע קופצת לכל גבאי דמות עם הודעה: פרטים חסרים, תזכורת לשבת, עידוד וטיפים.</div><button class="btn sec" style="margin-top:8px" onclick="gabTip(1)">👀 תצוגה מקדימה</button></div>
   ${gmAdminCard()}
-  ${proAdminCard()}
+  ${PRO_ON?proAdminCard():''}
   ${codesCard()}
   ${statsCard()}
   ${top.length?`<div class="card"><h3>🏆 בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}</div>`:''}
