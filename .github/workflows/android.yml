@@ -30,7 +30,8 @@ jobs:
         env:
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
         run: |
-          P="$(printf '%s' "$KEYSTORE_PASS" | tr -d ' \r\n\t')"
+          P="$(printf '%s' "$KEYSTORE_PASS" | LC_ALL=C tr -cd 'A-Za-z0-9')"
+          echo "אורך הסיסמה אחרי ניקוי: ${#P} (צריך 28)"
           if [ -z "$P" ]; then echo "::warning::חסר הסוד KEYSTORE_PASS – בונים רק לבדיקה, בלי פרסום (Settings ← Secrets and variables ← Actions)"; exit 0; fi
           echo "::add-mask::$P"
           printf '%s' "$P" > "$RUNNER_TEMP/pw"
