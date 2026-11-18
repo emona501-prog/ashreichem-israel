@@ -303,7 +303,8 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .gm-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.gm-q{background:#fffdf5;border:2px solid #1b1b1b;border-radius:14px;padding:10px 12px}
 .ad-wa{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;background:#1fa855;color:#fff;font-weight:800;border-radius:14px;padding:12px;text-decoration:none;font-size:1.05rem;box-shadow:0 3px 10px rgba(31,168,85,.3)}
 .ad-wa.sm{padding:9px;font-size:.95rem;margin-top:8px}
-.ad-st{display:flex;gap:12px;margin-top:8px;font-size:.85rem;font-weight:700;color:#6b5320;background:#fbf3df;border-radius:10px;padding:6px 10px;width:max-content}.ad-st.sm{font-size:.75rem;padding:3px 8px;margin-top:4px}
+.ad-st{display:flex;gap:12px;margin-top:8px;font-size:.85rem;font-weight:700;color:#6b5320;background:#fbf3df;border-radius:10px;padding:6px 10px;width:max-content}.ad-rst{border:0;background:none;color:#8a5a12;font:inherit;font-size:.78rem;text-decoration:underline;cursor:pointer;padding:0}
+.ad-st.sm{font-size:.75rem;padding:3px 8px;margin-top:4px}
 .cd-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}.cd-sum div{border-radius:12px;padding:8px 4px;text-align:center;display:flex;flex-direction:column}
 .cd-sum b{font-size:1.5rem}.cd-sum span{font-size:.72rem;line-height:1.2}.cd-sum .r{background:#fde8e8;color:#9b1c1c}.cd-sum .y{background:#fff4d6;color:#8a5a12}.cd-sum .g{background:#e3f6ea;color:#15693a}
 .sh-no.sm{font-size:.7rem;padding:1px 6px}
@@ -2727,7 +2728,7 @@ async function loadStats(){try{const F=C.F;const[v,w,ad]=await Promise.all([F.ge
 let _counted=false;
 const NOCNT='ash_nocount',noCount=()=>{try{const v=localStorage.getItem(NOCNT);return v===null?isAdev():v==='1'}catch(e){return false}};
 function setNoCount(on){try{localStorage.setItem(NOCNT,on?'1':'0')}catch(e){}toast(on?'✔️ הכניסות מהמכשיר הזה לא ייספרו':'הכניסות מהמכשיר הזה ייספרו שוב');render()}
-function countVisit(){if(noCount())return;
+function countVisit(){if(isMe())return;
   if(_counted||!C.ok)return;_counted=true;
   if(sessionStorage.getItem('kv2')==='1')return;sessionStorage.setItem('kv2','1');
   const F=C.F,t=iso(new Date());const o={total:F.increment(1),days:{[t]:F.increment(1)}};
@@ -2738,14 +2739,17 @@ function countVisit(){if(noCount())return;
 }
 /* 👁️ ספירת צפיות במודעות: pop = הופיעה במסך הראשי, open = נפתחה, wa = לחצו וואטסאפ */
 const _adCnt={};
-function countAd(id,k){if(!id||!C.ok||noCount())return;const key=id+k;if(k!=='wa'&&_adCnt[key])return;_adCnt[key]=1;
+/* המנהל (גם בתצוגה רגילה) והמכשיר של המנהל – לא נספרים לעולם */
+function isMe(){const R=REAL_ROLE||ROLE;return !!(R&&R.type==='admin')||isAdev()||noCount()}
+function countAd(id,k){if(!id||!C.ok||isMe())return;const key=id+k;if(k!=='wa'&&_adCnt[key])return;_adCnt[key]=1;
   C.F.setDoc(dref('stats','ads'),{[id]:{[k]:C.F.increment(1)}},{merge:true}).catch(()=>{});
   if(S.stats){S.stats.ads=S.stats.ads||{};const o=S.stats.ads[id]=S.stats.ads[id]||{};o[k]=(o[k]||0)+1}}
 function adStatsHtml(a,sm){const o=(S.stats&&S.stats.ads||{})[a.id]||{};if(!(ROLE&&ROLE.type==='admin'))return'';
-  return `<div class="ad-st${sm?' sm':''}"><span title="הופיעה במסך הראשי">👁️ ${o.pop||0}</span><span title="נפתחה">👆 ${o.open||0}</span>${a.wa?`<span title="לחצו וואטסאפ">💬 ${o.wa||0}</span>`:''}</div>`}
+  return `<div class="ad-st${sm?' sm':''}"><span title="הופיעה במסך הראשי">👁️ ${o.pop||0}</span><span title="נפתחה">👆 ${o.open||0}</span>${a.wa?`<span title="לחצו וואטסאפ">💬 ${o.wa||0}</span>`:''}${sm?'':`<button class="ad-rst" onclick="event.stopPropagation();adCntReset('${a.id}')">🔄 איפוס</button>`}</div>`}
+async function adCntReset(id){if(!confirm('לאפס את המונים של המודעה הזו ל-0?'))return;try{await C.F.setDoc(dref('stats','ads'),{[id]:{pop:0,open:0,wa:0}},{merge:true});if(S.stats&&S.stats.ads)S.stats.ads[id]={pop:0,open:0,wa:0};toast('המונים אופסו');closeModal();render()}catch(e){cerr(e)}}
 function adWaUrl(a){const ph=String(a.wa||'').replace(/\D/g,'').replace(/^0/,'972');return `https://wa.me/${ph}?text=`+encodeURIComponent(`שלום, ראיתי את המודעה "${a.title}" באפליקציית אשריכם ישראל 🙂`)}
 function adWaBtn(a,sm){if(!a.wa)return'';return `<a class="ad-wa${sm?' sm':''}" href="${adWaUrl(a)}" target="_blank" rel="noopener" onclick="event.stopPropagation();countAd('${a.id}','wa')">${esc(a.waL||'💬 לפרטים בוואטסאפ')}</a>`}
-function countView(sid){if(!C.ok||noCount())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
+function countView(sid){if(!C.ok||isMe())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
 function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
