@@ -74,6 +74,7 @@ body.dark .btn{color:#10161d}
 .btn.sec{background:var(--soft);color:var(--pri)}
 .btn.ghost{background:transparent;color:var(--pri);border:1px solid var(--line)}
 .btn.red{background:#fbe9e5;color:var(--warn)}
+.zr-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #0001}.zr-row:last-child{border:0}.zr-row .main{flex:1;display:flex;flex-direction:column}.zr-sel{border:1px solid #c9d3df;border-radius:10px;padding:6px 8px;font:inherit;background:#fff;max-width:42%}.zr-sw{position:relative;width:48px;height:28px;flex:none}.zr-sw input{opacity:0;width:100%;height:100%;margin:0;position:absolute;z-index:1;cursor:pointer}.zr-sw span{position:absolute;inset:0;background:#cfd6df;border-radius:20px;transition:.2s}.zr-sw span:after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:.2s}.zr-sw input:checked+span{background:#2f7d4f}.zr-sw input:checked+span:after{right:23px}.zr-sw input:focus-visible+span{outline:3px solid #c39a2f}.zr-pop{text-align:center;padding:10px 4px}.zr-t{font-size:1.5rem;font-weight:800}.zr-b{font-size:1.15rem;margin-top:8px;line-height:1.5}
 .btn.gold{background:linear-gradient(135deg,#e8c25a,#c39a2f);color:#1d2a3a}
 .btn.sm{padding:6px 12px;min-height:36px;font-size:.88rem}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -704,11 +705,11 @@ function goBack(){if($('#modals').innerHTML){closeModal();return}if(SAYING)saySt
 function backBtn(){if(history.state&&(history.state.nav||history.state.m))history.back();else goBack()}
 addEventListener('popstate',()=>goBack());
 function render(){
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny','inbox','gab','reqs'].includes(TAB)&&b.dataset.t==='more')));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB||(TAB==='shul'&&b.dataset.t==='shuls')||(['hill','board','mine','zrem','admin','updates','acts','compass','zmanim','thyomi','conv','th2','mny','inbox','gab','reqs'].includes(TAB)&&b.dataset.t==='more')));
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,find:findV,mikva:mikvaV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   const NOTN=['home','admin','gab','inbox','reqs','codes','terms','pro','conv','th2','mine'];
   $('#view').innerHTML=(NOTN.includes(TAB)?'':topNav())+V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
@@ -1538,6 +1539,7 @@ function mine(){
   return `<h2>⭐ האזור האישי שלי</h2>
   <div class="card"><h3>⭐ בתי הכנסת המועדפים שלי</h3>${favs.map(s=>`<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>⭐</span><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(shulNext(s)?'⏰ הקרוב היום: '+shulNext(s):s.address||'')}</span></div><button class="btn ghost sm" aria-label="הסרה מהמועדפים" onclick="event.stopPropagation();fav('${s.id}')">✕ הסרה</button></div>`).join('')||'<div class="empty-msg">לחצו על ☆ ליד בית כנסת כדי להוסיף אותו לכאן</div>'}</div>
   ${pushCard()}
+  <button class="btn gold" style="width:100%;margin-bottom:12px;min-height:50px" onclick="go('zrem')">🔔 תזכורות זמנים – זמני היום, נרות, חנוכה ועומר</button>
   <div class="card"><h3>🔔 התזכורות שלי</h3>${U.rem.map(r=>`<div class="row"><div class="time">${resolveTm(r.tm,nextDateIn(r.d))}</div><div class="main"><b>${esc(r.title)}</b><span class="muted">${DAYSETS[r.d]?.l} · ${r.before} דק׳ לפני</span></div><button class="btn red sm" onclick="U.rem=U.rem.filter(x=>x.id!=='${r.id}');saveU();render()">✕</button></div>`).join('')||'<div class="empty-msg">לחצו על 🔔 ליד תפילה או שיעור כדי לקבל תזכורת</div>'}</div>
   <div class="card"><h3>📜 מעקב תהילים אישי</h3><div class="muted" style="margin-bottom:8px">סמנו כל פרק שאמרתם · ${U.th.length}/150</div>
   <div class="th">${Array.from({length:150},(_,i)=>`<button class="${U.th.includes(i+1)?'on':''}" onclick="thT(${i+1})" aria-label="פרק ${i+1}">${heNum(i+1)}</button>`).join('')}</div>
@@ -1569,9 +1571,62 @@ function checkRem(){
   U.rem.forEach(r=>{if(r.once&&r.once!==today)return;if(!DAYSETS[r.d]?.d.includes(day))return;const tm=resolveTm(r.tm,d);if(!tm)return;const at=toMin(tm)-r.before;const k=r.id+key;
     if(nm>=at&&nm<=toMin(tm)&&!U.fired[k]){U.fired[k]=1;notify(`${r.title} בשעה ${tm}`,!(U.sched&&U.sched[r.id+'|'+today]));if(r.once)r._done=1;ch=true}});
   if(U.rem.some(r=>r._done||(r.once&&r.once<today))){U.rem=U.rem.filter(r=>!r._done&&!(r.once&&r.once<today));ch=true}if(ch)saveU();
+  try{zrCheck()}catch(e){}
   notesOn(d).forEach(n=>{if(!n.tm)return;const k='n'+n.id;if(nm>=toMin(n.tm)-(n.before||0)&&nm<=toMin(n.tm)+5&&!U.fired[k]){U.fired[k]=1;saveU();notify(n.text+' · '+n.tm)}});
 }
 
+/* ===== 🔔 תזכורות זמנים: זמני היום · הדלקת נרות · נר חנוכה · ספירת העומר ===== */
+const ZR_LIST=[['alot','עלות השחר'],['tal','זמן טלית ותפילין'],['rise','הנץ החמה'],['shmaM','סוף זמן ק״ש – מג״א'],['shmaG','סוף זמן ק״ש – גר״א'],['tfM','סוף זמן תפילה – מג״א'],['tfG','סוף זמן תפילה – גר״א'],['chatzot','חצות היום'],['mg','מנחה גדולה'],['mk','מנחה קטנה'],['plag','פלג המנחה'],['set','שקיעה'],['tzeit','צאת הכוכבים']];
+const ZR_MODES=[['full','🔔 צליל ורטט'],['vib','📳 רטט בלבד'],['snd','🔊 צליל בלבד'],['pop','🔕 רק הודעה על המסך']];
+function zrCfg(){const z=U.zr=U.zr||{};z.it=z.it||{};z.mode=z.mode||'full';z.candle=z.candle||{on:false,b:20};z.chan=z.chan||{on:false,at:'set'};z.omer=z.omer||{on:false,day:false};return z}
+const YT_RE=/^(ראש השנה|יום הכיפורים|סוכות|שמיני עצרת|פסח|שביעי של פסח|שבועות)/;
+function isKodesh(at){const d=new Date(at),w=d.getDay(),dd=new Date(d);dd.setHours(12,0,0,0);const z=zmanim(dd);
+  const yt=x=>holidaysOn(x).some(t=>YT_RE.test(t));
+  if(w===6||yt(dd))return !(z.out&&at>=z.out.getTime()+5*6e4&&!yt(addDays(dd,1)));
+  if(w===5||yt(addDays(dd,1)))return !!(z.candle&&at>=z.candle.getTime());return false}
+function zrOcc(days){const c=zrCfg(),o=[],now=Date.now();
+  const add=(k,at,title,body)=>{if(!at)return;const t=at.getTime();if(t<now-15*6e4||isKodesh(t))return;o.push({key:'z|'+k+'|'+iso(at),at,title,body,tm:hm(at)})};
+  for(let i=0;i<=days;i++){const dt=addDays(new Date(),i);dt.setHours(12,0,0,0);const z=zmanim(dt),w=dt.getDay();
+    ZR_LIST.forEach(([k,l])=>{const it=c.it[k];if(!it||!it.on||!z[k])return;const b=+it.b||0;add(k,addM(z[k],-b),'⏰ '+l,b?`בעוד ${b} דקות · בשעה ${hm(z[k])}`:`עכשיו · ${hm(z[k])}`)});
+    if(c.candle.on&&w===5&&z.candle){const b=+c.candle.b||0;add('cnd',addM(z.candle,-b),'🕯️ הדלקת נרות שבת',`בשעה ${hm(z.candle)}`+(b?` · בעוד ${b} דקות`:''))}
+    if(c.chan.on){const m=holidaysOn(addDays(dt,1)).map(t=>t.match(/חנוכה – נר (.+)/)).find(Boolean);
+      if(m){const n=hebNumVal(m[1]);let at=w===5?addM(z.candle,-20):w===6?addM(z.out,10):(c.chan.at==='tzeit'?z.tzeitW:z.set);
+        if(w===6)add('chan',at,'🕎 הדלקת נר חנוכה',`מוצאי שבת – הלילה מדליקים ${n} נרות`);
+        else add('chan',at,'🕎 הדלקת נר חנוכה',`הלילה מדליקים ${n===1?'נר ראשון – מברכים 3 ברכות':n+' נרות'}`+(w===5?' · ערב שבת: מדליקים לפני הדלקת נרות שבת':''))}}
+    if(c.omer.on){const n=omerOn(dt);if(n){const ytd=w===6||holidaysOn(dt).some(t=>YT_RE.test(t));add('omer',ytd?addM(z.out,10):z.tzeitW,'🌾 ספירת העומר',omerText(n).replace(/[֑-ׇ]/g,'').replace('לעמר','לעומר'));
+      if(c.omer.day&&n>1){const dn=omerOn(addDays(dt,-1));if(dn)add('omerd',addM(z.set,-60),'🌾 ספרתם אמש?',`מי ששכח לספור בלילה – סופר היום בלי ברכה (${dn} לעומר)`)}}}}
+  return o.sort((a,b)=>a.at-b.at)}
+function hebNumVal(s){const v={'א':1,'ב':2,'ג':3,'ד':4,'ה':5,'ו':6,'ז':7,'ח':8,'ט':9};return v[String(s).replace(/[׳״']/g,'')[0]]||1}
+function zrBeep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),g=a.createGain();g.gain.value=.12;g.connect(a.destination);[0,.35,.7].forEach((t,i)=>{const o=a.createOscillator();o.frequency.value=[880,1175,1568][i];o.connect(g);o.start(a.currentTime+t);o.stop(a.currentTime+t+.25)})}catch(e){}}
+function zrFire(o,sys){const m=zrCfg().mode;
+  if(m==='full'||m==='vib')try{navigator.vibrate&&navigator.vibrate([250,120,250,120,400])}catch(e){}
+  if(m==='full'||m==='snd')zrBeep();
+  if(sys&&m!=='pop'&&document.hidden&&'Notification'in window&&Notification.permission==='granted'&&navigator.serviceWorker)navigator.serviceWorker.ready.then(r=>r.showNotification(o.title,{body:o.body,icon:'icon-192.png',badge:'icon-192.png',tag:o.key,silent:m==='vib'})).catch(()=>{});
+  if($('#modals').innerHTML)return toast(o.title+' · '+o.body,8000);
+  modal(`<div class="zr-pop"><div class="zr-t">${esc(o.title)}</div><div class="zr-b">${esc(o.body)}</div></div><button class="btn" style="width:100%;margin-top:12px;min-height:48px" onclick="closeModal()">👍 תודה</button><button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="closeModal();go('zrem')">⚙️ הגדרות תזכורות</button>`,'⏰ תזכורת')}
+function zrCheck(){if(!U.zr)return;const now=Date.now();U.fired=U.fired||{};let ch=false;
+  zrOcc(0).forEach(o=>{const t=o.at.getTime();if(now>=t&&now<=t+10*6e4&&!U.fired[o.key]){U.fired[o.key]=1;ch=true;zrFire(o,!(U.sched&&U.sched[o.key]))}});if(ch)saveU()}
+function zrSet(fn){const c=zrCfg();fn(c);saveU();const y=window.scrollY;render();window.scrollTo(0,y);clearTimeout(zrSet.t);zrSet.t=setTimeout(()=>{askNotif();remSync()},800)}
+function zrTest(){zrFire({key:'test',title:'⏰ ניסיון תזכורת',body:'ככה תיראה התזכורת שלכם 🙂'},false)}
+function zremV(){const c=zrCfg(),z=zmanim(new Date()),on=ZR_LIST.filter(([k])=>c.it[k]?.on).length+(c.candle.on?1:0)+(c.chan.on?1:0)+(c.omer.on?1:0);
+  const bSel=(v,fn,opts)=>`<select class="zr-sel" onchange="${fn}">${(opts||[0,5,10,15,20,30,45,60]).map(x=>`<option value="${x}"${+v===x?' selected':''}>${x?x+' דק׳ לפני':'בזמן עצמו'}</option>`).join('')}</select>`;
+  const tg=(chk,fn)=>`<label class="zr-sw"><input type="checkbox"${chk?' checked':''} onchange="${fn}"><span></span></label>`;
+  const nx=zrOcc(7).filter(o=>o.at>Date.now()).slice(0,3);
+  let ch='';for(let i=0;i<400;i++){const dt=addDays(new Date(),i);if(holidaysOn(dt).some(t=>/חנוכה – נר א/.test(t))){ch=i===0?'החג כבר התחיל':'חנוכה מתחיל '+(i===1?'מחר בערב':'בעוד '+i+' ימים')+' ('+gStr(addDays(dt,-1))+')';break}if(holidaysOn(dt).some(t=>/חנוכה/.test(t))){ch='אנחנו בחנוכה 🕎';break}}
+  let om='';for(let i=0;i<400;i++){if(omerOn(addDays(new Date(),i))){om=i===0?'אנחנו בימי הספירה':'הספירה מתחילה בעוד '+i+' ימים';break}}
+  return `<h2>🔔 תזכורות זמנים</h2>
+  <div class="card"><div class="muted">בוחרים מה מעניין אתכם – והאפליקציה מזכירה. ${on?`<b>${on} תזכורות פעילות.</b>`:''}</div>
+   ${nx.length?`<div style="margin-top:8px">${nx.map(o=>`<div class="row"><div class="time">${o.tm}</div><div class="main"><b>${esc(o.title.replace(/^\S+ /,''))}</b><span class="muted">${iso(o.at)===iso(new Date())?'היום':'יום '+DAYNAMES[o.at.getDay()]}</span></div></div>`).join('')}</div>`:''}</div>
+  <div class="card"><h3>איך להזכיר?</h3><div class="chips">${ZR_MODES.map(([k,l])=>`<button class="chip ${c.mode===k?'on':''}" onclick="zrSet(c=>c.mode='${k}')">${l}</button>`).join('')}</div>
+   <button class="btn sec sm" style="margin-top:8px" onclick="zrTest()">🧪 ניסיון – איך זה נראה</button>
+   <div class="muted" style="margin-top:8px;font-size:.88rem">${c.mode==='pop'?'🔕 התזכורת תופיע רק כשהאפליקציה פתוחה, בלי צליל ובלי רטט.':(PUSH.on&&RELAY()?'✅ התזכורת מגיעה גם כשהאפליקציה סגורה (אז הצליל לפי הגדרות הטלפון).':'ℹ️ כשהאפליקציה פתוחה – לפי הבחירה. כדי לקבל גם כשהיא סגורה: <a href="#" onclick="event.preventDefault();pushToggle()">הפעילו התראות</a>.')}</div></div>
+  <div class="card"><h3>🌅 זמני היום</h3>${ZR_LIST.map(([k,l])=>{const it=c.it[k]||{};return `<div class="zr-row">${tg(it.on,`zrSet(c=>{c.it['${k}']=c.it['${k}']||{b:${['shmaM','shmaG','tfM','tfG','set','plag'].includes(k)?15:0}};c.it['${k}'].on=this.checked})`)}<div class="main"><b>${l}</b><span class="muted">היום ${hm(z[k])}</span></div>${it.on?bSel(it.b||0,`zrSet(c=>c.it['${k}'].b=+this.value)`):''}</div>`}).join('')}</div>
+  <div class="card"><h3>🕯️ הדלקת נרות שבת</h3><div class="zr-row">${tg(c.candle.on,"zrSet(c=>c.candle.on=this.checked)")}<div class="main"><b>תזכורת בערב שבת</b><span class="muted">40 דק׳ לפני השקיעה, לפי מנהג ירושלים</span></div>${c.candle.on?bSel(c.candle.b,"zrSet(c=>c.candle.b=+this.value)",[0,10,15,20,30,45,60,90,120]):''}</div></div>
+  <div class="card"><h3>🕎 הדלקת נר חנוכה</h3><div class="zr-row">${tg(c.chan.on,"zrSet(c=>c.chan.on=this.checked)")}<div class="main"><b>תזכורת בכל ערב חנוכה</b><span class="muted">${esc(ch)} · כולל כמה נרות מדליקים</span></div></div>
+   ${c.chan.on?`<div class="chips" style="margin-top:6px"><button class="chip ${c.chan.at!=='tzeit'?'on':''}" onclick="zrSet(c=>c.chan.at='set')">בשקיעה</button><button class="chip ${c.chan.at==='tzeit'?'on':''}" onclick="zrSet(c=>c.chan.at='tzeit')">בצאת הכוכבים</button></div><div class="muted" style="font-size:.85rem;margin-top:4px">בערב שבת – 20 דק׳ לפני הדלקת נרות שבת · במוצאי שבת – אחרי צאת השבת</div>`:''}</div>
+  <div class="card"><h3>🌾 ספירת העומר</h3><div class="zr-row">${tg(c.omer.on,"zrSet(c=>c.omer.on=this.checked)")}<div class="main"><b>תזכורת בצאת הכוכבים</b><span class="muted">${esc(om)} · עם נוסח הספירה של אותו לילה</span></div></div>
+   ${c.omer.on?`<div class="zr-row">${tg(c.omer.day,"zrSet(c=>c.omer.day=this.checked)")}<div class="main"><b>תזכורת נוספת למחרת</b><span class="muted">שעה לפני השקיעה – למי ששכח לספור בלילה</span></div></div>`:''}</div>
+  <div class="muted" style="text-align:center;font-size:.85rem;margin:6px 0 14px">🕊️ בשבת ובחג לא נשלחות תזכורות.</div>`}
 /* ===== לוח שנה ===== */
 function monthStart(dt){return addDays(dt,-(hebParts(dt).d-1))}
 function cal(){
@@ -1716,6 +1771,7 @@ function zmanimV(){
   </div>
   <button class="btn" style="width:100%;margin:12px 0;min-height:52px;font-size:1.05rem" onclick="zmShareMenu('${iso(dt)}')">${ic('share','bi')}שיתוף מעוצב – זמנים, שבת, חגים ועומר</button>
   <button class="btn sec" style="width:100%;margin:-4px 0 12px" onclick="printCenter('zmw')">${ic('printer','bi')}הדפסת זמנים – יום, שבוע, שבת וחודש</button>
+  <button class="btn gold" style="width:100%;margin:-4px 0 12px;min-height:50px" onclick="go('zrem')">🔔 תזכורות זמנים – זמני היום, נרות, חנוכה ועומר</button>
   <button class="btn ghost" style="width:100%;margin:-4px 0 12px" onclick="sayToggle(()=>zmSay(fromIso('${iso(dt)}')))">${ic('speaker','bi')}הקראת הזמנים בקול</button>
   ${w>=4?`<button class="shb" style="margin-bottom:12px" onclick="go('shabbat')"><div class="shb-ic">${ic('shab2')}</div><div class="shb-x"><b>שבת ${esc(parTitle(nextSat(dt)))}</b><span>לכל זמני השבת ותפילות השבת ‹</span></div></button>`:''}
   ${moladCard()}
@@ -2142,8 +2198,9 @@ const osSub=()=>{try{return window.OneSignal?.User?.PushSubscription?.id||''}cat
 async function relayCall(o){const u=RELAY();if(!u)return null;try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});const t=await r.text();try{return JSON.parse(t)}catch(e){return{raw:t}}}catch(e){try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)})}catch(e2){}return null}}
 let _remSyncing=false;
 async function remSync(){if(_remSyncing||!RELAY()||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
-  try{U.sched=U.sched||{};const want={};U.rem.forEach(r=>remOcc(r,2).forEach(o=>want[o.key]={r,o}));
-    for(const[k,{r,o}]of Object.entries(want)){if(U.sched[k])continue;const res=await relayCall({kind:'rem',sub,at:o.at.toISOString(),title:'⏰ '+r.title,body:`בשעה ${o.tm} · עוד ${r.before} דקות`});U.sched[k]={id:res?.id||'',at:o.at.getTime()}}
+  try{U.sched=U.sched||{};const want={};U.rem.forEach(r=>remOcc(r,2).forEach(o=>want[o.key]={at:o.at,title:'⏰ '+r.title,body:`בשעה ${o.tm} · עוד ${r.before} דקות`}));
+    if(U.zr&&zrCfg().mode!=='pop')zrOcc(2).forEach(o=>{if(o.at.getTime()>Date.now()+60000)want[o.key]={at:o.at,title:o.title,body:o.body}});
+    for(const[k,w]of Object.entries(want)){if(U.sched[k])continue;const res=await relayCall({kind:'rem',sub,at:w.at.toISOString(),title:w.title,body:w.body});U.sched[k]={id:res?.id||'',at:w.at.getTime()}}
     for(const[k,v]of Object.entries(U.sched)){if(v.at<Date.now()-36e5){delete U.sched[k];continue}if(!want[k]&&v.at>Date.now()){if(v.id)await relayCall({kind:'cancel',id:v.id});delete U.sched[k]}}
     saveU()}finally{_remSyncing=false}}
 
