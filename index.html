@@ -709,7 +709,9 @@ function render(){
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
   const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,find:findV,mikva:mikvaV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
-  $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
+  const NOTN=['home','admin','gab','inbox','reqs','codes','terms','pro','conv','th2','mine'];
+  $('#view').innerHTML=(NOTN.includes(TAB)?'':topNav())+V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
+  {const o=document.querySelector('.tnav .tn.on');if(o)try{o.scrollIntoView({block:'nearest',inline:'nearest'})}catch(e){}}
 }
 function renderTicker(){
   const items=[...S.ticker].sort((a,b)=>b.dt-a.dt).slice(0,8);
@@ -762,7 +764,7 @@ function admSmart(){modal(`<div class="muted" style="margin-bottom:6px">לאיז
 function admPick(){modal(S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="closeModal();editShul('${s.id}')"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}${missingOf(s).length?' · ⚠️ חסר: '+missingOf(s).join(', '):''}</span></div><span>✏️</span></button>`).join(''),'✏️ איזה בית כנסת לעדכן?')}
 /* ===================== 🔵 פס עיגולים עליון ===================== */
 function topNav(){const it=(img,em,l,act,on)=>`<button class="tn${on?' on':''}" onclick="${act}"><span class="tn-c">${img?`<img src="${IC[img]}" alt="">`:`<span class="tn-e">${em}</span>`}</span><b>${l}</b></button>`;
-  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}</nav>`}
+  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls'||TAB==='shul')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}</nav>`}
 
 /* ===================== 🕰️ חיפוש מניינים: טווח שעות · מרחק · נוסח ===================== */
 let MYLL=null;try{const x=JSON.parse(localStorage.getItem('myll')||'null');if(x&&Date.now()-x.t<6*36e5)MYLL=[x.lat,x.lng]}catch(e){}
@@ -775,7 +777,7 @@ function nusList(){return[...new Set(S.shuls.filter(inNh).map(s=>(s.nusach||'').
 function findV(){const now=new Date();if(F_.day===null)F_.day=now.getDay();if(F_.from===null){const n=nowMin();F_.from=Math.max(0,n-15);F_.to=Math.min(1439,n+120)}
   if(ST.t&&!F_._t){F_.t=ST.t;F_._t=1}
   const chip=(on,l,a)=>`<button class="fchip${on?' on':''}" onclick="${a}">${l}</button>`;
-  return `${topNav()}<h2>🕰️ חיפוש מניינים</h2>
+  return `<h2>🕰️ חיפוש מניינים</h2>
   <div class="card fbox">
    <div class="frow">${['','שחרית','מנחה','ערבית'].map(t=>chip(F_.t===t,t||'הכל',`F_.t='${t}';findDraw()`)).join('')}</div>
    <div class="frow">${[0,1,2,3,4,5,6].map(k=>{const i=(now.getDay()+k)%7;return chip(F_.day===i,k===0?'היום':k===1?'מחר':DAYNAMES[i],`F_.day=${i};findDraw()`)}).join('')}</div>
@@ -831,7 +833,7 @@ let MIK=[];const MK_TYPES=['גברים','נשים','כלים'];
 function listenMik(){if(C.unsub.mik||!S.cloud||!C.F)return;C.unsub.mik=C.F.onSnapshot(dref('config','mikvaot'),d=>{MIK=(d.exists()&&d.data().list)||[];if(TAB==='mikva')softRender()},()=>{})}
 function mikvaV(){listenMik();const adm=(REAL_ROLE||ROLE)?.type==='admin',f=ST.mt||'';
   let L=MIK.filter(m=>!f||m.type===f);L.forEach(m=>{const ll=m.lat?[+m.lat,+m.lng]:null;m._d=MYLL&&ll?distM(MYLL,ll):null});if(MYLL)L.sort((a,b)=>(a._d??1e9)-(b._d??1e9));
-  return `${topNav()}<h2>💧 מקוואות</h2>
+  return `<h2>💧 מקוואות</h2>
   ${MIK.length?`<div class="frow">${['',...MK_TYPES].map(t=>`<button class="fchip${f===t?' on':''}" onclick="ST.mt='${t}';render()">${t?'מקווה '+t:'הכל'}</button>`).join('')}<button class="fchip" onclick="findGeo();setTimeout(render,2500)">📍 הקרוב אליי</button></div>`:''}
   ${L.map(m=>`<div class="fcard"><div class="fc-h"><div><b>💧 ${esc(m.name)}</b><span class="muted">${m.type?'מקווה '+esc(m.type)+' · ':''}${esc(m.address||'')}${m.nh?', '+esc(m.nh):''}</span></div>${m._d!=null?`<span class="fc-d">📍 ${fmtDist(m._d)}</span>`:''}</div>
     ${m.hours?`<div class="mk-h">🕐 ${esc(m.hours).replace(/(\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2})/g,'<bdi dir="ltr">$1</bdi>').replace(/\n/g,'<br>')}</div>`:''}${m.notes?`<div class="muted" style="font-size:.88rem;margin-top:4px">ℹ️ ${esc(m.notes)}</div>`:''}
