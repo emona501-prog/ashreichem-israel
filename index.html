@@ -142,6 +142,10 @@ body.contrast .near{background:#002b80;border:2px solid #000}
 .near-in{background:var(--acc);color:#1c1400;border-radius:999px;padding:3px 12px;font-size:.9rem}
 .near-r{display:flex;gap:8px;align-items:stretch;border-top:1px solid rgba(255,255,255,.18);padding:8px 0}
 .near-r:first-of-type{border-top:0}
+.near-ev{background:linear-gradient(135deg,#7a4b12,#b07a2a)}.near-ev .near-h span:first-child{font-weight:700}
+.near-ev-r{display:flex;gap:12px;align-items:center;width:100%;background:none;border:0;color:#fff;text-align:right;cursor:pointer;padding:6px 0;font:inherit;border-top:1px solid rgba(255,255,255,.15)}.near-ev-r:first-of-type{border-top:0}
+.near-ev .near-t{font-size:1.7rem}.near-ev .near-x span{opacity:.9;font-size:.9rem}.near-ev .near-x small{opacity:.8}
+.near-more{display:block;margin:2px auto 4px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:999px;padding:5px 14px;font:inherit;font-size:.85rem;cursor:pointer}
 .near-main{flex:1;display:flex;gap:12px;align-items:center;background:none;border:0;color:#fff;text-align:right;cursor:pointer;padding:0;min-width:0}
 .near-t{font-size:2.1rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .near-x{display:flex;flex-direction:column;min-width:0}
@@ -750,6 +754,7 @@ function home(){
   ${shabBanner()}
   ${alonWeek().length?`<button class="shb chg" style="background:linear-gradient(135deg,#5b3a1a,#a8742c)" onclick="go('alonim')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלוני השבוע</b><span>${alonWeek().length===1?'עלון חדש':alonWeek().length+' עלונים חדשים'} – לקריאה, שיתוף והדפסה ‹</span></div></button>`:''}
   ${nearest()}
+  ${nearestEv()}
   <div class="say-row"><button onclick="sayToggle(()=>nearSay())">${ic('speaker','bi')}הקראת המניין הקרוב</button><button onclick="askVoice()">${ic('mic','bi')}לשאול בקול</button></div>
   ${adPop()||adImgPop()}
   ${mnyHome()}
@@ -794,6 +799,18 @@ function home(){
   ${shareAppCard()}
   `;
 }
+/* השיעור / הפעילות הקרובה – מכל בתי הכנסת */
+const EV_EM={'שיעור תורה':'📚','ילדים':'🧒','צעירים':'🎯','תהילים':'📖','נשים':'👩','ציבורי':'🎉','אחר':'✨'};
+function nearestEv(){const now=new Date(),nm=nowMin();let day=now.getDay(),lbl='';
+  let l=collect('events',day,e=>e.tm).filter(e=>toMin(e.tm)>=nm-5);
+  if(!l.length){day=(day+1)%7;lbl='מחר';l=collect('events',day,e=>e.tm)}
+  if(!l.length)return'';const first=l.filter(e=>e.tm===l[0].tm).slice(0,2),df=lbl?null:toMin(first[0].tm)-nm;
+  const isShiur=first.every(e=>(e.cat||'')==='שיעור תורה');
+  return `<section class="near near-ev" aria-label="${isShiur?'השיעור הקרוב':'הפעילות הקרובה'}">
+    <div class="near-h"><span>${isShiur?'📚 שיעור התורה הקרוב':'📚 השיעור / הפעילות הקרובה'}</span><span class="near-in">${df===null?lbl:df<=0?'עכשיו':diffTxt(df)}</span></div>
+    ${first.map(e=>`<button class="near-ev-r" onclick="go('shul',{id:'${e.s.id}'})"><span class="near-t">${esc(e.tm)}</span><span class="near-x"><b>${EV_EM[e.cat]||'📚'} ${esc(e.title||e.t||'')}</b><span>${esc(e.s.name)}${e.who?' · '+esc(e.who):''}</span>${e.n?`<small>${esc(e.n)}</small>`:''}</span></button>`).join('')}
+    ${l.length>first.length?`<button class="near-more" onclick="go('acts',{})">עוד ${l.length-first.length} ${lbl||'היום'} ‹</button>`:''}
+  </section>`}
 /* המניין הקרוב ביותר – מכל בתי הכנסת */
 function nearest(){
   const now=new Date(),nm=nowMin();let day=now.getDay(),lbl='';
