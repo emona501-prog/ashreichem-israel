@@ -300,6 +300,7 @@ body.nomotion #mnyPop,body.nomotion #mnyPop .mp-in{animation:none}
 .ed-hint{background:#fff7e0;border:1px solid #f0d58c;border-radius:10px;padding:8px 10px;font-size:.85rem;margin:0 0 8px;line-height:1.5}
 .lnk{border:0;background:none;color:var(--pri,#24456b);font:inherit;font-weight:800;text-decoration:underline;cursor:pointer;padding:0}
 .rf-h{display:flex;align-items:center;gap:8px}.rav-face{width:42px;height:42px;border-radius:50%;flex:none;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.gm-aud{display:flex;gap:6px;margin-bottom:8px}.gm-aud button{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 6px;font:inherit;font-weight:700;cursor:pointer}.gm-aud button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .gm-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.gm-q{background:#fffdf5;border:2px solid #1b1b1b;border-radius:14px;padding:10px 12px}
 .ad-wa{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;background:#1fa855;color:#fff;font-weight:800;border-radius:14px;padding:12px;text-decoration:none;font-size:1.05rem;box-shadow:0 3px 10px rgba(31,168,85,.3)}
 .ad-wa.sm{padding:9px;font-size:.95rem;margin-top:8px}
@@ -1278,36 +1279,41 @@ function gabTip(force,sid,idx){const R=REAL_ROLE||ROLE;const s=shul(sid||(R&&R.s
 /* ===== 📣 הודעה מהמנהל לכל הגבאים – דרך הדמות, עם אישור קריאה ===== */
 let GM=[],GMR={};
 function gabShuls(){return S.shuls.filter(x=>x.login)}
-function listenGM(){const R0=REAL_ROLE||ROLE;if(C.unsub.gm||!S.cloud||!C.F||!R0||(R0.type!=='admin'&&R0.type!=='gabbai'))return;const F=C.F;if(R0.type==='gabbai'&&U.gmSince===undefined){U.gmSince=Date.now()-14*864e5;saveU()}
+let GMALL={};
+function listenGM(){const R0=REAL_ROLE||ROLE;if(C.unsub.gm||!S.cloud||!C.F)return;const F=C.F;if(U.gmSince===undefined){U.gmSince=Date.now()-(R0&&R0.type==='gabbai'?14:5)*864e5;saveU()}
   C.unsub.gm=F.onSnapshot(F.query(col('gabmsg'),F.orderBy('dt','desc'),F.limit(15)),q=>{GM=q.docs.map(d=>({id:d.id,...d.data()}));softRender();gmCheck()},e=>console.warn(e));
-  const R=REAL_ROLE||ROLE;if(R&&R.type==='admin')C.unsub.gmr=F.onSnapshot(col('gabread'),q=>{GMR={};q.docs.forEach(d=>{const x=d.data();(GMR[x.mid]=GMR[x.mid]||{})[x.sid]=x});softRender()},e=>console.warn(e))}
-function gmUnread(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai')return null;U.gmRead=U.gmRead||{};return GM.filter(m=>m.live!==false&&!U.gmRead[m.id]&&m.dt>(U.gmSince||0)).sort((a,b)=>a.dt-b.dt)[0]||null}
+  const R=REAL_ROLE||ROLE;if(R&&R.type==='admin')C.unsub.gma=F.onSnapshot(dref('stats','gmall'),d=>{GMALL=d.exists()?d.data():{};softRender()},()=>{});
+  if(R&&R.type==='admin')C.unsub.gmr=F.onSnapshot(col('gabread'),q=>{GMR={};q.docs.forEach(d=>{const x=d.data();(GMR[x.mid]=GMR[x.mid]||{})[x.sid]=x});softRender()},e=>console.warn(e))}
+function gmUnread(){const R=REAL_ROLE||ROLE;if(R&&R.type==='admin')return null;const gab=R&&R.type==='gabbai';U.gmRead=U.gmRead||{};return GM.filter(m=>(m.aud==='all'||gab)&&m.live!==false&&!U.gmRead[m.id]&&m.dt>(U.gmSince||0)).sort((a,b)=>a.dt-b.dt)[0]||null}
 function gmCheck(){const m=gmUnread();if(!m)return;setTimeout(()=>{if(!$('#modals').innerHTML&&gmUnread())gmShow(m.id)},1500)}
-function gmShow(id,preview){const m=preview?{id:'_p',t:preview,dt:Date.now()}:GM.find(x=>x.id===id);if(!m)return;
+function gmShow(id,preview){const m=preview?{id:'_p',t:preview,dt:Date.now(),aud:window._gmA}:GM.find(x=>x.id===id);if(!m)return;const all=m.aud==='all';
   modal(`<div class="gb-wrap"><div class="gb-bubble"><div class="gb-txt">${fmtTxt(m.t)}</div></div><img class="gb-rav" src="${IC.rav}" alt=""></div>
   <div class="gb-shul">📣 הודעה מהנהלת "אשריכם ישראל" · ${new Date(m.dt).toLocaleDateString('he-IL')}</div>
-  <div class="btns" style="margin-top:6px">${preview!==undefined?`<button class="btn" style="flex:2;min-height:48px" onclick="gmCompose()">↩️ חזרה לעריכה</button>`:`<button class="btn" style="flex:2;min-height:48px" onclick="gmAck('${m.id}')">✅ קראתי</button><button class="btn ghost" style="flex:1" onclick="closeModal()">אחר כך</button>`}</div>`,'📣 הודעה לגבאי')}
+  <div class="btns" style="margin-top:6px">${preview!==undefined?`<button class="btn" style="flex:2;min-height:48px" onclick="gmCompose()">↩️ חזרה לעריכה</button>`:`<button class="btn" style="flex:2;min-height:48px" onclick="gmAck('${m.id}')">${all?'👍 תודה, קראתי':'✅ קראתי'}</button><button class="btn ghost" style="flex:1" onclick="closeModal()">אחר כך</button>`}</div>`,all?'📣 הודעה לכל המשתמשים':'📣 הודעה לגבאי')}
 async function gmAck(id){const R=REAL_ROLE||ROLE;U.gmRead=U.gmRead||{};U.gmRead[id]=Date.now();saveU();closeModal();toast('תודה! 🙏');
+  const m=GM.find(x=>x.id===id);if(m&&m.aud==='all'&&!isMe())C.F.setDoc(dref('stats','gmall'),{[id]:C.F.increment(1)},{merge:true}).catch(()=>{});
   try{if(R&&R.sid){const s=shul(R.sid);await C.F.setDoc(dref('gabread',id+'_'+R.sid),{mid:id,sid:R.sid,name:s?s.name:'',at:Date.now()})}}catch(e){console.warn(e)}
   setTimeout(gmCheck,800)}
-function gmCompose(){const t=window._gmT||'';
-  modal(`<div class="muted">ההודעה תקפוץ לכל גבאי שנכנס לאפליקציה, בבועה של הדמות. הגבאי לוחץ "✅ קראתי" – ואתם רואים מי קרא ומי עוד לא.</div>
+function gmCompose(){const t=window._gmT||'',A=window._gmA||'gab';
+  modal(`<div class="gm-aud">${[['gab','🕍 לגבאים בלבד ('+gabShuls().length+')'],['all','👥 לכל המשתמשים']].map(([k,l])=>`<button class="${A===k?'on':''}" onclick="window._gmT=$('#gmT').value;window._gmA='${k}';gmCompose()">${l}</button>`).join('')}</div>
+  <div class="muted">${A==='all'?'ההודעה תקפוץ פעם אחת לכל מי שנכנס לאפליקציה – תושבים וגבאים – בבועה של הדמות. תראו כמה לחצו "קראתי".':'ההודעה תקפוץ לכל גבאי שנכנס לאפליקציה, בבועה של הדמות. הגבאי לוחץ "✅ קראתי" – ואתם רואים מי קרא ומי עוד לא.'}</div>
   ${fmtBar('gmT')}<textarea class="inp" id="gmT" style="min-height:150px;margin-top:6px" placeholder="למשל: גבאים יקרים, השבוע נכנס שעון חורף – נא לעדכן את זמני המנחה והערבית 🙏" oninput="window._gmT=this.value">${esc(t)}</textarea>
-  <div class="btns" style="margin-top:10px"><button class="btn ghost" onclick="window._gmT=$('#gmT').value;gmShow(0,window._gmT||'(ההודעה ריקה)')">👀 איך זה ייראה</button><button class="btn" style="flex:2" onclick="gmSend()">📣 שליחה לכל הגבאים (${gabShuls().length})</button></div>`,'📣 הודעה לכל הגבאים')}
+  <div class="btns" style="margin-top:10px"><button class="btn ghost" onclick="window._gmT=$('#gmT').value;gmShow(0,window._gmT||'(ההודעה ריקה)')">👀 איך זה ייראה</button><button class="btn" style="flex:2" onclick="gmSend()">${A==='all'?'📣 שליחה לכל המשתמשים':'📣 שליחה לכל הגבאים ('+gabShuls().length+')'}</button></div>`,'📣 הודעה דרך הדמות')}
 async function gmSend(){const t=($('#gmT')||{}).value?.trim();if(!t)return toast('כתבו הודעה');if(!needCloud())return;
-  try{await C.F.addDoc(col('gabmsg'),{t,dt:Date.now(),live:true});window._gmT='';closeModal();toast('📣 נשלח! ההודעה תקפוץ לכל גבאי')}catch(e){cerr(e)}}
+  const aud=window._gmA==='all'?'all':'gab';if(aud==='all'&&!confirm('לשלוח את ההודעה לכל משתמשי האפליקציה?'))return;
+  try{await C.F.addDoc(col('gabmsg'),{t,dt:Date.now(),live:true,aud});window._gmT='';window._gmA='gab';closeModal();toast(aud==='all'?'📣 נשלח! ההודעה תקפוץ לכל המשתמשים':'📣 נשלח! ההודעה תקפוץ לכל גבאי')}catch(e){cerr(e)}}
 async function gmStop(id){if(!confirm('להפסיק להקפיץ את ההודעה הזו לגבאים שעוד לא קראו?'))return;try{await C.F.updateDoc(dref('gabmsg',id),{live:false})}catch(e){cerr(e)}}
-function gmWho(id){const m=GM.find(x=>x.id===id);if(!m)return;const R=GMR[id]||{};const L=gabShuls();
+function gmWho(id){const m=GM.find(x=>x.id===id);if(!m)return;if(m.aud==='all')return modal(`<div class="gm-q">${fmtTxt(m.t)}</div><div style="text-align:center;margin:14px 0"><div style="font-size:2rem;font-weight:800">${GMALL[id]||0}</div><div class="muted">משתמשים לחצו "קראתי"</div></div>${m.live!==false?`<button class="btn ghost sm" style="width:100%" onclick="gmStop('${id}')">⏹️ להפסיק להקפיץ</button>`:''}`,'👥 הודעה לכל המשתמשים');const R=GMR[id]||{};const L=gabShuls();
   const yes=L.filter(x=>R[x.id]),no=L.filter(x=>!R[x.id]);
   modal(`<div class="gm-q">${fmtTxt(m.t)}</div>
   <h4 style="margin:12px 0 4px">✅ קראו (${yes.length})</h4>${yes.map(x=>`<div class="row"><div class="main">${esc(x.name)}</div><span class="muted" style="font-size:.8rem">${new Date(R[x.id].at).toLocaleString('he-IL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')||'<div class="muted">עוד אף אחד</div>'}
   <h4 style="margin:12px 0 4px">⏳ עוד לא קראו (${no.length})</h4>${no.map(x=>`<div class="row"><div class="main">${esc(x.name)}</div></div>`).join('')||'<div class="muted">כולם קראו 🎉</div>'}
   ${m.live!==false?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="gmStop('${id}')">⏹️ להפסיק להקפיץ</button>`:''}`,'📊 מי קרא')}
 function gmAdminCard(){listenGM();const n=gabShuls().length;
-  return `<div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה לכל הגבאים</h3>
-  <div class="muted">כותבים הודעה – והדמות מוסרת אותה לכל גבאי, עם כפתור "קראתי".</div>
-  <button class="btn" style="width:100%;margin-top:8px" onclick="gmCompose()">📣 הודעה חדשה לגבאים</button>
-  ${GM.slice(0,5).map(m=>{const r=Object.keys(GMR[m.id]||{}).length;return`<div class="row" role="button" onclick="gmWho('${m.id}')"><div class="main"><div class="gm-line">${esc(fmtPlain(m.t))}</div><span class="muted" style="font-size:.78rem">${new Date(m.dt).toLocaleDateString('he-IL')}${m.live===false?' · הופסק':''}</span></div><span class="badge">${r}/${n} קראו</span></div>`}).join('')}</div>`}
+  return `<div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה דרך הדמות</h3>
+  <div class="muted">כותבים הודעה – והדמות מוסרת אותה לגבאים או לכל המשתמשים, עם כפתור "קראתי".</div>
+  <div class="btns" style="margin-top:8px"><button class="btn" onclick="window._gmA='gab';gmCompose()">🕍 הודעה לגבאים</button><button class="btn" onclick="window._gmA='all';gmCompose()">👥 לכל המשתמשים</button></div>
+  ${GM.slice(0,5).map(m=>{const r=Object.keys(GMR[m.id]||{}).length;return`<div class="row" role="button" onclick="gmWho('${m.id}')"><div class="main"><div class="gm-line">${esc(fmtPlain(m.t))}</div><span class="muted" style="font-size:.78rem">${m.aud==='all'?'👥 לכל המשתמשים · ':'🕍 לגבאים · '}${new Date(m.dt).toLocaleDateString('he-IL')}${m.live===false?' · הופסק':''}</span></div><span class="badge">${m.aud==='all'?(GMALL[m.id]||0)+' קראו':r+'/'+n+' קראו'}</span></div>`}).join('')}</div>`}
 /* ===== 🔑 מצב קודי גבאים – למי אין קוד, מי קיבל ועוד לא נכנס, מי פעיל ===== */
 function gInMark(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai'||!R.sid||!C.ok)return;const s=shul(R.sid);if(!s)return;
   const t0=new Date();t0.setHours(0,0,0,0);if((s.gIn||0)>=+t0)return;s.gIn=Date.now();C.F.updateDoc(dref('shuls',R.sid),{gIn:s.gIn}).catch(()=>{})}
