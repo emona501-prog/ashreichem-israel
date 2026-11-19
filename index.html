@@ -2832,6 +2832,13 @@ function installInfo(auto){
 async function doInstall(){if(!_inst)return;_inst.prompt();try{const r=await _inst.userChoice;if(r.outcome==='accepted'){closeModal();toast('מותקן! 🎉 האייקון יופיע במסך הבית');U.instNever=1;saveU()}}catch(e){}_inst=null}
 function autoInstallGuide(){
   if(NAT.on){wPromo();return}
+  /* 🎉 הודעה חד-פעמית למשתמשי אנדרואיד: יש אפליקציה עם ווידג'ט */
+  if(DEV.android&&!U.apkAnn){setTimeout(()=>{if($('#modals').innerHTML||U.apkAnn)return;U.apkAnn=Date.now();saveU();
+    modal(`<div style="text-align:center"><div style="font-size:2.6rem">🎉</div><h2 style="margin:4px 0">חדש! ווידג'ט למסך הבית</h2>
+    <p>מהיום אפשר להוריד את <b>"אשריכם ישראל" לאנדרואיד</b> – עם ווידג'ט שמראה את <b>המניין הקרוב</b> ישר על מסך הבית, בלי לפתוח את האפליקציה.</p></div>
+    <button class="btn" style="width:100%" onclick="closeModal();apkInfo()">🤖 להורדה ולהסבר</button>
+    <button class="btn ghost" style="width:100%;margin-top:6px" onclick="closeModal()">לא עכשיו</button>
+    <div class="muted" style="font-size:.8rem;text-align:center;margin-top:6px">אפשר תמיד להוריד מתפריט ☰ עוד</div>`,'📱 אשריכם ישראל לאנדרואיד')},4500);return}
   if(isStandalone()||U.instNever)return;if(!(DEV.ios||DEV.android))return;
   if(U.instSnooze&&Date.now()-U.instSnooze<3*864e5)return;
   setTimeout(()=>{if(!$('#modals').innerHTML&&!isStandalone())installInfo(true)},DEV.inApp?1200:3500);
