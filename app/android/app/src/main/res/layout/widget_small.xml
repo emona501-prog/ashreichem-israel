@@ -4,6 +4,7 @@
   <ImageView android:id="@+id/w_logo" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/widget_logo" android:scaleType="fitCenter" android:contentDescription="אשריכם ישראל" android:layout_marginEnd="7dp" />
   <TextView android:id="@+id/w_heb" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="#FFF3D78E" android:textSize="13sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
   
+  <ImageView android:id="@+id/w_yt" android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/yt_logo" android:scaleType="fitCenter" android:contentDescription="ערוץ גאולה וישועה ביוטיוב" android:layout_marginStart="6dp" />
 </LinearLayout><TextView android:id="@+id/w_zl" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="#FFF3D78E" android:textSize="17sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:textDirection="rtl" />
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
 <TextView android:id="@+id/w_sl" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="#FFF6EFDC" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" android:textDirection="rtl" />

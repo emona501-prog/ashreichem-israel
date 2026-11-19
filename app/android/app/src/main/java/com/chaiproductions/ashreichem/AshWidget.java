@@ -112,6 +112,11 @@ public class AshWidget extends AppWidgetProvider {
         int layout = size == 0 ? R.layout.widget_small : (size == 1 ? R.layout.widget_medium : R.layout.widget_large);
         RemoteViews rv = new RemoteViews(ctx.getPackageName(), layout);
         rv.setOnClickPendingIntent(R.id.w_root, act(ctx, "now", 1));
+        try {
+            Intent yt = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/@yeshurun148"));
+            yt.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            rv.setOnClickPendingIntent(R.id.w_yt, PendingIntent.getActivity(ctx, 99, yt, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+        } catch (Exception e) { }
         long now = System.currentTimeMillis();
         JSONObject d = data(ctx);
         try {

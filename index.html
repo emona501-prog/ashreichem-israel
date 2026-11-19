@@ -605,6 +605,8 @@ const fromIso=s=>{const[a,b,c]=s.split('-');return new Date(+a,+b-1,+c,12)};
 const addDays=(dt,n)=>{const x=new Date(dt);x.setDate(x.getDate()+n);return x};
 const gStr=dt=>dt.getDate()+'.'+(dt.getMonth()+1)+'.'+dt.getFullYear();
 const mMatch=(hm,cur)=>hm===cur||(hm==='Adar'&&cur==='Adar II');
+/* תיקון נוסח: "השבט הקדוש" → "מהשבטים הקדושים" */
+function hilFix(n){return String(n||'').replace(/\s*[–-]?\s*השבט הקדוש/,' – מהשבטים הקדושים')}
 function hillulotOn(date){const p=hebParts(date);return S.hillulot.filter(h=>h.d===p.d&&mMatch(h.m,p.m))}
 /* חגים ומועדים (ירושלים) */
 function holidaysOn(dt){
@@ -2832,13 +2834,11 @@ function installInfo(auto){
 async function doInstall(){if(!_inst)return;_inst.prompt();try{const r=await _inst.userChoice;if(r.outcome==='accepted'){closeModal();toast('מותקן! 🎉 האייקון יופיע במסך הבית');U.instNever=1;saveU()}}catch(e){}_inst=null}
 function autoInstallGuide(){
   if(NAT.on){wPromo();return}
-  /* 🎉 הודעה חד-פעמית למשתמשי אנדרואיד: יש אפליקציה עם ווידג'ט */
-  if(DEV.android&&!U.apkAnn){setTimeout(()=>{if($('#modals').innerHTML||U.apkAnn)return;U.apkAnn=Date.now();saveU();
-    modal(`<div style="text-align:center"><div style="font-size:2.6rem">🎉</div><h2 style="margin:4px 0">חדש! ווידג'ט למסך הבית</h2>
-    <p>מהיום אפשר להוריד את <b>"אשריכם ישראל" לאנדרואיד</b> – עם ווידג'ט שמראה את <b>המניין הקרוב</b> ישר על מסך הבית, בלי לפתוח את האפליקציה.</p></div>
-    <button class="btn" style="width:100%" onclick="closeModal();apkInfo()">🤖 להורדה ולהסבר</button>
-    <button class="btn ghost" style="width:100%;margin-top:6px" onclick="closeModal()">לא עכשיו</button>
-    <div class="muted" style="font-size:.8rem;text-align:center;margin-top:6px">אפשר תמיד להוריד מתפריט ☰ עוד</div>`,'📱 אשריכם ישראל לאנדרואיד')},4500);return}
+  /* 🎉 הודעה חד-פעמית מהדמות לכל משתמשי אנדרואיד: יש אפליקציה עם ווידג'ט */
+  if(DEV.android&&!U.apkAnn2){setTimeout(()=>{if($('#modals').innerHTML||U.apkAnn2)return;U.apkAnn2=Date.now();saveU();
+    modal(`<div class="gb-wrap"><div class="gb-bubble"><div class="gb-txt"><b>שלום וברכה! 👋</b><br>חדש באשריכם ישראל: <b>אפליקציה לאנדרואיד עם ווידג'ט!</b><br>המניין הקרוב – ישר על מסך הבית, בלי לפתוח כלום. ממליץ בחום! 📲</div></div><img class="gb-rav" src="${IC.rav}" alt=""></div>
+    <div class="btns" style="margin-top:6px"><button class="btn" style="flex:2;min-height:48px" onclick="closeModal();apkInfo()">🤖 להורדה ולהסבר</button><button class="btn ghost" style="flex:1" onclick="closeModal()">לא עכשיו</button></div>
+    <div class="muted" style="font-size:.8rem;text-align:center;margin-top:6px">אפשר תמיד להוריד מתפריט ☰ עוד</div>`,'📣 עדכון לכל המשתמשים')},4500);return}
   if(isStandalone()||U.instNever)return;if(!(DEV.ios||DEV.android))return;
   if(U.instSnooze&&Date.now()-U.instSnooze<3*864e5)return;
   setTimeout(()=>{if(!$('#modals').innerHTML&&!isStandalone())installInfo(true)},DEV.inApp?1200:3500);
@@ -2901,7 +2901,7 @@ async function cloudInit(){
 const col=n=>C.F.collection(C.fs,n), dref=(n,id)=>C.F.doc(C.fs,n,id);
 function listenPublic(){
   const F=C.F;
-  C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot)S.hillulot=v.hillulot;S.cloud=1;save();softRender()});
+  C.unsub.cfg=F.onSnapshot(dref('config','main'),d=>{if(!d.exists())return;const v=d.data();if(v.settings)S.settings=Object.assign({},S.settings,v.settings);if(v.neighborhoods)S.neighborhoods=v.neighborhoods;setTimeout(ensureNh,500);if(v.hillulot){S.hillulot=v.hillulot.map(h=>({...h,name:hilFix(h.name)}));if(v.hillulot.some(h=>hilFix(h.name)!==h.name)&&(REAL_ROLE||ROLE)?.type==='admin')setTimeout(()=>saveConfig().catch(()=>{}),1500)}S.cloud=1;save();softRender()});
   C.unsub.pro=F.onSnapshot(dref('config','pro'),d=>{PRO=d.exists()?d.data():{};softRender();tvTick()},()=>{});
   C.unsub.dupok=F.onSnapshot(dref('config','dupok'),d=>{DUPOK=new Set(d.exists()?(d.data().keys||[]):[]);softRender()},()=>{});
   C.unsub.arch=F.onSnapshot(dref('config','archive'),d=>{ARCH=d.exists()?(d.data().shuls||{}):{};softRender()},()=>{});
