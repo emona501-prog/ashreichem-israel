@@ -11,7 +11,7 @@ const APP_URL = 'https://emona501-prog.github.io/ashreichem-israel/';
 function doPost(e) {
   try {
     const d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (!['inbox', 'req', 'test', 'rem', 'cancel', 'mny'].includes(d.kind)) return out({ err: 'bad' });
+    if (!['inbox', 'req', 'test', 'rem', 'cancel', 'mny', 'ad'].includes(d.kind)) return out({ err: 'bad' });
     const c = CacheService.getScriptCache();
 
     // ביטול תזכורת מתוזמנת
@@ -24,6 +24,9 @@ function doPost(e) {
 
     // מניין מתארגן – התראה לכל המשתמשים. הנוסח נבנה כאן מתוך המאגר (לא מהטלפון), כדי שאי אפשר יהיה לנצל
     if (d.kind === 'mny') return out(mnyPush(String(d.id || ''), c));
+
+    // מודעה – התראה לכל המשתמשים. רק המנהל יכול לסמן pushReq במודעה (לפי כללי המאגר), והנוסח נלקח מהמודעה עצמה
+    if (d.kind === 'ad') return out(adPush(String(d.id || ''), c));
 
     const title = String(d.title || 'אשריכם ישראל').slice(0, 80);
     const body = String(d.body || '').slice(0, 160) || 'לחצו לצפייה';
@@ -79,6 +82,23 @@ function mnyPush(id, c) {
   const body = (day + ' ב-' + t + (pl ? ' · ' + pl : '') + ' · חסרים עוד ' + Math.max(1, 10 - n) + ' – לחצו להצטרף').slice(0, 160);
   const msg = { app_id: APP_ID, headings: { en: title, he: title }, contents: { en: body, he: body }, url: APP_URL + '?m=' + id,
     filters: [{ field: 'tag', key: 'nomny', relation: 'not_exists' }], ttl: Math.max(600, Math.round((m.at - now) / 1000) + 600) };
+  const r = UrlFetchApp.fetch('https://api.onesignal.com/notifications', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Key ' + OS_KEY }, payload: JSON.stringify(msg) });
+  const j = JSON.parse(r.getContentText() || '{}');
+  return { code: r.getResponseCode(), id: j.id || '' };
+}
+function adPush(id, c) {
+  if (!/^[A-Za-z0-9]{10,40}$/.test(id)) return { err: 'id' };
+  const a = fsGet('ads/' + id); if (!a || a.st !== 'ok') return { err: 'nf' };
+  const now = Date.now(), rq = +a.pushReq || 0;
+  if (!(rq > now - 10 * 6e4 && rq <= now + 6e4)) return { err: 'old' };            // רק בקשה טרייה מהמנהל
+  if (c.get('a' + id + '_' + rq)) return { err: 'dup' };
+  const dn = +(c.get('ad') || 0); if (dn >= 6) return { err: 'limit' };              // עד 6 התראות מודעה ביום
+  c.put('a' + id + '_' + rq, '1', 21600); c.put('ad', String(dn + 1), 86400);
+  const title = ('📢 ' + String(a.title || 'מודעה חדשה')).slice(0, 80);
+  const body = (String(a.text || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'לחצו לצפייה במודעה');
+  const msg = { app_id: APP_ID, headings: { en: title, he: title }, contents: { en: body, he: body }, url: APP_URL + '?ad=' + id,
+    included_segments: ['Total Subscriptions'], ttl: 86400 };
   const r = UrlFetchApp.fetch('https://api.onesignal.com/notifications', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { Authorization: 'Key ' + OS_KEY }, payload: JSON.stringify(msg) });
   const j = JSON.parse(r.getContentText() || '{}');

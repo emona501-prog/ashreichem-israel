@@ -74,6 +74,7 @@ body.dark .btn{color:#10161d}
 .btn.sec{background:var(--soft);color:var(--pri)}
 .btn.ghost{background:transparent;color:var(--pri);border:1px solid var(--line)}
 .btn.red{background:#fbe9e5;color:var(--warn)}
+.btn.gold{background:linear-gradient(135deg,#e8c25a,#c39a2f);color:#1d2a3a}
 .btn.sm{padding:6px 12px;min-height:36px;font-size:.88rem}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
 .search{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:1rem}
@@ -858,7 +859,7 @@ function home(){
   const next=collect('prayers',d,p=>p.t!=='זמן').filter(p=>toMin(p.tm)>=nm-2).slice(0,4);
   const nextOf=t=>collect('prayers',d,p=>p.t===t).find(p=>toMin(p.tm)>=nm);
   const hl=hillulotOn(new Date());
-  const ads=S.ads.filter(adLive).sort((a,b)=>b.dt-a.dt).slice(0,2);
+  const ads=S.ads.filter(adLive).sort((a,b)=>adT(b)-adT(a)).slice(0,2);
   const qa=(em,t,sub,act)=>`<button class="qa" onclick="${act}"><span class="em">${em}</span><b>${t}</b><small>${sub}</small></button>`;
   const nm1=nextOf('שחרית'),nm2=nextOf('מנחה'),nm3=nextOf('ערבית');
   const todayEv=collect('events',d).filter(e=>toMin(e.tm)>=nm).length;
@@ -1336,10 +1337,22 @@ function adPopHide(id){_adImgCur=null;U.adHide=U.adHide||{};const ti=iso(new Dat
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')'+(a.tm?' · 🕐 '+a.tm:''):a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span>${adStatsHtml(a,1)}</div><span>‹</span></div>`}
 function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}${adWaBtn(a)}${adStatsHtml(a)}
-${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>`:''}</div>`}
+${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>${a.st==='ok'?`<div class="btns" style="margin-top:8px"><button class="btn sm" onclick="adBump('${a.id}')">⬆️ הקפצה לראש הלוח</button><button class="btn gold sm" onclick="adPush('${a.id}')">🔔 התראה לכל המשתמשים</button></div><div class="muted" style="font-size:.85rem;margin-top:4px">${a.bump?'⬆️ הוקפצה לאחרונה: '+fmtAgo(a.bump):''}${a.bump&&a.pushAt?' · ':''}${a.pushAt?'🔔 התראה נשלחה: '+fmtAgo(a.pushAt):''}</div>`:''}`:''}</div>`}
+const adT=a=>Math.max(a.bump||0,a.dt||0);
+function fmtAgo(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return'הרגע';if(m<60)return'לפני '+m+' דק׳';const h=Math.round(m/60);if(h<24)return'לפני '+h+' שע׳';const d=Math.round(h/24);return d===1?'אתמול':'לפני '+d+' ימים'}
+async function adBump(id){if(ROLE?.type!=='admin'||!C.ok)return;const a=S.ads.find(z=>z.id===id);if(!a)return;const t=Date.now();
+  try{await C.F.updateDoc(dref('ads',id),{bump:t});a.bump=t;closeModal();if(TAB==='board')render();toast('⬆️ המודעה הוקפצה לראש הלוח')}catch(e){toast('שגיאה בהקפצה – נסו שוב')}}
+async function adPush(id){if(ROLE?.type!=='admin'||!C.ok)return;const a=S.ads.find(z=>z.id===id);if(!a)return;
+  if(!RELAY())return toast('צריך קודם להגדיר את ממסר ההתראות בלוח הניהול');
+  if(a.pushAt&&Date.now()-a.pushAt<6*36e5&&!confirm('כבר נשלחה התראה על המודעה הזאת '+fmtAgo(a.pushAt)+'. לשלוח שוב?'))return;
+  if(!confirm('לשלוח לכל המשתמשים התראה על המודעה:\n"'+a.title+'"?'))return;
+  const t=Date.now();try{await C.F.updateDoc(dref('ads',id),{pushReq:t,pushAt:t,bump:t});a.pushReq=a.pushAt=a.bump=t}catch(e){return toast('שגיאה – נסו שוב')}
+  try{await fetch(RELAY(),{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind:'ad',id})})}catch(e){}
+  closeModal();if(TAB==='board')render();toast('🔔 ההתראה נשלחה לכל המשתמשים, והמודעה הוקפצה למעלה')}
+function openAdQ(id,n){n=n||0;const a=S.ads.find(z=>z.id===id);if(a){go('board');setTimeout(()=>showAd(id),150);return}if(n<20)setTimeout(()=>openAdQ(id,n+1),500)}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
 function board(){
-  const ok=S.ads.filter(adLive).sort((a,b)=>b.dt-a.dt),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
+  const ok=S.ads.filter(adLive).sort((a,b)=>adT(b)-adT(a)),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
   const L=launchOn();
   return `<h2>📌 לוח מודעות</h2>
   ${L?`<div class="launch"><div class="l1">🎉 מבצע השקה 🎉</div><div class="l2">3 החודשים הראשונים – פרסום <b>חינם</b>!</div><div class="l3">עסקים, שיעורים, שמחות, אירועים ומודעות קהילה · בתוקף עד ${hebDate(LAUNCH_END,1)} (${gStr(LAUNCH_END)})</div></div>`:''}
@@ -3774,7 +3787,7 @@ let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_in
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  natSetup();initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const vq=new URLSearchParams(location.search).get('v');if(vq==='install'){history.replaceState(null,'',location.pathname);if(!isStandalone()&&!NAT.on)setTimeout(()=>installInfo(),700)}else if(vq&&/^(now|zmanim|shabbat|tikkun|compass|th2|alonim|gab)$/.test(vq)){go(vq);history.replaceState(null,'',location.pathname)}const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else if(vq!=='install')autoInstallGuide()}setInterval(()=>{checkRem();if(Date.now()-(window._rs||0)>6e5){window._rs=Date.now();remSync()}if(['home','times','now'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  natSetup();initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const vq=new URLSearchParams(location.search).get('v');if(vq==='install'){history.replaceState(null,'',location.pathname);if(!isStandalone()&&!NAT.on)setTimeout(()=>installInfo(),700)}else if(vq&&/^(now|zmanim|shabbat|tikkun|compass|th2|alonim|gab)$/.test(vq)){go(vq);history.replaceState(null,'',location.pathname)}const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else if(new URLSearchParams(location.search).get('ad')){openAdQ(new URLSearchParams(location.search).get('ad'));history.replaceState(null,'',location.pathname)}else if(vq!=='install')autoInstallGuide()}setInterval(()=>{checkRem();if(Date.now()-(window._rs||0)>6e5){window._rs=Date.now();remSync()}if(['home','times','now'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
