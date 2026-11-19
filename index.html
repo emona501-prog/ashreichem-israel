@@ -1460,6 +1460,8 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
   try{const h=hillulotOn(d)[0];if(h)T.push({k:'h'+k+h.name,ev:1,t:`היום ההילולא של <b>${esc(h.name)}</b> 🕯️<br>זמן מסוגל לתפילה, ללימוד ולהדלקת נר לעילוי נשמתו. זכותו תגן עלינו!`,b:'🕯️ לכל ההילולות',a:"closeModal();go('hill')"})}catch(e){}
   try{const t=addDays(d,1),h=hillulotOn(t)[0];if(h)T.push({k:'h'+iso(t)+h.name,ev:1,t:`מחר ההילולא של <b>${esc(h.name)}</b> 🕯️<br>כדאי להתכונן מהיום – ללמוד משהו ולהתפלל במקום הזה.`,b:'🕯️ לכל ההילולות',a:"closeModal();go('hill')"})}catch(e){}
   try{const c=chagItems(d,4)[0];if(c)T.push({k:'c'+c.h.join(),ev:1,t:`${c.em} מתקרב: <b>${esc(c.h.join(' · '))}</b><br>כל הזמנים וההכנות מחכים לכם בלוח השנה של האפליקציה.`,b:'📅 ללוח השנה',a:"closeModal();go('cal')"})}catch(e){}
+  try{const zc=U.zr||{};if(!(zc.chan&&zc.chan.on))for(let i=1;i<=7;i++){if(holidaysOn(addDays(d,i)).some(t=>/חנוכה – נר א/.test(t))){T.push({k:'zrch'+iso(addDays(d,i)),ev:1,t:`🕎 חנוכה מתקרב – ${i===1?'מחר בערב':'בעוד '+i+' ימים'} מדליקים נר ראשון!<br>רוצים שאזכיר לכם להדליק בכל ערב, כולל כמה נרות מדליקים?`,b:'🔔 להפעלת תזכורת חנוכה',a:"closeModal();go('zrem')"});break}}}catch(e){}
+  try{const zc=U.zr||{};if(!(zc.omer&&zc.omer.on))for(let i=0;i<=5;i++){if(omerOn(addDays(d,i))){T.push({k:'zrom'+iso(addDays(d,i)),ev:1,t:`🌾 ${i===0?'הלילה':i===1?'מחר בלילה':'בעוד '+i+' ימים'} מתחילים לספור את העומר!<br>רוצים תזכורת בכל לילה בצאת הכוכבים, עם נוסח הספירה?`,b:'🔔 להפעלת תזכורת עומר',a:"closeModal();go('zrem')"});break}}}catch(e){}
   if(dw===4||dw===5)T.push({k:'sh'+iso(addDays(d,5-dw)),ev:1,t:dw===5?'שבת שלום! 🕯️<br>זמני הדלקת נרות, תפילות שבת ופרשת השבוע – הכל במקום אחד.':'כבר חמישי! 🕯️<br>תכננו את השבת מראש: זמני כניסה ויציאה, תפילות ושיעורים בשכונה.',b:'🕯️ זמני שבת',a:"closeModal();go('shabbat')"});
   const S0=[
    !U.favs.length&&{k:'fav',t:'טיפ קטן: סמנו <b>⭐</b> את בתי הכנסת שלכם, ותראו את התפילה הקרובה שלהם ישר במסך הבית.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
@@ -1474,6 +1476,7 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
    {k:'voice',t:'אפשר גם <b>לשאול בקול</b>: "מתי מנחה?" או "מתי שקיעה?" – ואני עונה 🎤',b:'🎤 לשאול בקול',a:"closeModal();askVoice()"},
    {k:'fix',t:'ראיתם זמן לא נכון? בדף בית הכנסת יש <b>✏️ דיווח טעות</b>. ההודעה מגיעה ישר לגבאי ולמנהל.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
    {k:'board',t:'יש לכם שיעור, שמחה או אירוע? פרסמו ב<b>לוח המודעות</b>'+(launchOn()?' – בחינם במבצע ההשקה!':'.'),b:'📌 ללוח המודעות',a:"closeModal();go('board')"},
+   !(U.zr&&(Object.values(U.zr.it||{}).some(x=>x&&x.on)||U.zr.candle?.on))&&{k:'zrem',t:'חדש! <b>תזכורות זמנים</b> – בוחרים זמן (שקיעה, סוף זמן ק״ש, הדלקת נרות…) ואני מזכיר לכם. עם צליל, רטט או רק הודעה – איך שנוח לכם.',b:'🔔 לתזכורות זמנים',a:"closeModal();go('zrem')"},
    {k:'mik',t:'חדש באפליקציה: <b>מקוואות</b> בשכונה – כתובות, שעות וניווט בלחיצה.',b:'💧 למקוואות',a:"closeModal();go('mikva')"}
   ].filter(Boolean);
   return{ev:T,st:S0}}
