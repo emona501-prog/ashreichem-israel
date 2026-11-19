@@ -334,6 +334,27 @@ body.tv-on>*:not(#tvRoot){display:none!important}#tvRoot{position:fixed;inset:0;
 .tv-box{background:rgba(255,255,255,.07);border-radius:1.6vh;padding:1.4vh 1vw;font-size:2.7vh;line-height:1.35}.tv-box.pin{background:#fff3cf;color:#3b2a06}.tv-box.pin h2{color:#8a5a12}.tv-box.don .muted{color:#f3d7e0}.tv-bit{margin-top:.8vh;font-size:3vh}
 .tv-foot{height:6vh;background:#e8c873;color:#1b2f4a;border-radius:1.4vh;overflow:hidden;display:flex;align-items:center;font-size:3vh;font-weight:700}.tv-tick{width:100%;overflow:hidden}.tv-tick span{display:inline-block;white-space:nowrap;animation:tvt 45s linear infinite}@keyframes tvt{from{transform:translateX(-100vw)}to{transform:translateX(100%)}}
 .tv-msg{display:flex;align-items:center;justify-content:center;height:100vh;font-size:5vh;text-align:center;line-height:1.5}.tv-e{color:#c9d6e8;font-size:2.6vh}
+.tnav{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;margin:0 -4px 6px;scrollbar-width:none}.tnav::-webkit-scrollbar{display:none}
+.tn{flex:none;width:68px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;font:inherit;cursor:pointer;color:inherit;padding:0}
+.tn-c{width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#eef3f9 60%,#dbe5f1);box-shadow:0 4px 10px rgba(36,69,107,.18),inset 0 -3px 6px rgba(36,69,107,.08);display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:.15s}
+.tn-c img{width:40px;height:40px;object-fit:contain}.tn-e{font-size:1.75rem}.tn b{font-size:.78rem;font-weight:700;white-space:nowrap}
+.tn.on .tn-c{border-color:var(--pri,#24456b);box-shadow:0 0 0 3px rgba(36,69,107,.15),0 4px 10px rgba(36,69,107,.2)}.tn.on b{color:var(--pri,#24456b)}
+body.dark .tn-c{background:radial-gradient(circle at 35% 30%,#3a4c66,#24344a)}
+.fbox{padding:10px}.frow{display:flex;gap:6px;overflow-x:auto;padding:3px 0;scrollbar-width:none}.frow::-webkit-scrollbar{display:none}
+.fchip{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font:inherit;font-size:.88rem;cursor:pointer;color:inherit}.fchip.on{background:var(--pri,#24456b);color:#fff;border-color:transparent;font-weight:700}
+body.dark .fchip{background:#24344a}
+.frng{margin:8px 0 4px}.frng-v{display:flex;justify-content:center;align-items:center;gap:10px;font-size:1.25rem}.frng-v b{background:#eef3f9;color:var(--pri,#24456b);border-radius:12px;padding:4px 12px;font-variant-numeric:tabular-nums}.frng-v span{color:var(--muted,#6b7280);font-size:.9rem}
+.dual{position:relative;height:34px;direction:ltr;margin:4px 6px}.dual-tr{position:absolute;top:15px;left:0;right:0;height:5px;background:#dbe5f1;border-radius:9px}#fFill{position:absolute;top:0;bottom:0;background:var(--pri,#24456b);border-radius:9px}
+.dual input{position:absolute;inset:0;width:100%;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;height:34px;transform:scaleX(-1)}
+.dual input::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--pri,#24456b);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer}
+.dual input::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;border-radius:50%;background:var(--pri,#24456b);border:3px solid #fff;cursor:pointer}
+.frng-q{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:2px}.frng-q .fchip{padding:4px 10px;font-size:.8rem}
+.fcard{background:#eef5fc;border-radius:18px;padding:12px;margin-bottom:10px}.fcard.past{opacity:.55}body.dark .fcard{background:#1f2f45}
+.fc-h{display:flex;justify-content:space-between;gap:8px;cursor:pointer}.fc-h b{display:block;font-size:1.08rem}.fc-h .muted{font-size:.85rem}.fc-d{flex:none;color:#c27b1d;font-weight:800;font-size:.9rem}
+.fc-p{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:10px 12px;margin-top:8px}body.dark .fc-p{background:#24344a}.fc-t{font-size:1.7rem;font-weight:800;color:var(--pri,#24456b);font-variant-numeric:tabular-nums}.fc-x{flex:1;display:flex;flex-direction:column}.fc-x small{color:var(--muted,#6b7280)}
+.fc-v{font-size:.78rem;color:#5b6b80;margin:6px 4px 0;font-style:italic}.fc-a{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.fbtn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 6px;font:inherit;font-size:.85rem;font-weight:700;color:var(--pri,#24456b);text-decoration:none;cursor:pointer;white-space:nowrap}body.dark .fbtn{background:#24344a;color:#dbe5f1}
+.mk-h{background:#fff;border-radius:12px;padding:8px 10px;margin-top:8px;line-height:1.6;font-size:.92rem}body.dark .mk-h{background:#24344a}
 .sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
@@ -686,7 +707,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,find:findV,mikva:mikvaV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   $('#view').innerHTML=V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
 }
@@ -739,6 +760,97 @@ function admHome(){
 }
 function admSmart(){modal(`<div class="muted" style="margin-bottom:6px">לאיזה בית כנסת שייכים הזמנים?</div>`+S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="editShul('${s.id}');smartPaste()"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}</span></div><span>✨</span></button>`).join('')+`<button class="btn sec" style="width:100%;margin-top:10px" onclick="editShul();smartPaste()">➕ בית כנסת חדש</button>`,'✨ הדבקה חכמה')}
 function admPick(){modal(S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="closeModal();editShul('${s.id}')"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}${missingOf(s).length?' · ⚠️ חסר: '+missingOf(s).join(', '):''}</span></div><span>✏️</span></button>`).join(''),'✏️ איזה בית כנסת לעדכן?')}
+/* ===================== 🔵 פס עיגולים עליון ===================== */
+function topNav(){const it=(img,em,l,act,on)=>`<button class="tn${on?' on':''}" onclick="${act}"><span class="tn-c">${img?`<img src="${IC[img]}" alt="">`:`<span class="tn-e">${em}</span>`}</span><b>${l}</b></button>`;
+  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}</nav>`}
+
+/* ===================== 🕰️ חיפוש מניינים: טווח שעות · מרחק · נוסח ===================== */
+let MYLL=null;try{const x=JSON.parse(localStorage.getItem('myll')||'null');if(x&&Date.now()-x.t<6*36e5)MYLL=[x.lat,x.lng]}catch(e){}
+function findGeo(){if(!navigator.geolocation)return toast('הטלפון לא מאפשר מיקום');toast('📍 מאתר מיקום…');
+  navigator.geolocation.getCurrentPosition(p=>{MYLL=[p.coords.latitude,p.coords.longitude];try{localStorage.setItem('myll',JSON.stringify({lat:MYLL[0],lng:MYLL[1],t:Date.now()}))}catch(e){}F_.sort='dist';findDraw()},()=>toast('לא הצלחנו לאתר מיקום – בדקו שהמיקום מופעל'),{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}
+const F_={t:'',day:null,from:null,to:null,nus:'',sort:'time'};
+const mm2t=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const fmtDist=d=>d<1000?Math.round(d/10)*10+' מ׳':(d/1000).toFixed(1)+' ק״מ';
+function nusList(){return[...new Set(S.shuls.filter(inNh).map(s=>(s.nusach||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'he'))}
+function findV(){const now=new Date();if(F_.day===null)F_.day=now.getDay();if(F_.from===null){const n=nowMin();F_.from=Math.max(0,n-15);F_.to=Math.min(1439,n+120)}
+  if(ST.t&&!F_._t){F_.t=ST.t;F_._t=1}
+  const chip=(on,l,a)=>`<button class="fchip${on?' on':''}" onclick="${a}">${l}</button>`;
+  return `${topNav()}<h2>🕰️ חיפוש מניינים</h2>
+  <div class="card fbox">
+   <div class="frow">${['','שחרית','מנחה','ערבית'].map(t=>chip(F_.t===t,t||'הכל',`F_.t='${t}';findDraw()`)).join('')}</div>
+   <div class="frow">${[0,1,2,3,4,5,6].map(k=>{const i=(now.getDay()+k)%7;return chip(F_.day===i,k===0?'היום':k===1?'מחר':DAYNAMES[i],`F_.day=${i};findDraw()`)}).join('')}</div>
+   <div class="frng"><div class="frng-v"><b id="fFrom">${mm2t(F_.from)}</b><span>עד</span><b id="fTo">${mm2t(F_.to)}</b></div>
+    <div class="dual"><div class="dual-tr"><div id="fFill"></div></div><input type="range" min="0" max="1439" step="5" value="${F_.from}" aria-label="משעה" oninput="fRng(this,0)"><input type="range" min="0" max="1439" step="5" value="${F_.to}" aria-label="עד שעה" oninput="fRng(this,1)"></div>
+    <div class="frng-q">${[['עכשיו',-15,120],['בוקר',-1,0],['צהריים',-2,0],['ערב',-3,0],['כל היום',-4,0]].map(([l,a])=>chip(false,l,`fQuick(${a})`)).join('')}</div></div>
+   ${nusList().length>1?`<div class="frow">${chip(!F_.nus,'כל הנוסחים',"F_.nus='';findDraw()")}${nusList().map(n=>chip(F_.nus===n,esc(n),`F_.nus='${esc(n)}';findDraw()`)).join('')}</div>`:''}
+   <div class="frow">${chip(F_.sort==='time','🕐 לפי שעה',"F_.sort='time';findDraw()")}${chip(F_.sort==='dist','📍 הכי קרוב אליי',"MYLL?(F_.sort='dist',findDraw()):findGeo()")}</div>
+  </div>
+  <div id="fRes">${findList()}</div>`}
+function fQuick(a){const n=nowMin();if(a===-15){F_.from=Math.max(0,n-15);F_.to=Math.min(1439,n+120)}else if(a===-1){F_.from=300;F_.to=660}else if(a===-2){F_.from=720;F_.to=1080}else if(a===-3){F_.from=1020;F_.to=1439}else{F_.from=0;F_.to=1439}findDraw()}
+function fRng(el,i){let v=+el.value;if(i===0){if(v>F_.to-15){v=F_.to-15;el.value=v}F_.from=v}else{if(v<F_.from+15){v=F_.from+15;el.value=v}F_.to=v}
+  $('#fFrom').textContent=mm2t(F_.from);$('#fTo').textContent=mm2t(F_.to);fFill();clearTimeout(fRng.t);fRng.t=setTimeout(()=>{$('#fRes').innerHTML=findList()},120)}
+function fFill(){const f=$('#fFill');if(f){f.style.right=(F_.from/1439*100)+'%';f.style.left=(100-F_.to/1439*100)+'%'}}
+function findDraw(){if(TAB!=='find')return;const y=window.scrollY;render();window.scrollTo(0,y);fFill()}
+function findList(){const day=F_.day,dt=dateForDay(day);
+  let L=collect('prayers',day,p=>p.t!=='זמן'&&p.tm&&(!F_.t||p.t===F_.t||(F_.t==='ערבית'&&/מעריב/.test(p.t))),dt).filter(p=>{const m=toMin(p.tm);return m>=F_.from&&m<=F_.to});
+  if(F_.nus)L=L.filter(p=>(p.s.nusach||'').trim()===F_.nus);
+  L.forEach(p=>{const ll=shulLL(p.s);p.dist=MYLL&&ll?distM(MYLL,ll):null});
+  if(F_.sort==='dist'&&MYLL)L.sort((a,b)=>(a.dist??1e9)-(b.dist??1e9)||toMin(a.tm)-toMin(b.tm));
+  const today=day===new Date().getDay(),nm=nowMin();
+  if(!L.length)return `<div class="empty-msg">לא נמצאו מניינים בטווח ${mm2t(F_.from)}–${mm2t(F_.to)}. נסו להרחיב את הטווח.</div>`;
+  return `<div class="muted" style="text-align:center;margin:4px 0 8px">נמצאו ${L.length} מניינים${F_.sort==='dist'&&MYLL?' · ממוינים לפי מרחק':''}</div>`+L.map(p=>{const df=toMin(p.tm)-nm,past=today&&df<0,v=verOf(p.s,p);
+    return `<div class="fcard${past?' past':''}"><div class="fc-h" onclick="go('shul',{id:'${p.s.id}'})"><div><b>${esc(p.s.name)}</b><span class="muted">${esc(p.s.nh||'')}${p.s.nusach?' · <i>'+esc(p.s.nusach)+'</i>':''}</span></div>${p.dist!=null?`<span class="fc-d">📍 ${fmtDist(p.dist)}</span>`:''}</div>
+    <div class="fc-p"><div class="fc-t">${esc(p.tm)}</div><div class="fc-x"><b>${esc(p.t)}</b>${p.rel?`<small>⏱ ${relLabel(p.rel,p.d)}</small>`:''}${p.n?`<small>${esc(p.n)}</small>`:''}</div>${today&&!past?`<span class="badge ${df<=30?'soon':''}">${diffTxt(df)}</span>`:''}</div>
+    <div class="fc-v">${v}</div>
+    <div class="fc-a"><a class="fbtn" href="${walkUrl(p.s)}" target="_blank" rel="noopener">🚶 ניווט</a><button class="fbtn" onclick="verDo('${p.s.id}','${p.id}')" aria-label="הזמן נכון">👍 נכון</button><button class="fbtn" onclick="fixRep('${p.s.id}','${p.id}')">⚠️ טעות?</button><button class="fbtn" onclick="mnyShare('${p.s.id}','${p.id}')" aria-label="שיתוף">📤 שיתוף</button></div></div>`}).join('')}
+function mnyShare(sid,pid){const s=shul(sid),p=(s.prayers||[]).find(x=>x.id===pid);if(!s||!p)return;const tm=resolveTm(p.tm,dateForDay(F_.day??new Date().getDay()));
+  const t=`🕍 *${p.t} ${tm}* – ${s.name}\n📍 ${s.address||''}${s.nh?', '+s.nh:''}\n🚶 ניווט: ${walkUrl(s)}\n\nמתוך אשריכם ישראל 👇\n${APP_URL}`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
+
+/* ===================== 👍 אימות זמנים ע״י משתמשים ===================== */
+let VER={};
+function listenVer(){if(C.unsub.ver||!S.cloud||!C.F)return;C.unsub.ver=C.F.onSnapshot(col('verify'),q=>{VER={};q.docs.forEach(d=>VER[d.id]=d.data());if(TAB==='find'||TAB==='shul')softRender()},()=>{})}
+const agoTxt=t=>{const d=Math.floor((Date.now()-t)/864e5);return d<=0?'היום':d===1?'אתמול':d<30?`לפני ${d} ימים`:d<60?'לפני חודש':`לפני ${Math.floor(d/30)} חודשים`};
+function verOf(s,p){listenVer();const v=(VER[s.id]||{})[p.id],g=s.upd||s.updAt||0;const parts=[];
+  if(v&&v.at)parts.push(`👍 אומת ע״י ${v.n>1?v.n+' מתפללים':'מתפלל'} · ${agoTxt(v.at)}`);
+  if(g)parts.push(`✏️ עודכן ע״י הגבאי ${agoTxt(g)}`);
+  return parts.length?parts.join(' · '):'<span class="muted">עוד לא אומת – הייתם שם? לחצו 👍</span>'}
+async function verDo(sid,pid){if(!needCloud())return;const k=sid+'_'+pid;U.ver=U.ver||{};if(U.ver[k]&&Date.now()-U.ver[k]<864e5)return toast('כבר אישרתם היום – תודה! 🙏');
+  try{await C.F.setDoc(dref('verify',sid),{[pid]:{n:C.F.increment(1),at:Date.now()}},{merge:true});U.ver[k]=Date.now();saveU();toast('👍 תודה! עזרתם לכולם לדעת שהזמן נכון')}catch(e){toast('לא הצלחנו לשמור – נסו שוב מאוחר יותר')}}
+function fixRep(sid,pid){const s=shul(sid),p=(s.prayers||[]).find(x=>x.id===pid);if(!s||!p)return;
+  modal(`<div class="muted">ראיתם זמן לא נכון? כתבו מה הזמן הנכון – וההודעה תגיע לגבאי ולמנהל.</div>
+  <div class="card hl" style="margin:8px 0"><b>${esc(p.t)} · ${esc(s.name)}</b><div class="muted">${esc(DAYSETS[p.d]?.l||'')} · ${esc(resolveTm(p.tm,dateForDay(F_.day??new Date().getDay()))||p.tm)}</div></div>
+  <textarea class="inp" id="fxT" rows="3" placeholder="למשל: המנחה עברה ל-13:30 / המניין הזה כבר לא קיים"></textarea>
+  <button class="btn" style="width:100%;margin-top:8px" onclick="fixSend('${sid}','${pid}')">📨 שליחה</button>`,'⚠️ דיווח על טעות')}
+async function fixSend(sid,pid){const t=($('#fxT').value||'').trim();if(!t)return toast('כתבו מה לא נכון');if(!needCloud())return;const uid=myUid();if(!uid)return toast('רגע… מתחבר לשרת');
+  const s=shul(sid),p=(s.prayers||[]).find(x=>x.id===pid)||{},txt=`⚠️ דיווח על טעות בזמנים\nבית הכנסת: ${s.name}\nתפילה: ${p.t||''} (${DAYSETS[p.d]?.l||''} ${p.tm||''})\n\n${t}`;
+  try{await C.F.addDoc(col('inbox'),{uid,name:U.name||'מתפלל',phone:U.phone||'',cat:'fix',kind:'fix',sid,text:txt,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});relayAdmin('inbox','⚠️ דיווח טעות – '+s.name,t.slice(0,80));closeModal();toast('📨 נשלח – תודה! הגבאי יבדוק')}catch(e){cerr(e)}}
+
+/* ===================== 💧 מקוואות ===================== */
+let MIK=[];const MK_TYPES=['גברים','נשים','כלים'];
+function listenMik(){if(C.unsub.mik||!S.cloud||!C.F)return;C.unsub.mik=C.F.onSnapshot(dref('config','mikvaot'),d=>{MIK=(d.exists()&&d.data().list)||[];if(TAB==='mikva')softRender()},()=>{})}
+function mikvaV(){listenMik();const adm=(REAL_ROLE||ROLE)?.type==='admin',f=ST.mt||'';
+  let L=MIK.filter(m=>!f||m.type===f);L.forEach(m=>{const ll=m.lat?[+m.lat,+m.lng]:null;m._d=MYLL&&ll?distM(MYLL,ll):null});if(MYLL)L.sort((a,b)=>(a._d??1e9)-(b._d??1e9));
+  return `${topNav()}<h2>💧 מקוואות</h2>
+  ${MIK.length?`<div class="frow">${['',...MK_TYPES].map(t=>`<button class="fchip${f===t?' on':''}" onclick="ST.mt='${t}';render()">${t?'מקווה '+t:'הכל'}</button>`).join('')}<button class="fchip" onclick="findGeo();setTimeout(render,2500)">📍 הקרוב אליי</button></div>`:''}
+  ${L.map(m=>`<div class="fcard"><div class="fc-h"><div><b>💧 ${esc(m.name)}</b><span class="muted">${m.type?'מקווה '+esc(m.type)+' · ':''}${esc(m.address||'')}${m.nh?', '+esc(m.nh):''}</span></div>${m._d!=null?`<span class="fc-d">📍 ${fmtDist(m._d)}</span>`:''}</div>
+    ${m.hours?`<div class="mk-h">🕐 ${esc(m.hours).replace(/(\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2})/g,'<bdi dir="ltr">$1</bdi>').replace(/\n/g,'<br>')}</div>`:''}${m.notes?`<div class="muted" style="font-size:.88rem;margin-top:4px">ℹ️ ${esc(m.notes)}</div>`:''}
+    <div class="fc-a"><a class="fbtn" href="${m.lat?'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+m.lat+','+m.lng:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((m.address||m.name)+' ירושלים')}" target="_blank" rel="noopener">🚶 ניווט</a>${m.phone?`<a class="fbtn" href="tel:${esc(m.phone)}">📞 חיוג</a>`:''}${adm?`<button class="fbtn" onclick="mikEdit('${m.id}')">✏️ עריכה</button>`:''}</div></div>`).join('')}
+  ${!MIK.length?`<div class="card" style="text-align:center;padding:24px 16px"><div style="font-size:2.6rem">💧</div><b>בקרוב!</b><div class="muted" style="margin-top:4px">אנחנו אוספים את פרטי המקוואות בשכונה – כתובות, שעות פתיחה וטלפונים. יעלה כאן ממש בקרוב 🙏</div></div>`:''}
+  ${adm?`<button class="btn" style="width:100%;margin-top:10px" onclick="mikEdit()">➕ הוספת מקווה</button>`:''}`}
+function mikEdit(id){const m=id?MIK.find(x=>x.id===id):{id:'',name:'',type:'גברים',address:'',nh:S.neighborhoods[0]||'',hours:'',phone:'',notes:''};if(!m)return;
+  const f=(k,l,ph,x='')=>`<label class="f">${l}</label><input class="inp" id="mk_${k}" value="${esc(m[k]||'')}" placeholder="${ph}" ${x}>`;
+  modal(`${f('name','שם המקווה','מקווה ...')}<label class="f">סוג</label><select class="inp" id="mk_type">${MK_TYPES.map(t=>`<option ${m.type===t?'selected':''}>${t}</option>`).join('')}</select>
+  ${f('address','כתובת','רחוב ומספר')}<label class="f">שכונה</label><select class="inp" id="mk_nh">${S.neighborhoods.map(n=>`<option ${m.nh===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
+  <label class="f">🕐 שעות פתיחה</label><textarea class="inp" id="mk_hours" rows="4" placeholder="א׳–ה׳: 5:00–9:00, 18:00–22:00&#10;ערב שבת: 5:00–שעה לפני כניסת שבת">${esc(m.hours||'')}</textarea>
+  ${f('phone','📞 טלפון','02-...','inputmode="tel"')}${f('notes','הערות','למשל: מקווה מהודר · יש מים חמים')}
+  <button class="btn" style="width:100%;margin-top:10px" onclick="mikSave('${m.id}')">💾 שמירה</button>${id?`<button class="btn red sm" style="width:100%;margin-top:6px" onclick="mikDel('${id}')">🗑️ מחיקה</button>`:''}`,id?'✏️ עריכת מקווה':'➕ מקווה חדש')}
+async function mikSave(id){const g=k=>($('#mk_'+k).value||'').trim(),o={id:id||'mk'+uid(),name:g('name'),type:g('type'),address:g('address'),nh:g('nh'),hours:g('hours'),phone:g('phone'),notes:g('notes')};
+  if(!o.name)return toast('נא לכתוב שם');if(!needCloud())return;const old=MIK.find(x=>x.id===id);if(old&&old.lat&&old.address===o.address){o.lat=old.lat;o.lng=old.lng}
+  if(!o.lat&&o.address){try{const r=await areaCheck(o.address);if(r.ll){o.lat=r.ll.lat;o.lng=r.ll.lng}}catch(e){}}
+  const L=MIK.filter(x=>x.id!==o.id).concat(o);try{await C.F.setDoc(dref('config','mikvaot'),{list:L});MIK=L;closeModal();toast('✔️ נשמר');render()}catch(e){cerr(e)}}
+async function mikDel(id){if(!confirm('למחוק את המקווה?'))return;const L=MIK.filter(x=>x.id!==id);try{await C.F.setDoc(dref('config','mikvaot'),{list:L});MIK=L;closeModal();render()}catch(e){cerr(e)}}
+
 function home(){
   const d=new Date().getDay(),nm=nowMin();
   const next=collect('prayers',d,p=>p.t!=='זמן').filter(p=>toMin(p.tm)>=nm-2).slice(0,4);
@@ -750,6 +862,7 @@ function home(){
   const todayEv=collect('events',d).filter(e=>toMin(e.tm)>=nm).length;
   return `
   <h2>${greet()} 👋</h2>
+  ${topNav()}
   ${admHome()}
   ${shabBanner()}
   ${alonWeek().length?`<button class="shb chg" style="background:linear-gradient(135deg,#5b3a1a,#a8742c)" onclick="go('alonim')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלוני השבוע</b><span>${alonWeek().length===1?'עלון חדש':alonWeek().length+' עלונים חדשים'} – לקריאה, שיתוף והדפסה ‹</span></div></button>`:''}
