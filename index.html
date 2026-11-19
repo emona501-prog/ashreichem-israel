@@ -1454,10 +1454,44 @@ function gmWho(id){const m=GM.find(x=>x.id===id);if(!m)return;if(m.aud==='all')r
   <h4 style="margin:12px 0 4px">✅ קראו (${yes.length})</h4>${yes.map(x=>`<div class="row"><div class="main">${esc(x.name)}</div><span class="muted" style="font-size:.8rem">${new Date(R[x.id].at).toLocaleString('he-IL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')||'<div class="muted">עוד אף אחד</div>'}
   <h4 style="margin:12px 0 4px">⏳ עוד לא קראו (${no.length})</h4>${no.map(x=>`<div class="row"><div class="main">${esc(x.name)}</div></div>`).join('')||'<div class="muted">כולם קראו 🎉</div>'}
   ${m.live!==false?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="gmStop('${id}')">⏹️ להפסיק להקפיץ</button>`:''}`,'📊 מי קרא')}
+/* ===== 💡 הדמות – טיפים והמלצות למשתמשים במהלך השבוע ===== */
+function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
+  try{const h=hillulotOn(d)[0];if(h)T.push({k:'h'+k+h.name,ev:1,t:`היום ההילולא של <b>${esc(h.name)}</b> 🕯️<br>זמן מסוגל לתפילה, ללימוד ולהדלקת נר לעילוי נשמתו. זכותו תגן עלינו!`,b:'🕯️ לכל ההילולות',a:"closeModal();go('hill')"})}catch(e){}
+  try{const t=addDays(d,1),h=hillulotOn(t)[0];if(h)T.push({k:'h'+iso(t)+h.name,ev:1,t:`מחר ההילולא של <b>${esc(h.name)}</b> 🕯️<br>כדאי להתכונן מהיום – ללמוד משהו ולהתפלל במקום הזה.`,b:'🕯️ לכל ההילולות',a:"closeModal();go('hill')"})}catch(e){}
+  try{const c=chagItems(d,4)[0];if(c)T.push({k:'c'+c.h.join(),ev:1,t:`${c.em} מתקרב: <b>${esc(c.h.join(' · '))}</b><br>כל הזמנים וההכנות מחכים לכם בלוח השנה של האפליקציה.`,b:'📅 ללוח השנה',a:"closeModal();go('cal')"})}catch(e){}
+  if(dw===4||dw===5)T.push({k:'sh'+iso(addDays(d,5-dw)),ev:1,t:dw===5?'שבת שלום! 🕯️<br>זמני הדלקת נרות, תפילות שבת ופרשת השבוע – הכל במקום אחד.':'כבר חמישי! 🕯️<br>תכננו את השבת מראש: זמני כניסה ויציאה, תפילות ושיעורים בשכונה.',b:'🕯️ זמני שבת',a:"closeModal();go('shabbat')"});
+  const S0=[
+   !U.favs.length&&{k:'fav',t:'טיפ קטן: סמנו <b>⭐</b> את בתי הכנסת שלכם, ותראו את התפילה הקרובה שלהם ישר במסך הבית.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
+   {k:'find',t:'מחפשים מניין? ב<b>חיפוש המניינים</b> בוחרים טווח שעות ונוסח, ורואים את המניין <b>הכי קרוב אליכם</b>.',b:'🕰️ לחיפוש מניינים',a:"closeModal();go('find')"},
+   {k:'ver',t:'מתפללים במניין והזמן נכון? לחצו <b>👍</b> ליד הזמן. ככה כולם יודעים שהזמנים מדויקים – וזו זכות גדולה!',b:'🕰️ למניינים',a:"closeModal();go('find')"},
+   {k:'share',t:'אהבתם את האפליקציה? <b>שתפו אותה</b> עם השכנים והמשפחה. ככל שיותר משתמשים – כך המידע מדויק יותר לכולם 💝',b:'📤 שיתוף האפליקציה',a:"closeModal();shareApp()"},
+   !NAT.on&&{k:'apk',t:'ידעתם? יש לנו <b>אפליקציה מותקנת עם ווידג׳ט</b> למסך הבית – רואים את המניין הקרוב בלי לפתוח כלום.',b:'📲 איך מתקינים',a:"closeModal();installInfo()"},
+   PUSH.sup&&!PUSH.on&&{k:'push',t:'הפעילו <b>התראות</b>, ותדעו ראשונים על מניין שמתארגן, שינויי זמנים ומודעות חשובות.',b:'🔔 הפעלת התראות',a:"closeModal();pushToggle()"},
+   {k:'tik',t:'<b>תיקון הכללי</b> – עשרה מזמורי תהילים שרבי נחמן הבטיח עליהם. אפשר לומר אותו כאן בכל יום, אפילו בכמה דקות.',b:'🔥 לתיקון הכללי',a:"closeModal();go('tikkun')"},
+   {k:'lim',t:'<b>לימוד יומי</b>: דף יומי, משנה יומית, רמב״ם ועוד – מתחלף לבד בשקיעה. דקה ביום שווה הרבה!',b:'📖 ללימוד היומי',a:"closeModal();go('limud')"},
+   {k:'mny',t:'חסר לכם מניין בשעה מיוחדת? ב<b>מארגנים מניין</b> פותחים קריאה, והשכנים מקבלים הודעה ומצטרפים.',b:'🙋 מארגנים מניין',a:"closeModal();go('mny')"},
+   {k:'voice',t:'אפשר גם <b>לשאול בקול</b>: "מתי מנחה?" או "מתי שקיעה?" – ואני עונה 🎤',b:'🎤 לשאול בקול',a:"closeModal();askVoice()"},
+   {k:'fix',t:'ראיתם זמן לא נכון? בדף בית הכנסת יש <b>✏️ דיווח טעות</b>. ההודעה מגיעה ישר לגבאי ולמנהל.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
+   {k:'board',t:'יש לכם שיעור, שמחה או אירוע? פרסמו ב<b>לוח המודעות</b>'+(launchOn()?' – בחינם במבצע ההשקה!':'.'),b:'📌 ללוח המודעות',a:"closeModal();go('board')"},
+   {k:'mik',t:'חדש באפליקציה: <b>מקוואות</b> בשכונה – כתובות, שעות וניווט בלחיצה.',b:'💧 למקוואות',a:"closeModal();go('mikva')"}
+  ].filter(Boolean);
+  return{ev:T,st:S0}}
+function userTipPick(){const L=userTips(),seen=U.tipSeen||{};const e=L.ev.find(x=>!seen[x.k]);if(e)return e;
+  let st=L.st.filter(x=>!seen[x.k]);if(!st.length){L.st.forEach(x=>delete seen[x.k]);U.tipSeen=seen;st=L.st}return st[0]||null}
+function userTipCheck(){const R=REAL_ROLE||ROLE;if(R&&R.type==='admin')return;U.tipOpen=(U.tipOpen||0)+1;saveU();if(U.tipOpen<3)return;
+  const now=Date.now(),last=U.tipAt||0;if(now-(U.gabTipAt||0)<864e5)return;const m=userTipPick();if(!m)return;
+  if(now-last<(m.ev?20*36e5:2*864e5))return;
+  setTimeout(()=>{if(TAB==='home'&&!$('#modals').innerHTML&&!gmUnread())userTip(m)},6000)}
+function userTip(m,prev){if(!m)return;if(!prev){U.tipSeen=U.tipSeen||{};U.tipSeen[m.k]=Date.now();U.tipAt=Date.now();saveU()}
+  modal(`<div class="gb-wrap"><div class="gb-bubble"><div class="gb-txt">${m.t}</div></div><img class="gb-rav" src="${IC.rav}" alt=""></div>
+  <div class="btns" style="margin-top:6px"><button class="btn" style="flex:2;min-height:48px" onclick="${m.a}">${m.b}</button><button class="btn ghost" style="flex:1" onclick="closeModal()">תודה 🙏</button></div>
+  ${prev!==undefined?`<div class="btns" style="margin-top:8px"><button class="btn sec sm" onclick="tipPrev(${prev+1})">👀 הטיפ הבא</button></div>`:''}`,'💡 טיפ מהרב')}
+function tipPrev(i){const L=userTips(),A=[...L.ev,...L.st];if(!A.length)return;i=i%A.length;closeModal();setTimeout(()=>userTip(A[i],i),60)}
 function gmAdminCard(){listenGM();const n=gabShuls().length;
   return `<div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה דרך הדמות</h3>
   <div class="muted">כותבים הודעה – והדמות מוסרת אותה לגבאים או לכל המשתמשים, עם כפתור "קראתי".</div>
   <div class="btns" style="margin-top:8px"><button class="btn" onclick="window._gmA='gab';gmCompose()">🕍 הודעה לגבאים</button><button class="btn" onclick="window._gmA='all';gmCompose()">👥 לכל המשתמשים</button></div>
+  <div class="muted" style="margin-top:10px">💡 בנוסף, הדמות קופצת לבד למשתמשים פעם ביומיים עם טיפים (וביום של הילולה, חג או ערב שבת – עם תזכורת מתאימה).</div><div class="btns" style="margin-top:6px"><button class="btn sec sm" onclick="tipPrev(0)">👀 הצצה לטיפים של הדמות</button></div>
   ${GM.slice(0,5).map(m=>{const r=Object.keys(GMR[m.id]||{}).length;return`<div class="row" role="button" onclick="gmWho('${m.id}')"><div class="main"><div class="gm-line">${esc(fmtPlain(m.t))}</div><span class="muted" style="font-size:.78rem">${m.aud==='all'?'👥 לכל המשתמשים · ':'🕍 לגבאים · '}${new Date(m.dt).toLocaleDateString('he-IL')}${m.live===false?' · הופסק':''}</span></div><span class="badge">${m.aud==='all'?(GMALL[m.id]||0)+' קראו':r+'/'+n+' קראו'}</span></div>`}).join('')}</div>`}
 /* ===== 🔑 מצב קודי גבאים – למי אין קוד, מי קיבל ועוד לא נכנס, מי פעיל ===== */
 function gInMark(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='gabbai'||!R.sid||!C.ok)return;const s=shul(R.sid);if(!s)return;
@@ -3045,7 +3079,7 @@ async function cloudInit(){
       REAL_ROLE=role;let va=false;try{va=localStorage.getItem(VIEWAS)==='1'}catch(e){}ROLE=role&&va?null:role;ibListen(u);
       if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
-      countVisit();softRender();setTimeout(gabTipCheck,2500);
+      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{userTipCheck()}catch(e){}},3000);
     });
   }catch(e){console.warn('cloud off',e)}
 }
