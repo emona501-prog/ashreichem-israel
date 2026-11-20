@@ -1739,6 +1739,8 @@ const addM=(d,m)=>d?new Date(d.getTime()+m*6e4):null;
 function zmanim(dt,loc){
   const{lat,lng}=loc||LOC();const z={};
   z.rise=sunT(dt,lat,lng,90.833,1);z.set=sunT(dt,lat,lng,90.833,0);
+  /* שקיעה לפי גובה המקום – לחישוב הדלקת נרות כמו בלוחות (ירושלים ~800 מ׳: 16:41 ולא 16:37 בפרשת ויצא) */
+  const L0=loc||LOC(),el=L0.elev!=null?L0.elev:(lat>31.7&&lat<31.86&&lng>35.1&&lng<35.3?780:0);z.setE=el?sunT(dt,lat,lng,90.833+0.027*Math.sqrt(el),0):z.set;
   z.alot=sunT(dt,lat,lng,106.1,1);z.tzMga=sunT(dt,lat,lng,106.1,0);
   z.tal=sunT(dt,lat,lng,101.5,1);
   /* צאת הכוכבים בחול: 6.45° (לוחות א״י, ר׳ טוקצ׳ינסקי) · צאת השבת/החג: 7.8° – כמו הלוחות המקובלים בירושלים (למשל 17:12 בפרשת ויצא) */
@@ -1747,7 +1749,7 @@ function zmanim(dt,loc){
   if(!z.rise||!z.set)return z;
   const g=(z.set-z.rise)/12/6e4,m=(z.tzMga-z.alot)/12/6e4;
   Object.assign(z,{shmaM:addM(z.alot,3*m),shmaG:addM(z.rise,3*g),tfM:addM(z.alot,4*m),tfG:addM(z.rise,4*g),chatzot:addM(z.rise,6*g),
-    mg:addM(z.rise,6.5*g),mk:addM(z.rise,9.5*g),plag:addM(z.rise,10.75*g),rt:addM(z.set,72),candle:addM(z.set,-40),shaa:g});
+    mg:addM(z.rise,6.5*g),mk:addM(z.rise,9.5*g),plag:addM(z.rise,10.75*g),rt:addM(z.set,72),candle:addM(z.setE||z.set,-40),candle20:addM(z.setE||z.set,-20),shaa:g});
   return z;
 }
 function zmanimV(){
@@ -1865,7 +1867,7 @@ function shabbatV(){
   const step=k=>`ST.sat=iso(addDays(fromIso('${iso(sat)}'),${k}));render()`;
   const cd=iso(sat)===iso(nextSat(n))?(inS?'⏳ '+diffTxt(Math.round((zs.tzeit-n)/6e4))+' לצאת השבת':n<zf.candle?'⏳ '+diffTxt(Math.round((zf.candle-n)/6e4))+' לכניסת השבת':''):'';
   const tile=(k,t,v,s)=>`<div class="sb-t">${ic(k,'tl')}<small>${t}</small><b>${v}</b>${s?`<em>${s}</em>`:''}</div>`;
-  const cities=CITIES.map(([c,la,lo,cl])=>{const a=zmanim(f,{lat:la,lng:lo}),b=zmanim(sat,{lat:la,lng:lo});return `<tr><td>${c}</td><td>${hm(addM(a.set,-cl))}</td><td>${hm(b.tzeit)}</td><td>${hm(b.rt)}</td></tr>`}).join('');
+  const cities=CITIES.map(([c,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sat,{lat:la,lng:lo,elev:el});return `<tr><td>${c}</td><td>${hm(a.candle20)}</td><td>${hm(a.candle)}</td><td>${hm(b.tzeit)}</td><td>${hm(b.rt)}</td></tr>`}).join('');
   // תפילות בבתי הכנסת
   const ff=collect('prayers',5,p=>p.t!=='זמן',f).filter(p=>p.tm&&toMin(p.tm)>=toMin(hm(zf.candle))-100),ss=collect('prayers',6,p=>p.t!=='זמן',sat),ev=collect('events',6,null,sat).concat(collect('events',5,null,f).filter(e=>e.tm&&toMin(e.tm)>=toMin(hm(zf.candle))));
   const byS={};[...ff.map(p=>({...p,_k:'ערב שבת'})),...ss.map(p=>({...p,_k:p.d==='mz'||toMin(p.tm)>=toMin(hm(zs.tzeit))-5?'מוצאי שבת':'שבת'})),...ev.map(e=>({...e,t:e.title,_k:'שיעורים'}))].forEach(p=>{(byS[p.s.id]=byS[p.s.id]||{s:p.s,L:[]}).L.push(p)});
@@ -1883,7 +1885,7 @@ function shabbatV(){
   <div class="sb-acts"><button class="btn" onclick="zmShare('shab','${iso(f)}')">${ic('share','bi')}שיתוף</button><button class="btn sec" onclick="printCenter('shab');$('#prD')&&($('#prD').value='${iso(f)}')">${ic('printer','bi')}הדפסה</button><button class="btn sec" onclick="sayToggle(()=>shabSay(fromIso('${iso(sat)}')))">${ic('speaker','bi')}הקראה</button></div>
   ${ch.length?`<h3 style="margin:14px 0 6px;display:flex;gap:6px;align-items:center">${ic('magen','sm')} חגים ומועדים קרובים</h3>${ch.map(c=>`<div class="card sb-ch"><div class="sb-chh"><span class="sb-che">${ic(chagIc(c.h),'md')}</span><div><b>${esc(c.h.join(' · '))}</b><div class="muted">יום ${DAYNAMES[c.x.getDay()]} · ${hebDate(c.x)} · ${gStr(c.x)}</div></div></div>${c.rows.map(r=>`<div class="row"><div class="main"><b>${esc(r[0])}</b></div><div class="time" style="font-size:1.05rem">${esc(r[1])}</div></div>`).join('')}</div>`).join('')}`:''}
   <div class="card"><h3>⏰ זמני השבת</h3>${[['סוף זמן ק״ש – מג״א',zs.shmaM],['סוף זמן ק״ש – גר״א',zs.shmaG],['סוף זמן תפילה – גר״א',zs.tfG],['חצות היום',zs.chatzot],['מנחה גדולה',zs.mg],['מנחה קטנה',zs.mk],['שקיעה',zs.set]].map(([t,v])=>`<div class="row"><div class="main"><b>${t}</b></div><div class="time">${hm(v)}</div></div>`).join('')}</div>
-  <div class="card"><h3>🏙️ זמני השבת בערים</h3><table class="sb-tb"><tr><th>עיר</th><th>כניסה</th><th>יציאה</th><th>ר״ת</th></tr>${cities}</table></div>
+  <div class="card"><h3>🏙️ זמני השבת בערים</h3><table class="sb-tb"><tr><th>עיר</th><th>כניסה<br><small>20 דק׳</small></th><th>כניסה<br><small>40 דק׳</small></th><th>יציאה</th><th>ר״ת</th></tr>${cities}</table></div>
   ${mv?`<div class="card"><h3 style="display:flex;gap:6px;align-items:center">${ic('moon','sm')} שבת מברכים חודש ${esc(mv.m)}</h3><div class="mol-ann">${esc(molFix(mv.com))}</div><div class="muted">ראש חודש: יום ${esc(mv.rcd)}</div></div>`:''}
   ${alonWeekSec()}
   <h3 style="margin:14px 0 6px">🕍 תפילות ושיעורים בבתי הכנסת</h3>${shulCards||'<div class="empty-msg">עוד לא הוזנו זמני שבת לבתי הכנסת</div>'}
@@ -2317,7 +2319,7 @@ const RELAY_DEF='https://script.google.com/macros/s/AKfycbyW-72CmPNIq3csDx45e45x
 const RELAY=()=>(S&&S.settings&&S.settings.relay)||RELAY_DEF;
 const APP_URL='https://emona501-prog.github.io/ashreichem-israel/';
 const YT_URL='https://youtube.com/@yeshurun148';
-const CITIES=[['ירושלים',31.778,35.235,40],['תל אביב',32.08,34.78,20],['בני ברק',32.083,34.833,20],['חיפה',32.8,34.99,30],['באר שבע',31.25,34.79,20],['צפת',32.965,35.496,20]];
+const CITIES=[['ירושלים',31.778,35.235,800],['תל אביב',32.08,34.78,130],['בני ברק',32.083,34.833,130],['חיפה',32.8,34.99,350],['באר שבע',31.25,34.79,260],['צפת',32.965,35.496,850]];
 function zmShareMenu(ds){
   const dt=fromIso(ds);let omD=-1;for(let i=0;i<60;i++)if(omerOn(addDays(dt,i))){omD=i;break}
   let hv=null;for(let i=0;i<60&&!hv;i++){const x=addDays(dt,i),h=holidaysOn(x).filter(t=>t!=='ראש חודש');if(h.length)hv={x,h}}
@@ -2330,7 +2332,7 @@ function zmShare(k,ds){
     rows:[['עלות השחר',z.alot],['טלית ותפילין',z.tal],['הנץ החמה',z.rise],['סוף ק״ש מג״א',z.shmaM],['סוף ק״ש גר״א',z.shmaG],['סוף תפילה גר״א',z.tfG],['חצות',z.chatzot],['מנחה גדולה',z.mg],['מנחה קטנה',z.mk],['פלג המנחה',z.plag],['שקיעה',z.set],['צאת הכוכבים',z.tzeit]].map(r=>({t:r[0],v:hm(r[1])})),
     foot:holidaysOn(dt).concat(dt.getDay()===5?['הדלקת נרות '+hm(z.candle)]:[]).join(' · ')||'יום טוב ומבורך!'};}
   else if(k==='shab'){let f=new Date(dt);while(f.getDay()!==5)f=addDays(f,1);const s=addDays(f,1);
-    c={title:'שבת שלום',date:parTitle(s)+' · ערב שבת · '+hebDate(f)+' · '+gStr(f),rows:CITIES.map(([n,la,lo,cl])=>{const a=zmanim(f,{lat:la,lng:lo}),b=zmanim(s,{lat:la,lng:lo});return{t:n,s:'הדלקת נרות '+hm(addM(a.set,-cl))+'  ·  צאת השבת '+hm(b.tzeit)+'  ·  ר״ת '+hm(b.rt)}}),foot:'שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!'};}
+    c={title:'שבת שלום',date:parTitle(s)+' · ערב שבת · '+hebDate(f)+' · '+gStr(f),rows:CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(s,{lat:la,lng:lo,elev:el});return{t:n,s:'הדלקת נרות '+hm(a.candle20)+' · 40 דק׳: '+hm(a.candle)+'  ·  צאת השבת '+hm(b.tzeit)+'  ·  ר״ת '+hm(b.rt)}}),foot:'שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!'};}
   else if(k==='omer'){let x=new Date(dt);for(let i=0;i<60&&!omerOn(x);i++)x=addDays(x,1);const n=omerOn(x);const z=zmanim(x);
     c={title:'ספירת העומר',date:'ליל '+hebDate(addDays(x,1),1)+' · '+gStr(x),big:omerText(n),rows:[{t:'סופרים אחרי צאת הכוכבים',s:hm(z.tzeit)+' · '+LOC().name}],foot:'הָרַחֲמָן הוּא יַחֲזִיר לָנוּ עֲבוֹדַת בֵּית הַמִּקְדָּשׁ לִמְקוֹמָהּ'};}
   else if(k==='hol'){let x=null,h=null;for(let i=0;i<60&&!x;i++){const y=addDays(dt,i),hh=holidaysOn(y).filter(t=>t!=='ראש חודש');if(hh.length){x=y;h=hh}}if(!x)return toast('אין חג קרוב');
@@ -3737,11 +3739,11 @@ function prShul(sid,base){
 function prShab(base){
   let f=new Date(base);while(f.getDay()!==5)f=addDays(f,1);const sa=addDays(f,1);
   const hol=holidaysOn(f).concat(holidaysOn(sa)).filter((x,i,a)=>a.indexOf(x)===i);const mv=MOLAD().find(e=>{const m=mevOf(e);return m&&iso(m)===iso(sa)});
-  const rows=CITIES.map(([n,la,lo,cl])=>{const a=zmanim(f,{lat:la,lng:lo}),b=zmanim(sa,{lat:la,lng:lo});return `<tr><td><b>${n}</b></td><td class="tm">${hm(addM(a.set,-cl))}</td><td class="tm">${hm(b.tzeit)}</td><td class="tm">${hm(b.rt)}</td></tr>`}).join('');
+  const rows=CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sa,{lat:la,lng:lo,elev:el});return `<tr><td><b>${n}</b></td><td class="tm">${hm(a.candle20)}</td><td class="tm">${hm(a.candle)}</td><td class="tm">${hm(b.tzeit)}</td><td class="tm">${hm(b.rt)}</td></tr>`}).join('');
   const ty=[['קבלת שבת','fri'],['שחרית','sat'],['מנחה','sat'],['ערבית','mz']];
   const sh=S.shuls.map(s=>{const c=ty.map(([t,dk])=>{const L=(s.prayers||[]).filter(p=>p.t===t&&DAYSETS[p.d]?.d.includes(dk==='fri'?5:6)&&(dk!=='mz'||p.d==='mz')&&(dk==='mz'||p.d!=='mz')).map(p=>resolveTm(p.tm,dk==='fri'?f:sa)).filter(Boolean).sort((a,b)=>toMin(a)-toMin(b));return L.join(' · ')||'—'});return c.some(x=>x!=='—')?`<tr><td><b>${esc(s.name)}</b></td>${c.map(x=>`<td class="tm s">${x}</td>`).join('')}</tr>`:''}).join('');
   return prHead('שבת '+parTitle(sa),`ערב שבת ${hebDate(f)} · ${gStr(f)}${hol.length?' · '+hol.join(' · '):''}${mv?`<br>✨ שבת מברכים חודש ${mv.m} · ${esc(molFix(mv.com))}`:''}`)+
-  `<h2>🕯️ זמני השבת בערים</h2><table class="big"><tr><th>עיר</th><th>הדלקת נרות</th><th>צאת השבת</th><th>רבנו תם</th></tr>${rows}</table>
+  `<h2>🕯️ זמני השבת בערים</h2><table class="big"><tr><th>עיר</th><th>הדלקת נרות<br><small>20 דק׳</small></th><th>הדלקת נרות<br><small>40 דק׳</small></th><th>צאת השבת</th><th>רבנו תם</th></tr>${rows}</table>
   ${sh?`<h2>🕍 תפילות השבת בבתי הכנסת</h2><table><tr><th>בית כנסת</th><th>קבלת שבת</th><th>שחרית</th><th>מנחה</th><th>ערבית מוצ״ש</th></tr>${sh}</table>`:''}
   <div class="blessing">שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!</div>`+prFoot();
 }
