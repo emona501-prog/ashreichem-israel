@@ -1624,7 +1624,7 @@ function zremV(){const c=zrCfg(),z=zmanim(new Date()),on=ZR_LIST.filter(([k])=>c
    <button class="btn sec sm" style="margin-top:8px" onclick="zrTest()">🧪 ניסיון – איך זה נראה</button>
    <div class="muted" style="margin-top:8px;font-size:.88rem">${c.mode==='pop'?'🔕 התזכורת תופיע רק כשהאפליקציה פתוחה, בלי צליל ובלי רטט.':(PUSH.on&&RELAY()?'✅ התזכורת מגיעה גם כשהאפליקציה סגורה (אז הצליל לפי הגדרות הטלפון).':'ℹ️ כשהאפליקציה פתוחה – לפי הבחירה. כדי לקבל גם כשהיא סגורה: <a href="#" onclick="event.preventDefault();pushToggle()">הפעילו התראות</a>.')}</div></div>
   <div class="card"><h3>🌅 זמני היום</h3>${ZR_LIST.map(([k,l])=>{const it=c.it[k]||{};return `<div class="zr-row">${tg(it.on,`zrSet(c=>{c.it['${k}']=c.it['${k}']||{b:${['shmaM','shmaG','tfM','tfG','set','plag'].includes(k)?15:0}};c.it['${k}'].on=this.checked})`)}<div class="main"><b>${l}</b><span class="muted">היום ${hm(z[k])}</span></div>${it.on?bSel(it.b||0,`zrSet(c=>c.it['${k}'].b=+this.value)`):''}</div>`}).join('')}</div>
-  <div class="card"><h3>🕯️ הדלקת נרות שבת</h3><div class="zr-row">${tg(c.candle.on,"zrSet(c=>c.candle.on=this.checked)")}<div class="main"><b>תזכורת בערב שבת</b><span class="muted">40 דק׳ לפני השקיעה, לפי מנהג ירושלים</span></div>${c.candle.on?bSel(c.candle.b,"zrSet(c=>c.candle.b=+this.value)",[0,10,15,20,30,45,60,90,120]):''}</div></div>
+  <div class="card"><h3>🕯️ הדלקת נרות שבת</h3><div class="zr-row">${tg(c.candle.on,"zrSet(c=>c.candle.on=this.checked)")}<div class="main"><b>תזכורת בערב שבת</b><span class="muted">${CMIN()} דק׳ לפני השקיעה (אפשר לשנות למטה)</span></div>${c.candle.on?bSel(c.candle.b,"zrSet(c=>c.candle.b=+this.value)",[0,10,15,20,30,45,60,90,120]):''}</div>${cminChips()}</div>
   <div class="card"><h3>🕎 הדלקת נר חנוכה</h3><div class="zr-row">${tg(c.chan.on,"zrSet(c=>c.chan.on=this.checked)")}<div class="main"><b>תזכורת בכל ערב חנוכה</b><span class="muted">${esc(ch)} · כולל כמה נרות מדליקים</span></div></div>
    ${c.chan.on?`<div class="chips" style="margin-top:6px"><button class="chip ${c.chan.at!=='tzeit'?'on':''}" onclick="zrSet(c=>c.chan.at='set')">בשקיעה</button><button class="chip ${c.chan.at==='tzeit'?'on':''}" onclick="zrSet(c=>c.chan.at='tzeit')">בצאת הכוכבים</button></div><div class="muted" style="font-size:.85rem;margin-top:4px">בערב שבת – 20 דק׳ לפני הדלקת נרות שבת · במוצאי שבת – אחרי צאת השבת</div>`:''}</div>
   <div class="card"><h3>🌾 ספירת העומר</h3><div class="zr-row">${tg(c.omer.on,"zrSet(c=>c.omer.on=this.checked)")}<div class="main"><b>תזכורת בצאת הכוכבים</b><span class="muted">${esc(om)} · עם נוסח הספירה של אותו לילה</span></div></div>
@@ -1736,6 +1736,9 @@ function sunT(dt,lat,lng,zen,rise){
 }
 const hm=d=>d?String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):'—';
 const addM=(d,m)=>d?new Date(d.getTime()+m*6e4):null;
+const CMIN=()=>U&&U.cmin===40?40:20;
+function cminChips(){return `<div class="chips cmin" style="margin-top:8px"><span class="muted" style="align-self:center">הדלקת נרות:</span><button class="chip ${CMIN()===20?'on':''}" onclick="setCmin(20)">20 דק׳ לפני השקיעה</button><button class="chip ${CMIN()===40?'on':''}" onclick="setCmin(40)">40 דק׳ (מנהג ירושלים)</button></div>`}
+function setCmin(m){U.cmin=m;saveU();const y=window.scrollY;render();window.scrollTo(0,y);toast('🕯️ הדלקת נרות: '+m+' דקות לפני השקיעה');try{remSync()}catch(e){}}
 function zmanim(dt,loc){
   const{lat,lng}=loc||LOC();const z={};
   z.rise=sunT(dt,lat,lng,90.833,1);z.set=sunT(dt,lat,lng,90.833,0);
@@ -1749,7 +1752,7 @@ function zmanim(dt,loc){
   if(!z.rise||!z.set)return z;
   const g=(z.set-z.rise)/12/6e4,m=(z.tzMga-z.alot)/12/6e4;
   Object.assign(z,{shmaM:addM(z.alot,3*m),shmaG:addM(z.rise,3*g),tfM:addM(z.alot,4*m),tfG:addM(z.rise,4*g),chatzot:addM(z.rise,6*g),
-    mg:addM(z.rise,6.5*g),mk:addM(z.rise,9.5*g),plag:addM(z.rise,10.75*g),rt:addM(z.set,72),candle:addM(z.setE||z.set,-40),candle20:addM(z.setE||z.set,-20),shaa:g});
+    mg:addM(z.rise,6.5*g),mk:addM(z.rise,9.5*g),plag:addM(z.rise,10.75*g),rt:addM(z.set,72),candle:addM(z.setE||z.set,-CMIN()),candle20:addM(z.setE||z.set,-20),candle40:addM(z.setE||z.set,-40),shaa:g});
   return z;
 }
 function zmanimV(){
@@ -1762,7 +1765,7 @@ function zmanimV(){
   const all=SEC.flatMap(s=>s[2]);let next=null;if(isToday)next=all.find(x=>x[1]&&x[1]>nowD);
   const hol=holidaysOn(dt),hil=hillulotOn(dt),om=omerOn(dt);
   const special=[];
-  if(w===5)special.push([ic('candle','md'),'הדלקת נרות',hm(z.candle),'מנהג ירושלים – 40 דק׳ לפני השקיעה']);
+  if(w===5)special.push([ic('candle','md'),'הדלקת נרות',hm(z.candle),CMIN()+' דק׳ לפני השקיעה'+(CMIN()===20?' · מנהג ירושלים 40 דק׳: '+hm(z.candle40):'')]);
   if(w===6)special.push([ic('havdala','md'),'צאת השבת',hm(z.tzeit),'רבנו תם '+hm(z.rt)]);
   if(om)special.push([ic('omer','md'),'ספירת העומר הלילה',heDay(om),omerText(om)]);
   const stepBtn=n=>`ST.zd=iso(addDays(${ST.zd?`fromIso('${ST.zd}')`:'new Date()'},${n}));render()`;
@@ -1867,7 +1870,7 @@ function shabbatV(){
   const step=k=>`ST.sat=iso(addDays(fromIso('${iso(sat)}'),${k}));render()`;
   const cd=iso(sat)===iso(nextSat(n))?(inS?'⏳ '+diffTxt(Math.round((zs.tzeit-n)/6e4))+' לצאת השבת':n<zf.candle?'⏳ '+diffTxt(Math.round((zf.candle-n)/6e4))+' לכניסת השבת':''):'';
   const tile=(k,t,v,s)=>`<div class="sb-t">${ic(k,'tl')}<small>${t}</small><b>${v}</b>${s?`<em>${s}</em>`:''}</div>`;
-  const cities=CITIES.map(([c,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sat,{lat:la,lng:lo,elev:el});return `<tr><td>${c}</td><td>${hm(a.candle20)}</td><td>${hm(a.candle)}</td><td>${hm(b.tzeit)}</td><td>${hm(b.rt)}</td></tr>`}).join('');
+  const cities=CITIES.map(([c,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sat,{lat:la,lng:lo,elev:el});return `<tr><td>${c}</td><td>${hm(a.candle20)}</td><td>${hm(a.candle40)}</td><td>${hm(b.tzeit)}</td><td>${hm(b.rt)}</td></tr>`}).join('');
   // תפילות בבתי הכנסת
   const ff=collect('prayers',5,p=>p.t!=='זמן',f).filter(p=>p.tm&&toMin(p.tm)>=toMin(hm(zf.candle))-100),ss=collect('prayers',6,p=>p.t!=='זמן',sat),ev=collect('events',6,null,sat).concat(collect('events',5,null,f).filter(e=>e.tm&&toMin(e.tm)>=toMin(hm(zf.candle))));
   const byS={};[...ff.map(p=>({...p,_k:'ערב שבת'})),...ss.map(p=>({...p,_k:p.d==='mz'||toMin(p.tm)>=toMin(hm(zs.tzeit))-5?'מוצאי שבת':'שבת'})),...ev.map(e=>({...e,t:e.title,_k:'שיעורים'}))].forEach(p=>{(byS[p.s.id]=byS[p.s.id]||{s:p.s,L:[]}).L.push(p)});
@@ -1878,7 +1881,7 @@ function shabbatV(){
     <div class="zm-h2">${hebDate(sat)} · ${gStr(sat)}</div></div><button class="zm-nav" aria-label="שבת הבאה" onclick="${step(7)}">‹</button></div>
     ${nm.length?`<div class="zm-tags">${nm.map(x=>`<span>✨ ${esc(x)}</span>`).join('')}</div>`:''}
     ${cd?`<div class="sb-cd">${cd}</div>`:''}
-    <div class="sb-tiles">${tile('candle','הדלקת נרות',hm(zf.candle),'40 דק׳ לפני השקיעה')}${tile('sunset','שקיעה ביום שישי',hm(zf.set),'')}${tile('havdala','צאת השבת',hm(zs.tzeit),'')}${tile('stars','רבנו תם',hm(zs.rt),'')}</div>
+    <div class="sb-tiles">${tile('candle','הדלקת נרות',hm(zf.candle),CMIN()+' דק׳ לפני השקיעה')}${tile('sunset','שקיעה ביום שישי',hm(zf.set),'')}${tile('havdala','צאת השבת',hm(zs.tzeit),'')}${tile('stars','רבנו תם',hm(zs.rt),'')}</div>${cminChips()}
     <div class="zm-loc">📍 ${esc(LOC().name)}${ST.sat?` · <button class="zm-lnk" onclick="ST.sat='';render()">חזרה לשבת הקרובה</button>`:''}</div>
   </div>
   <button class="shb chg" style="background:linear-gradient(135deg,#1f5a3d,#3d8a5c)" onclick="bulletin('${iso(sat)}')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>🗞️ עלון מידע לשבת</b><span>בוחרים מה להכניס – תפילות, שיעורים, ילדים, בתי כנסת – ומשתפים או מדפיסים ‹</span></div></button>
@@ -2332,7 +2335,7 @@ function zmShare(k,ds){
     rows:[['עלות השחר',z.alot],['טלית ותפילין',z.tal],['הנץ החמה',z.rise],['סוף ק״ש מג״א',z.shmaM],['סוף ק״ש גר״א',z.shmaG],['סוף תפילה גר״א',z.tfG],['חצות',z.chatzot],['מנחה גדולה',z.mg],['מנחה קטנה',z.mk],['פלג המנחה',z.plag],['שקיעה',z.set],['צאת הכוכבים',z.tzeit]].map(r=>({t:r[0],v:hm(r[1])})),
     foot:holidaysOn(dt).concat(dt.getDay()===5?['הדלקת נרות '+hm(z.candle)]:[]).join(' · ')||'יום טוב ומבורך!'};}
   else if(k==='shab'){let f=new Date(dt);while(f.getDay()!==5)f=addDays(f,1);const s=addDays(f,1);
-    c={title:'שבת שלום',date:parTitle(s)+' · ערב שבת · '+hebDate(f)+' · '+gStr(f),rows:CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(s,{lat:la,lng:lo,elev:el});return{t:n,s:'הדלקת נרות '+hm(a.candle20)+' · 40 דק׳: '+hm(a.candle)+'  ·  צאת השבת '+hm(b.tzeit)+'  ·  ר״ת '+hm(b.rt)}}),foot:'שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!'};}
+    c={title:'שבת שלום',date:parTitle(s)+' · ערב שבת · '+hebDate(f)+' · '+gStr(f),rows:CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(s,{lat:la,lng:lo,elev:el});return{t:n,s:'הדלקת נרות '+hm(a.candle20)+' · 40 דק׳: '+hm(a.candle40)+'  ·  צאת השבת '+hm(b.tzeit)+'  ·  ר״ת '+hm(b.rt)}}),foot:'שַׁבָּת שָׁלוֹם וּמְבֹרָךְ!'};}
   else if(k==='omer'){let x=new Date(dt);for(let i=0;i<60&&!omerOn(x);i++)x=addDays(x,1);const n=omerOn(x);const z=zmanim(x);
     c={title:'ספירת העומר',date:'ליל '+hebDate(addDays(x,1),1)+' · '+gStr(x),big:omerText(n),rows:[{t:'סופרים אחרי צאת הכוכבים',s:hm(z.tzeit)+' · '+LOC().name}],foot:'הָרַחֲמָן הוּא יַחֲזִיר לָנוּ עֲבוֹדַת בֵּית הַמִּקְדָּשׁ לִמְקוֹמָהּ'};}
   else if(k==='hol'){let x=null,h=null;for(let i=0;i<60&&!x;i++){const y=addDays(dt,i),hh=holidaysOn(y).filter(t=>t!=='ראש חודש');if(hh.length){x=y;h=hh}}if(!x)return toast('אין חג קרוב');
@@ -3739,7 +3742,7 @@ function prShul(sid,base){
 function prShab(base){
   let f=new Date(base);while(f.getDay()!==5)f=addDays(f,1);const sa=addDays(f,1);
   const hol=holidaysOn(f).concat(holidaysOn(sa)).filter((x,i,a)=>a.indexOf(x)===i);const mv=MOLAD().find(e=>{const m=mevOf(e);return m&&iso(m)===iso(sa)});
-  const rows=CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sa,{lat:la,lng:lo,elev:el});return `<tr><td><b>${n}</b></td><td class="tm">${hm(a.candle20)}</td><td class="tm">${hm(a.candle)}</td><td class="tm">${hm(b.tzeit)}</td><td class="tm">${hm(b.rt)}</td></tr>`}).join('');
+  const rows=CITIES.map(([n,la,lo,el])=>{const a=zmanim(f,{lat:la,lng:lo,elev:el}),b=zmanim(sa,{lat:la,lng:lo,elev:el});return `<tr><td><b>${n}</b></td><td class="tm">${hm(a.candle20)}</td><td class="tm">${hm(a.candle40)}</td><td class="tm">${hm(b.tzeit)}</td><td class="tm">${hm(b.rt)}</td></tr>`}).join('');
   const ty=[['קבלת שבת','fri'],['שחרית','sat'],['מנחה','sat'],['ערבית','mz']];
   const sh=S.shuls.map(s=>{const c=ty.map(([t,dk])=>{const L=(s.prayers||[]).filter(p=>p.t===t&&DAYSETS[p.d]?.d.includes(dk==='fri'?5:6)&&(dk!=='mz'||p.d==='mz')&&(dk==='mz'||p.d!=='mz')).map(p=>resolveTm(p.tm,dk==='fri'?f:sa)).filter(Boolean).sort((a,b)=>toMin(a)-toMin(b));return L.join(' · ')||'—'});return c.some(x=>x!=='—')?`<tr><td><b>${esc(s.name)}</b></td>${c.map(x=>`<td class="tm s">${x}</td>`).join('')}</tr>`:''}).join('');
   return prHead('שבת '+parTitle(sa),`ערב שבת ${hebDate(f)} · ${gStr(f)}${hol.length?' · '+hol.join(' · '):''}${mv?`<br>✨ שבת מברכים חודש ${mv.m} · ${esc(molFix(mv.com))}`:''}`)+
