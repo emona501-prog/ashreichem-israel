@@ -224,6 +224,7 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
 .share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
 .adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
+.adpromo{background:linear-gradient(135deg,#16304f,#24507f);color:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 8px 22px rgba(22,48,79,.3);text-align:center}.adp-t{font-size:1.35rem;font-weight:800}.adp-s{margin-top:6px;opacity:.92;line-height:1.5}.adp-free{display:inline-block;margin-top:10px;background:linear-gradient(135deg,#e8c25a,#f3d78e);color:#16294a;border-radius:999px;padding:6px 14px;font-weight:700}.adpromo .btn{background:#e8c25a;color:#16294a}
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .sp-file{margin-top:8px;text-align:center}.sp-file .btn{width:100%;border-style:dashed}
@@ -766,7 +767,7 @@ function admSmart(){modal(`<div class="muted" style="margin-bottom:6px">לאיז
 function admPick(){modal(S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="closeModal();editShul('${s.id}')"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}${missingOf(s).length?' · ⚠️ חסר: '+missingOf(s).join(', '):''}</span></div><span>✏️</span></button>`).join(''),'✏️ איזה בית כנסת לעדכן?')}
 /* ===================== 🔵 פס עיגולים עליון ===================== */
 function topNav(){const it=(img,em,l,act,on)=>`<button class="tn${on?' on':''}" onclick="${act}"><span class="tn-c">${img?`<img src="${IC[img]}" alt="">`:`<span class="tn-e">${em}</span>`}</span><b>${l}</b></button>`;
-  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls'||TAB==='shul')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}</nav>`}
+  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls'||TAB==='shul')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}${it('','📢','פרסום',"go('board')",TAB==='board')}</nav>`}
 
 /* ===================== 🕰️ חיפוש מניינים: טווח שעות · מרחק · נוסח ===================== */
 let MYLL=null;try{const x=JSON.parse(localStorage.getItem('myll')||'null');if(x&&Date.now()-x.t<6*36e5)MYLL=[x.lat,x.lng]}catch(e){}
@@ -912,7 +913,7 @@ function home(){
     ${qa('🧭','מצפן תפילה','כיוון הר הבית',"go('compass')")}
     ${qa('☀️','זמני היום',(()=>{const z=zmanim(new Date());return z.set?'שקיעה '+hm(z.set):''})(),"go('zmanim')")}
   </div>
-  ${ads.length?`<h2 style="margin-top:16px">📌 לוח מודעות</h2>${ads.map(adMini).join('')}<button class="btn ghost" style="width:100%" onclick="go('board')">לכל המודעות</button>`:''}
+  <h2 style="margin-top:16px">📌 לוח מודעות</h2>${adPromo()}${ads.map(adMini).join('')}${ads.length?`<button class="btn ghost" style="width:100%" onclick="go('board')">לכל המודעות</button>`:''}
   ${shareAppCard()}
   `;
 }
@@ -1260,7 +1261,7 @@ function more(){
   ${it('🕯️','ממיר תאריכים ויארצייט',"go('conv')",'מועזי לעברי · מתי היארצייט')}
   </div><div class="card menu">
   ${it(ic('yahrzeit','md'),'הילולות צדיקים',"go('hill')",'היום והקרובות')}
-  ${it('📌','לוח מודעות',"go('board')",'מודעות קהילה · בקשת פרסום')}
+  ${it('📌','לוח מודעות ופרסום',"go('board')",launchOn()?'📢 פרסום מודעה – 3 חודשים חינם!':'מודעות קהילה · בקשת פרסום')}
   ${it('🕍','גבאי? הצטרפו לאפליקציה',"go('gab')",'שליחת פרטי בית הכנסת וקבלת קוד גבאי')}
   ${it(ic('alon','md'),'עלון מידע לשבת',"bulletin()",'בונים עלון אישי – תפילות, שיעורים, ילדים – לשיתוף והדפסה')}
   ${it(ic('alon','md'),'עלונים',"go('alonim')",'עלוני שבת של בתי הכנסת ועלונים כלליים')}
@@ -1352,6 +1353,10 @@ async function adPush(id){if(ROLE?.type!=='admin'||!C.ok)return;const a=S.ads.fi
   closeModal();if(TAB==='board')render();toast('🔔 ההתראה נשלחה לכל המשתמשים, והמודעה הוקפצה למעלה')}
 function openAdQ(id,n){n=n||0;const a=S.ads.find(z=>z.id===id);if(a){go('board');setTimeout(()=>showAd(id),150);return}if(n<20)setTimeout(()=>openAdQ(id,n+1),500)}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
+function adPromo(){const L=launchOn();return `<div class="adpromo"><div class="adp-t">📢 רוצים לפרסם מודעה?</div>
+  <div class="adp-s">לבית הכנסת, לשיעור, לשמחה – <b>וגם לעסק הפרטי שלכם</b>. המודעה מגיעה לכל המתפללים בשכונה.</div>
+  ${L?`<div class="adp-free">🎉 מבצע השקה: 3 החודשים הראשונים – <b>חינם!</b></div>`:''}
+  <button class="btn" style="width:100%;margin-top:10px;min-height:50px;font-size:1.05rem" onclick="adForm()">📝 לפרסום מודעה${L?' בחינם':''}</button></div>`}
 function board(){
   const ok=S.ads.filter(adLive).sort((a,b)=>adT(b)-adT(a)),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
   const L=launchOn();
