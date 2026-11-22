@@ -818,9 +818,10 @@ function mnyShare(sid,pid){const s=shul(sid),p=(s.prayers||[]).find(x=>x.id===pi
 /* ===== 🔴 דיווח חי מהמניין – משתמשים מדווחים מה קורה עכשיו (התחילו / בעמידה / סיימו…) ===== */
 const LIVE_ST={wait:['⏳','עוד לא התחילו'],late:['🕐','מתעכבים'],soon:['🕒','מתחילים בעוד כמה דקות'],start:['▶️','התחילו עכשיו'],pzd:['🎶','בפסוקי דזמרה'],shma:['📖','בקריאת שמע'],amida:['🧍','בעמידה'],torah:['📜','בקריאת התורה'],end:['✅','סיימו'],nomin:['⚠️','חסרים למניין']};
 let LIVE={},LIVE_T0=Date.now();
+const LIVE_ON=()=>U.live===true;
 const LIVE_Q=['התחילו כבר?','יש מניין?','איפה אוחזים?','מתי מתחילים?'];
 const liveKey=(sid,pid)=>sid+'_'+pid+'_'+iso(new Date());
-function listenLive(){if(C.unsub.live||!S.cloud||!C.F)return;const day=iso(new Date());
+function listenLive(){if(!LIVE_ON()||C.unsub.live||!S.cloud||!C.F)return;const day=iso(new Date());
   C.unsub.live=C.F.onSnapshot(C.F.query(col('live'),C.F.where('day','==',day)),q=>{const old=LIVE;LIVE={};q.docs.forEach(d=>LIVE[d.id]=d.data());
     q.docChanges().forEach(ch=>{const v=ch.doc.data();if(ch.type==='removed'||!v)return;const mq=(U.myQ||{})[ch.doc.id];
       if(mq&&v.qat===mq&&v.at>mq&&LIVE_ST[v.st]){delete U.myQ[ch.doc.id];saveU();const s=shul(v.sid),p=s&&(s.prayers||[]).find(x=>x.id===v.pid);try{navigator.vibrate&&navigator.vibrate([200,80,200])}catch(e){}
@@ -831,9 +832,9 @@ function listenLive(){if(C.unsub.live||!S.cloud||!C.F)return;const day=iso(new D
     if(['find','home','shul','times'].includes(TAB))softRender()},()=>{})}
 function liveOf(sid,pid){const v=LIVE[liveKey(sid,pid)];if(!v||!LIVE_ST[v.st]||Date.now()-v.at>90*6e4)return null;return v}
 function liveQOf(sid,pid){const v=LIVE[liveKey(sid,pid)];if(!v||!v.qat||Date.now()-v.qat>25*6e4||v.at>v.qat)return null;return v}
-function liveBadge(sid,pid){listenLive();const qv=liveQOf(sid,pid),qb=qv?`<div class="live-q" onclick="event.stopPropagation();liveAsk('${sid}','${pid}')">❓ <b>שאלה: ${esc(qv.q)}</b><span>· לפני ${Math.max(1,Math.round((Date.now()-qv.qat)/6e4))} דק׳ – אתם שם? לחצו לענות</span></div>`:'';const v=liveOf(sid,pid);if(!v)return qb;const L=LIVE_ST[v.st]||['🔴',v.st],m=Math.max(0,Math.round((Date.now()-v.at)/6e4));
+function liveBadge(sid,pid){if(!LIVE_ON())return'';listenLive();const qv=liveQOf(sid,pid),qb=qv?`<div class="live-q" onclick="event.stopPropagation();liveAsk('${sid}','${pid}')">❓ <b>שאלה: ${esc(qv.q)}</b><span>· לפני ${Math.max(1,Math.round((Date.now()-qv.qat)/6e4))} דק׳ – אתם שם? לחצו לענות</span></div>`:'';const v=liveOf(sid,pid);if(!v)return qb;const L=LIVE_ST[v.st]||['🔴',v.st],m=Math.max(0,Math.round((Date.now()-v.at)/6e4));
   return `<div class="live-b" onclick="event.stopPropagation();liveAsk('${sid}','${pid}')"><span class="live-dot"></span><b>${L[0]} ${L[1]}</b><span>· ${m<1?'עכשיו':'לפני '+m+' דק׳'}${v.cnt>1?' · '+v.cnt+' דיווחים':''}</span></div>`+qb}
-function liveWin(p){const df=toMin(p.tm)-nowMin();return df<=40&&df>=-75}
+function liveWin(p){if(!LIVE_ON())return false;const df=toMin(p.tm)-nowMin();return df<=40&&df>=-75}
 function liveBtn(sid,pid){return `<button class="fbtn live-btn" onclick="event.stopPropagation();liveAsk('${sid}','${pid}')">📢 דיווח חי</button>`}
 function liveAsk(sid,pid){const s=shul(sid),p=s&&(s.prayers||[]).find(x=>x.id===pid);if(!s||!p)return;const t=p.t||'';
   const keys=['wait','soon','late','start'].concat(/שחרית|ותיקין|נץ/.test(t)?['pzd','shma','amida','torah']:/ערבית|מעריב/.test(t)?['shma','amida']:['amida'],['end','nomin']);
@@ -857,8 +858,18 @@ async function liveQ(sid,pid,i){if(!needCloud())return;const k=liveKey(sid,pid),
   try{await C.F.setDoc(dref('live',k),{sid,pid,day:iso(new Date()),st:v&&v.st||'',at:v&&v.at||0,uid:myUid(),cnt:v&&v.cnt||0,q,qat:t,qsub:osSub()},{merge:true})}catch(e){return cerr(e)}
   U.liveQAt[k]=t;U.myQ=U.myQ||{};U.myQ[k]=t;saveU();closeModal();toast('❓ השאלה נשלחה למתפללים של בית הכנסת – תקבלו הודעה כשיענו');
   if(RELAY())try{fetch(RELAY(),{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind:'liveq',id:k})})}catch(e){}}
+function liveJoin(on){U.live=!!on;U.liveAsked=1;if(on)U.noLive=false;saveU();pushTags();closeModal();
+  if(!on&&C.unsub.live){try{C.unsub.live()}catch(e){}delete C.unsub.live;LIVE={}}
+  if(on){listenLive();toast('🔴 ברוכים הבאים לקהילה החיה! סמנו ⭐ את בתי הכנסת שלכם כדי לקבל מהם עדכונים',6000)}else toast('בסדר גמור 🙂 אפשר להצטרף בכל עת מהתפריט ← הקהילה החיה');render()}
+function liveIntro(){modal(`<div class="gb-wrap"><div class="gb-bubble"><div class="gb-txt"><b>רוצים להצטרף לקהילה החיה? 🔴</b><br>מתפללים מדווחים מהמניין בזמן אמת – "התחילו", "בעמידה", "חסרים למניין" – ואפשר לשאול "התחילו כבר?" ולקבל תשובה מהשטח.<br><span class="muted" style="font-size:.9rem">מי שלא מצטרף – לא רואה את זה בכלל. אפשר לשנות בכל רגע.</span></div></div><img class="gb-rav" src="${IC.rav}" alt=""></div>
+  <div class="btns" style="margin-top:8px"><button class="btn" style="flex:2;min-height:50px" onclick="liveJoin(1)">🔴 כן, אני בפנים</button><button class="btn ghost" style="flex:1" onclick="liveJoin(0)">לא תודה</button></div>`,'🔴 הקהילה החיה')}
+function liveIntroCheck(){const R=REAL_ROLE||ROLE;if(U.liveAsked||U.live!==undefined||(R&&R.type==='admin'))return;if((U.tipOpen||0)<2)return;
+  setTimeout(()=>{if(TAB==='home'&&!$('#modals').innerHTML&&!gmUnread()){U.liveAsked=1;saveU();liveIntro()}},9000)}
+function liveSettings(){if(!LIVE_ON())return liveIntro();modal(`<p>אתם חברים בקהילה החיה 🔴 – רואים דיווחים ושאלות מהמניינים, ויכולים לדווח ולשאול.</p>
+  <label class="sw"><span>🔔 התראות לטלפון מבתי הכנסת שסימנתם ⭐</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags()"></label>
+  <button class="btn ghost" style="width:100%;margin-top:12px" onclick="liveJoin(0)">יציאה מהקהילה החיה</button>`,'🔴 הקהילה החיה')}
 function liveOpt(){U.noLive=!U.noLive;saveU();pushTags();closeModal();toast(U.noLive?'🔕 לא תקבלו התראות על דיווחים חיים':'🔔 תקבלו התראות על דיווחים חיים מבתי הכנסת המועדפים')}
-function liveStrip(){listenLive();const L=Object.values(LIVE).filter(v=>(LIVE_ST[v.st]&&Date.now()-v.at<45*6e4&&v.st!=='end')||(v.qat&&Date.now()-v.qat<25*6e4&&!(v.at>v.qat))).sort((a,b)=>Math.max(b.at,b.qat||0)-Math.max(a.at,a.qat||0)).sort((a,b)=>b.at-a.at).slice(0,4);if(!L.length)return'';
+function liveStrip(){if(!LIVE_ON())return'';listenLive();const L=Object.values(LIVE).filter(v=>(LIVE_ST[v.st]&&Date.now()-v.at<45*6e4&&v.st!=='end')||(v.qat&&Date.now()-v.qat<25*6e4&&!(v.at>v.qat))).sort((a,b)=>Math.max(b.at,b.qat||0)-Math.max(a.at,a.qat||0)).sort((a,b)=>b.at-a.at).slice(0,4);if(!L.length)return'';
   return `<div class="card live-card"><h3 style="margin:0 0 6px">🔴 עכשיו בבתי הכנסת</h3>${L.map(v=>{const s=shul(v.sid),p=s&&(s.prayers||[]).find(x=>x.id===v.pid);if(!s||!p)return'';const qp=v.qat&&!(v.at>v.qat)&&Date.now()-v.qat<25*6e4,T=qp?['❓','שאלה: '+v.q+' – לחצו לענות']:(LIVE_ST[v.st]||['','']),m=Math.round((Date.now()-(qp?v.qat:v.at))/6e4);
     return `<div class="row" style="cursor:pointer" onclick="liveAsk('${v.sid}','${v.pid}')"><div class="time">${esc(p.tm)}</div><div class="main"><b>${esc(p.t)} · ${esc(String(s.name).split(/ [–-] /)[0])}</b><span>${T[0]} ${T[1]} <span class="muted">· ${m<1?'עכשיו':'לפני '+m+' דק׳'}</span></span></div></div>`}).join('')}</div>`}
 let VER={};
@@ -1309,7 +1320,8 @@ function more(){
   ${it('🕯️','ממיר תאריכים ויארצייט',"go('conv')",'מועזי לעברי · מתי היארצייט')}
   </div><div class="card menu">
   ${it(ic('yahrzeit','md'),'הילולות צדיקים',"go('hill')",'היום והקרובות')}
-  ${it('📌','לוח מודעות ופרסום',"go('board')",launchOn()?'📢 מבצע השקה: מודעה ליום אחד חינם!':'מודעות קהילה · בקשת פרסום')}
+  ${it('🔴','הקהילה החיה',"liveSettings()",LIVE_ON()?'✅ אתם בפנים · דיווחים ושאלות מהמניינים':'הצטרפות לדיווחים חיים מהמניינים')}
+    ${it('📌','לוח מודעות ופרסום',"go('board')",launchOn()?'📢 מבצע השקה: מודעה ליום אחד חינם!':'מודעות קהילה · בקשת פרסום')}
   ${it('🕍','גבאי? הצטרפו לאפליקציה',"go('gab')",'שליחת פרטי בית הכנסת וקבלת קוד גבאי')}
   ${it(ic('alon','md'),'עלון מידע לשבת',"bulletin()",'בונים עלון אישי – תפילות, שיעורים, ילדים – לשיתוף והדפסה')}
   ${it(ic('alon','md'),'עלונים',"go('alonim')",'עלוני שבת של בתי הכנסת ועלונים כלליים')}
@@ -3267,7 +3279,7 @@ async function cloudInit(){
       REAL_ROLE=role;let va=false;try{va=localStorage.getItem(VIEWAS)==='1'}catch(e){}ROLE=role&&va?null:role;ibListen(u);
       if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
-      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{userTipCheck()}catch(e){}},3000);
+      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{liveIntroCheck()}catch(e){}try{if(!U.liveAsked||U.live!==undefined)userTipCheck()}catch(e){}},3000);
     });
   }catch(e){console.warn('cloud off',e)}
 }
@@ -4005,7 +4017,7 @@ if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
     pushTags();softRender();setTimeout(remSync,3000);
   }catch(e){console.warn('push',e)}
 });
-function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');const RR=REAL_ROLE||ROLE;if(RR&&RR.type==='gabbai')t.gabbai=RR.sid;if(RR&&RR.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';t.nolive=U.noLive?'1':'';
+function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');const RR=REAL_ROLE||ROLE;if(RR&&RR.type==='gabbai')t.gabbai=RR.sid;if(RR&&RR.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';t.nolive=(U.noLive||!LIVE_ON())?'1':'';
   const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
 function pushToggle(){
   if(location.protocol!=='https:')return toast('ההתראות עובדות רק מהכתובת באינטרנט');
@@ -4015,7 +4027,7 @@ function pushToggle(){
 }
 function pushCard(){
   return `<div class="card push-card ${PUSH.on?'on':''}"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">${PUSH.on?'🔔':'🔕'}</span><div style="flex:1"><b>${PUSH.on?'ההתראות פעילות':'קבלו התראות מהקהילה'}</b><div class="muted">${PUSH.on?'תקבלו עדכונים חשובים גם כשהאפליקציה סגורה':'הודעות חשובות, שיעורים מיוחדים, ספר תהילים חדש ועוד – גם כשהאפליקציה סגורה'}</div></div></div>
-  ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label><label class="sw" style="margin-top:8px"><span>🔴 דיווחים חיים מבתי הכנסת המועדפים (⭐)</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו דיווחים חיים מהמניינים':'לא תקבלו התראות על דיווחים חיים')"></label>`:''}
+  ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label>${LIVE_ON()?`<label class="sw" style="margin-top:8px"><span>🔴 התראות מהקהילה החיה (בתי כנסת ⭐)</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו דיווחים ושאלות מהמניינים':'לא תקבלו התראות – הדיווחים עדיין יופיעו באפליקציה')"></label>`:''}`:''}
   <button class="btn ${PUSH.on?'ghost':''}" style="width:100%;margin-top:10px" onclick="pushToggle()">${PUSH.on?'כיבוי התראות':'🔔 הפעלת התראות'}</button></div>`
 }
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
