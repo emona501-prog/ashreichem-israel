@@ -224,7 +224,8 @@ body.dark .inst-n{color:#10161d}.inst-warn{background:#fdeee0;border-radius:12px
 .mny-home .mny{box-shadow:none;margin:10px 0 0;background:var(--soft)}.mny.ok{border-color:var(--ok);background:#eef8f2}body.dark .mny.ok{background:#173226}
 .share-app{background:linear-gradient(135deg,#faf3df,#eef3f8)}body.dark .share-app{background:var(--card)}
 .adm-pop{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;z-index:9999;background:#16294a;color:#fff;border:2px solid #f3d78e;border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;cursor:pointer;animation:admIn .35s ease}.adm-pop b{color:#f3d78e;font-size:1.05rem}.adm-pop span{font-size:.92rem;opacity:.95}.adm-pop small{opacity:.75}.adm-pop button{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:50%;width:30px;height:30px}@keyframes admIn{from{transform:translateY(-30px);opacity:0}}
-.adpromo{background:linear-gradient(135deg,#16304f,#24507f);color:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 8px 22px rgba(22,48,79,.3);text-align:center}.adp-t{font-size:1.35rem;font-weight:800}.adp-s{margin-top:6px;opacity:.92;line-height:1.5}.adp-free{display:inline-block;margin-top:10px;background:linear-gradient(135deg,#e8c25a,#f3d78e);color:#16294a;border-radius:999px;padding:6px 14px;font-weight:700}.adpromo .btn{background:#e8c25a;color:#16294a}
+.adpromo{background:linear-gradient(135deg,#16304f,#24507f);color:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 8px 22px rgba(22,48,79,.3);text-align:center}.adp-t{font-size:1.35rem;font-weight:800}.adp-s{margin-top:6px;opacity:.92;line-height:1.5}.adp-free{display:inline-block;margin-top:10px;background:linear-gradient(135deg,#e8c25a,#f3d78e);color:#16294a;border-radius:999px;padding:6px 14px;font-weight:700}.adp-link{display:block;width:100%;margin-top:8px;background:none;border:0;color:#f3d78e;font:inherit;font-size:.92rem;text-decoration:underline;cursor:pointer;min-height:40px}
+.adpromo .btn{background:#e8c25a;color:#16294a}
 .launch{background:linear-gradient(135deg,#c49a2c,#f3d78e 55%,#c49a2c);color:#16294a;border-radius:16px;padding:14px;text-align:center;margin-bottom:12px;box-shadow:0 6px 18px rgba(196,154,44,.35)}.launch .l1{font-weight:900;font-size:1.25rem}.launch .l2{font-size:1.1rem;margin:3px 0}.launch .l3{font-size:.82rem;opacity:.85}.launch.sm{padding:8px;font-weight:800;font-size:.95rem}
 #dedGo:disabled{opacity:.45;filter:grayscale(.7);cursor:not-allowed}.ded-btn{width:100%;margin-bottom:12px;min-height:52px;background:linear-gradient(135deg,#b8862b,#e0b84f);color:#16294a;font-weight:800}.ded-q{border:1.5px solid #e0c675;background:#fbf5e3;border-radius:12px;padding:8px 10px;margin-bottom:6px;text-align:center}.ded-q b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:1.08rem;color:#5e4507}.ded-q small{color:#8a6a10}.ded-sum{background:#eef3f8;border-radius:10px;padding:8px 10px;margin:10px 0;text-align:center}
 .sp-file{margin-top:8px;text-align:center}.sp-file .btn{width:100%;border-style:dashed}
@@ -1353,10 +1354,13 @@ async function adPush(id){if(ROLE?.type!=='admin'||!C.ok)return;const a=S.ads.fi
   closeModal();if(TAB==='board')render();toast('🔔 ההתראה נשלחה לכל המשתמשים, והמודעה הוקפצה למעלה')}
 function openAdQ(id,n){n=n||0;const a=S.ads.find(z=>z.id===id);if(a){go('board');setTimeout(()=>showAd(id),150);return}if(n<20)setTimeout(()=>openAdQ(id,n+1),500)}
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
+function adDesign(){window.open('https://wa.me/'+adminWa()+'?text='+encodeURIComponent('שלום 🙏 אשמח שתעצבו לי מודעה לפרסום באפליקציית '+(S.settings.appName||'אשריכם ישראל')+'.\nעל מה המודעה: '))}
+function adDesignBox(){return `<div class="card" style="margin-top:8px;background:#fff8e6;border:1px dashed #c39a2f"><b>🎨 אין לכם מודעה מעוצבת?</b><div class="muted" style="font-size:.9rem">נעצב לכם מודעה מקצועית ויפה – <b>בתשלום סמלי</b>.</div><button class="btn sm" style="margin-top:8px;background:#25d366;color:#fff" onclick="adDesign()">💬 לעיצוב מודעה בוואטסאפ</button></div>`}
 function adPromo(){const L=launchOn();return `<div class="adpromo"><div class="adp-t">📢 רוצים לפרסם מודעה?</div>
   <div class="adp-s">לבית הכנסת, לשיעור, לשמחה – <b>וגם לעסק הפרטי שלכם</b>. המודעה מגיעה לכל המתפללים בשכונה.</div>
   ${L?`<div class="adp-free">🎉 מבצע השקה: 3 החודשים הראשונים – <b>חינם!</b></div>`:''}
-  <button class="btn" style="width:100%;margin-top:10px;min-height:50px;font-size:1.05rem" onclick="adForm()">📝 לפרסום מודעה${L?' בחינם':''}</button></div>`}
+  <button class="btn" style="width:100%;margin-top:10px;min-height:50px;font-size:1.05rem" onclick="adForm()">📝 לפרסום מודעה${L?' בחינם':''}</button>
+  <button class="adp-link" onclick="adDesign()">🎨 צריכים עיצוב? נעצב לכם מודעה בתשלום סמלי</button></div>`}
 function board(){
   const ok=S.ads.filter(adLive).sort((a,b)=>adT(b)-adT(a)),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
   const L=launchOn();
@@ -1369,13 +1373,13 @@ function board(){
 }
 function adForm(id){const E=id?S.ads.find(z=>z.id===id):null,ed=!!E,v=k=>esc(E&&E[k]||'');window._adEd=E;
   const w=E?(E.date?'date':E.d?'rec':''):'';const pp=E&&E.popD!==undefined?String(E.popD):'7';
-  modal(`${!ed&&launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}${ed?'':'<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, אבידות ומציאות ועוד.</div>'}
-  <label class="f">כותרת</label><input class="inp" id="at" maxlength="70" value="${v('title')}">
+  modal(`${!ed&&launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}${ed?'':'<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, עסקים, אבידות ומציאות ועוד.</div><div class="card hl" style="margin:8px 0;font-size:.92rem">🖼️ <b>יש לכם מודעה מעוצבת?</b> מספיק להעלות אותה בשדה "תמונה" למטה – אין חובה למלא כותרת ותוכן.</div>'}
+  <label class="f">כותרת <small class="muted">(לא חובה כשמעלים מודעה מעוצבת)</small></label><input class="inp" id="at" maxlength="70" value="${v('title')}">
   <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')">${v('text')}</textarea><div class="fmt-pv" id="ax_pv"></div>
   <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel" value="${v('contact')}">
   <label class="sp-it" style="margin-top:10px"><input type="checkbox" id="awa" ${E&&E.wa?'checked':''} onchange="$('#awaB').style.display=this.checked?'block':'none';if(this.checked&&!$('#awaP').value)$('#awaP').value=$('#ac').value"><div><b>💬 כפתור וואטסאפ למפרסם</b><div class="muted">מתאים לתרומות ולפרטים – לחיצה פותחת וואטסאפ ישר אליו</div></div></label>
   <div id="awaB" style="display:${E&&E.wa?'block':'none'}"><div style="display:grid;grid-template-columns:1fr 1.2fr;gap:8px"><input class="inp" id="awaP" inputmode="tel" placeholder="מספר נייד" value="${v('wa')}"><select class="inp" id="awaL">${['💬 לתרומה בוואטסאפ','💬 לפרטים בוואטסאפ','💬 להרשמה בוואטסאפ','💬 להזמנה בוואטסאפ'].map(x=>`<option ${E&&E.waL===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
-  <label class="f">תמונה (לא חובה)</label>${E&&E.img?`<div id="aimg" style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><img src="${E.img}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px"><button class="btn ghost sm" onclick="window._adEd.img='';$('#aimg').remove()">🗑️ הסרת התמונה</button></div>`:''}<input type="file" accept="image/*" id="ai" class="inp">
+  <label class="f">🖼️ תמונה / מודעה מעוצבת</label>${E&&E.img?`<div id="aimg" style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><img src="${E.img}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px"><button class="btn ghost sm" onclick="window._adEd.img='';$('#aimg').remove()">🗑️ הסרת התמונה</button></div>`:''}<input type="file" accept="image/*" id="ai" class="inp">${ed?'':adDesignBox()}
   <label class="f">מתי האירוע? (המודעה תופיע בלוח השנה)</label>
   <select class="inp" id="aw" onchange="$('#awd').style.display=this.value==='date'?'block':'none';$('#awr').style.display=this.value==='rec'?'block':'none'"><option value="" ${w===''?'selected':''}>לא קשור לתאריך</option><option value="date" ${w==='date'?'selected':''}>בתאריך ושעה מסוימים</option><option value="rec" ${w==='rec'?'selected':''}>קבוע כל שבוע</option></select>
   <div id="awd" style="display:${w==='date'?'block':'none'};margin-top:6px"><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><div><label class="f" style="margin-top:0">📅 תאריך</label><input class="inp" type="date" id="awdd" value="${v('date')}" onchange="adAutoEnd()"></div><div><label class="f" style="margin-top:0">🕐 שעה</label><input class="inp" type="time" id="awtm" value="${v('tm')}" onchange="adAutoEnd()"></div></div>
@@ -1480,7 +1484,7 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
    {k:'mny',t:'חסר לכם מניין בשעה מיוחדת? ב<b>מארגנים מניין</b> פותחים קריאה, והשכנים מקבלים הודעה ומצטרפים.',b:'🙋 מארגנים מניין',a:"closeModal();go('mny')"},
    {k:'voice',t:'אפשר גם <b>לשאול בקול</b>: "מתי מנחה?" או "מתי שקיעה?" – ואני עונה 🎤',b:'🎤 לשאול בקול',a:"closeModal();askVoice()"},
    {k:'fix',t:'ראיתם זמן לא נכון? בדף בית הכנסת יש <b>✏️ דיווח טעות</b>. ההודעה מגיעה ישר לגבאי ולמנהל.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
-   {k:'board',t:'יש לכם שיעור, שמחה או אירוע? פרסמו ב<b>לוח המודעות</b>'+(launchOn()?' – בחינם במבצע ההשקה!':'.'),b:'📌 ללוח המודעות',a:"closeModal();go('board')"},
+   {k:'board2',t:'יש לכם <b>עסק</b>, שיעור, שמחה או אירוע? פרסמו מודעה לכל השכונה'+(launchOn()?' – <b>3 החודשים הראשונים חינם!</b>':'.')+'<br>אין לכם מודעה מעוצבת? נעצב לכם בתשלום סמלי 🎨',b:'📝 לפרסום מודעה',a:"closeModal();adForm()"},
    !(U.zr&&(Object.values(U.zr.it||{}).some(x=>x&&x.on)||U.zr.candle?.on))&&{k:'zrem',t:'חדש! <b>תזכורות זמנים</b> – בוחרים זמן (שקיעה, סוף זמן ק״ש, הדלקת נרות…) ואני מזכיר לכם. עם צליל, רטט או רק הודעה – איך שנוח לכם.',b:'🔔 לתזכורות זמנים',a:"closeModal();go('zrem')"},
    {k:'mik',t:'חדש באפליקציה: <b>מקוואות</b> בשכונה – כתובות, שעות וניווט בלחיצה.',b:'💧 למקוואות',a:"closeModal();go('mikva')"}
   ].filter(Boolean);
@@ -3364,9 +3368,11 @@ async function sendAd(){const E=window._adEd;
     date:$('#aw').value==='date'?$('#awdd').value:'',tm:$('#aw').value==='date'?$('#awtm').value:'',popD:$('#aw').value==='date'?+($('#apop').value||0):0,d:$('#aw').value==='rec'?$('#awr').value:'',until:$('#au').value,untilTm:$('#au').value?$('#autm').value:'',sid:$('#asid')?.value||'',wa:$('#awa')&&$('#awa').checked?$('#awaP').value.trim():'',waL:$('#awa')&&$('#awa').checked?$('#awaL').value:''};
   if(a.wa&&!/^0?5\d[\d\-\s]{7,9}$/.test(a.wa.replace(/^\+?972/,'0')))return toast('מספר הוואטסאפ לא תקין – צריך נייד, למשל 050-1234567');
   if(a.until&&adEnd(a)<new Date()&&!confirm('⚠️ זמן ההסרה שבחרתם כבר עבר – המודעה לא תוצג. לשמור בכל זאת?'))return;
-  if(!a.title||!a.text)return toast('נא למלא כותרת ותוכן');if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
+  const hasImg=!!(a.img||($('#ai').files&&$('#ai').files[0]));
+  if(!hasImg&&(!a.title||!a.text))return toast('נא למלא כותרת ותוכן – או להעלות מודעה מעוצבת');
+  if(!a.title)a.title=(a.text.split('\n')[0]||'').replace(/[*_~]/g,'').slice(0,60)||'📌 מודעה';if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
-  const f=$('#ai').files[0];if(f)a.img=await shrink(f,800);
+  const f=$('#ai').files[0];if(f)a.img=await shrink(f,(!a.text?1280:900));
   if(E){try{await C.F.setDoc(dref('ads',E.id),a);Object.assign(E,a);U.adShown&&delete U.adShown[E.id]}catch(e){return cerr(e)}window._adEd=null;closeModal();toast('✔️ המודעה עודכנה');render();return}
   try{await C.F.addDoc(col('ads'),a)}catch(e){return cerr(e)}
   closeModal();toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור');
