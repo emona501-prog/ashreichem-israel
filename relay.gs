@@ -11,7 +11,7 @@ const APP_URL = 'https://emona501-prog.github.io/ashreichem-israel/';
 function doPost(e) {
   try {
     const d = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (!['inbox', 'req', 'test', 'rem', 'cancel', 'mny', 'ad'].includes(d.kind)) return out({ err: 'bad' });
+    if (!['inbox', 'req', 'test', 'rem', 'cancel', 'mny', 'ad', 'live'].includes(d.kind)) return out({ err: 'bad' });
     const c = CacheService.getScriptCache();
 
     // ביטול תזכורת מתוזמנת
@@ -27,6 +27,9 @@ function doPost(e) {
 
     // מודעה – התראה לכל המשתמשים. רק המנהל יכול לסמן pushReq במודעה (לפי כללי המאגר), והנוסח נלקח מהמודעה עצמה
     if (d.kind === 'ad') return out(adPush(String(d.id || ''), c));
+
+    // דיווח חי ממניין – למי שסימן ⭐ את בית הכנסת ולא ביטל דיווחים
+    if (d.kind === 'live') return out(livePush(String(d.id || ''), c));
 
     const title = String(d.title || 'אשריכם ישראל').slice(0, 80);
     const body = String(d.body || '').slice(0, 160) || 'לחצו לצפייה';
@@ -57,11 +60,21 @@ function doPost(e) {
   } catch (err) { return out({ err: String(err) }); }
 }
 const FS = 'https://firestore.googleapis.com/v1/projects/ashreichem-israel/databases/(default)/documents/';
+function fsVal(v) {
+  if (!v) return null;
+  if (v.stringValue !== undefined) return v.stringValue;
+  if (v.integerValue !== undefined) return +v.integerValue;
+  if (v.doubleValue !== undefined) return +v.doubleValue;
+  if (v.booleanValue !== undefined) return v.booleanValue;
+  if (v.arrayValue) return (v.arrayValue.values || []).map(fsVal);
+  if (v.mapValue) { const o = {}, f = v.mapValue.fields || {}; Object.keys(f).forEach(k => o[k] = fsVal(f[k])); return o; }
+  return null;
+}
 function fsGet(path) {
   const r = UrlFetchApp.fetch(FS + path, { muteHttpExceptions: true });
   if (r.getResponseCode() !== 200) return null;
   const f = (JSON.parse(r.getContentText()).fields) || {}, o = {};
-  Object.keys(f).forEach(k => { const v = f[k]; o[k] = v.stringValue !== undefined ? v.stringValue : v.integerValue !== undefined ? +v.integerValue : v.doubleValue !== undefined ? +v.doubleValue : v.booleanValue !== undefined ? v.booleanValue : v.mapValue ? (v.mapValue.fields || {}) : null; });
+  Object.keys(f).forEach(k => o[k] = fsVal(f[k]));
   return o;
 }
 function mnyPush(id, c) {
@@ -82,6 +95,27 @@ function mnyPush(id, c) {
   const body = (day + ' ב-' + t + (pl ? ' · ' + pl : '') + ' · חסרים עוד ' + Math.max(1, 10 - n) + ' – לחצו להצטרף').slice(0, 160);
   const msg = { app_id: APP_ID, headings: { en: title, he: title }, contents: { en: body, he: body }, url: APP_URL + '?m=' + id,
     filters: [{ field: 'tag', key: 'nomny', relation: 'not_exists' }], ttl: Math.max(600, Math.round((m.at - now) / 1000) + 600) };
+  const r = UrlFetchApp.fetch('https://api.onesignal.com/notifications', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Key ' + OS_KEY }, payload: JSON.stringify(msg) });
+  const j = JSON.parse(r.getContentText() || '{}');
+  return { code: r.getResponseCode(), id: j.id || '' };
+}
+function livePush(id, c) {
+  if (!/^[A-Za-z0-9_-]{10,80}$/.test(id)) return { err: 'id' };
+  const v = fsGet('live/' + id); if (!v) return { err: 'nf' };
+  const now = Date.now(); if (!(+v.at > now - 3 * 6e4)) return { err: 'old' };
+  const L = {"wait": "⏳ עוד לא התחילו", "late": "🕐 מתעכבים", "start": "▶️ התחילו עכשיו", "pzd": "🎶 בפסוקי דזמרה", "shma": "📖 בקריאת שמע", "amida": "🧍 בעמידה", "torah": "📜 בקריאת התורה", "end": "✅ סיימו", "nomin": "⚠️ חסרים למניין"}[v.st]; if (!L) return { err: 'st' };
+  const kd = 'l' + id + '_' + v.st; if (c.get(kd)) return { err: 'dup' };
+  const kc = 'lc' + id, n = +(c.get(kc) || 0); if (n >= 4) return { err: 'limit' };             // עד 4 התראות לכל מניין ביום
+  const kh = 'lh', h = +(c.get(kh) || 0); if (h >= 30) return { err: 'limit' };                // עד 30 בשעה בכל האפליקציה
+  const ku = 'lu' + v.uid, u = +(c.get(ku) || 0); if (u >= 6) return { err: 'limit' };         // עד 6 לכל משתמש ביום
+  c.put(kd, '1', 3 * 3600); c.put(kc, String(n + 1), 86400); c.put(kh, String(h + 1), 3600); c.put(ku, String(u + 1), 86400);
+  const s = fsGet('shuls/' + v.sid) || {}; const nm = String(s.name || 'בית הכנסת').split(/ [–-] /)[0];
+  const p = (s.prayers || []).find(function (x) { return x && x.id === v.pid; }) || {};
+  const title = ('🔴 דיווח חי · ' + nm).slice(0, 80);
+  const body = ((p.t ? p.t + ' ' + (p.tm || '') + ': ' : '') + L + ' (דווח ע״י מתפלל)').slice(0, 160);
+  const msg = { app_id: APP_ID, headings: { en: title, he: title }, contents: { en: body, he: body }, url: APP_URL,
+    filters: [{ field: 'tag', key: 'f_' + v.sid, relation: '=', value: '1' }, { field: 'tag', key: 'nolive', relation: 'not_exists' }], ttl: 1800 };
   const r = UrlFetchApp.fetch('https://api.onesignal.com/notifications', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { Authorization: 'Key ' + OS_KEY }, payload: JSON.stringify(msg) });
   const j = JSON.parse(r.getContentText() || '{}');
