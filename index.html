@@ -1262,7 +1262,7 @@ function more(){
   ${it('🕯️','ממיר תאריכים ויארצייט',"go('conv')",'מועזי לעברי · מתי היארצייט')}
   </div><div class="card menu">
   ${it(ic('yahrzeit','md'),'הילולות צדיקים',"go('hill')",'היום והקרובות')}
-  ${it('📌','לוח מודעות ופרסום',"go('board')",launchOn()?'📢 פרסום מודעה – 3 חודשים חינם!':'מודעות קהילה · בקשת פרסום')}
+  ${it('📌','לוח מודעות ופרסום',"go('board')",launchOn()?'📢 מבצע השקה: מודעה ליום אחד חינם!':'מודעות קהילה · בקשת פרסום')}
   ${it('🕍','גבאי? הצטרפו לאפליקציה',"go('gab')",'שליחת פרטי בית הכנסת וקבלת קוד גבאי')}
   ${it(ic('alon','md'),'עלון מידע לשבת',"bulletin()",'בונים עלון אישי – תפילות, שיעורים, ילדים – לשיתוף והדפסה')}
   ${it(ic('alon','md'),'עלונים',"go('alonim')",'עלוני שבת של בתי הכנסת ועלונים כלליים')}
@@ -1340,7 +1340,7 @@ function adPopHide(id){_adImgCur=null;U.adHide=U.adHide||{};const ti=iso(new Dat
 function adWhen(a){return a.date?'📅 '+hebDate(fromIso(a.date),1)+' ('+gStr(fromIso(a.date))+')'+(a.tm?' · 🕐 '+a.tm:''):a.d?'📅 קבוע: '+DAYSETS[a.d]?.l:''}
 function adMini(a){return `<div class="card row" style="cursor:pointer;padding:10px 12px" onclick="showAd('${a.id}')">${a.img?`<div class="thumb" style="background-image:url(${a.img})"></div>`:'<span style="font-size:1.6rem">📢</span>'}<div class="main"><b>${esc(a.title)}</b><span class="muted">${adWhen(a)||'לחצו לפרטים'}</span>${adStatsHtml(a,1)}</div><span>‹</span></div>`}
 function adCard(a){return `<div class="card ad"><h3>${esc(a.title)}</h3>${adWhen(a)?`<span class="badge gold">${adWhen(a)}</span>`:''}<div style="white-space:pre-line;margin-top:6px">${linkify(a.text)}</div>${a.sid&&shul(a.sid)?`<button class="btn sec sm" style="margin-top:8px" onclick="closeModal();go('shul',{id:'${a.sid}'})">🕍 ${esc(shul(a.sid).name)}</button>`:''}${a.img?`<img src="${a.img}" alt="">`:''}${a.contact?`<div class="muted" style="margin-top:6px">📞 ${esc(a.contact)}</div>`:''}${adWaBtn(a)}${adStatsHtml(a)}
-${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>${a.st==='ok'?`<div class="btns" style="margin-top:8px"><button class="btn sm" onclick="adBump('${a.id}')">⬆️ הקפצה לראש הלוח</button><button class="btn gold sm" onclick="adPush('${a.id}')">🔔 התראה לכל המשתמשים</button></div><div class="muted" style="font-size:.85rem;margin-top:4px">${a.bump?'⬆️ הוקפצה לאחרונה: '+fmtAgo(a.bump):''}${a.bump&&a.pushAt?' · ':''}${a.pushAt?'🔔 התראה נשלחה: '+fmtAgo(a.pushAt):''}</div>`:''}`:''}</div>`}
+${ROLE?.type==='admin'&&a.st!=='ok'&&a.dur?`<div class="card hl" style="margin-top:8px;font-size:.92rem">⏳ משך מבוקש: <b>${(AD_DUR.find(x=>x[0]===a.dur)||[0,a.dur+' ימים'])[1]}</b> · ${(a.price||(a.dur>1?adPrice(a.dur):0))?`💰 <b>${a.price||adPrice(a.dur)} ₪</b> – לאשר רק אחרי שהתשלום התקבל`:'🎉 חינם'}<br><span class="muted">הספירה מתחילה מרגע האישור</span></div>`:''}${ROLE?.type==='admin'?`<div class="btns" style="margin-top:8px">${a.st!=='ok'?`<button class="btn sm" onclick="adSt('${a.id}','ok')">✅ אישור פרסום</button>`:''}<button class="btn sec sm" onclick="closeModal();setTimeout(()=>adForm('${a.id}'),50)">✏️ עריכה</button><button class="btn red sm" onclick="adSt('${a.id}','del')">מחיקה</button></div>${a.st==='ok'?`<div class="btns" style="margin-top:8px"><button class="btn sm" onclick="adBump('${a.id}')">⬆️ הקפצה לראש הלוח</button><button class="btn gold sm" onclick="adPush('${a.id}')">🔔 התראה לכל המשתמשים</button></div><div class="muted" style="font-size:.85rem;margin-top:4px">${a.bump?'⬆️ הוקפצה לאחרונה: '+fmtAgo(a.bump):''}${a.bump&&a.pushAt?' · ':''}${a.pushAt?'🔔 התראה נשלחה: '+fmtAgo(a.pushAt):''}</div>`:''}`:''}</div>`}
 const adT=a=>Math.max(a.bump||0,a.dt||0);
 function fmtAgo(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return'הרגע';if(m<60)return'לפני '+m+' דק׳';const h=Math.round(m/60);if(h<24)return'לפני '+h+' שע׳';const d=Math.round(h/24);return d===1?'אתמול':'לפני '+d+' ימים'}
 async function adBump(id){if(ROLE?.type!=='admin'||!C.ok)return;const a=S.ads.find(z=>z.id===id);if(!a)return;const t=Date.now();
@@ -1356,24 +1356,36 @@ function openAdQ(id,n){n=n||0;const a=S.ads.find(z=>z.id===id);if(a){go('board')
 const LAUNCH_END=new Date(2027,1,16),launchOn=()=>new Date()<LAUNCH_END;
 function adDesign(){window.open('https://wa.me/'+adminWa()+'?text='+encodeURIComponent('שלום 🙏 אשמח שתעצבו לי מודעה לפרסום באפליקציית '+(S.settings.appName||'אשריכם ישראל')+'.\nעל מה המודעה: '))}
 function adDesignBox(){return `<div class="card" style="margin-top:8px;background:#fff8e6;border:1px dashed #c39a2f"><b>🎨 אין לכם מודעה מעוצבת?</b><div class="muted" style="font-size:.9rem">נעצב לכם מודעה מקצועית ויפה – <b>בתשלום סמלי</b>.</div><button class="btn sm" style="margin-top:8px;background:#25d366;color:#fff" onclick="adDesign()">💬 לעיצוב מודעה בוואטסאפ</button></div>`}
+const AD_DUR=[[1,'יום אחד (24 שעות)'],[3,'3 ימים'],[7,'שבוע'],[14,'שבועיים'],[30,'חודש']],AD_PDEF={1:15,3:30,7:50,14:80,30:120};
+const adPrice=d=>d===1&&launchOn()?0:+((S.settings.adPrices||{})[d]??AD_PDEF[d]);
+const adPayNum=()=>{const n=String(S.settings.adminPhone||ADMIN_WA_DEF).replace(/\D/g,'').replace(/^972/,'0');return n.replace(/^(\d{3})(\d{7})$/,'$1-$2')};
+function adDurPick(d){window._adDur=d;document.querySelectorAll('.adur').forEach(b=>b.classList.toggle('on',+b.dataset.d===d));const p=adPrice(d);$('#adurN').innerHTML=p?`💰 עלות: <b>${p} ₪</b> · התשלום בביט / פייבוקס אחרי השליחה, והמודעה מתפרסמת אחרי אימות התשלום.`:`🎉 <b>חינם!</b> המודעה מוצגת 24 שעות מרגע האישור.`}
+function adDurBox(){window._adDur=1;return `<label class="f">⏳ כמה זמן המודעה תוצג?</label><div class="chips">${AD_DUR.map(([d,l])=>{const p=adPrice(d);return `<button type="button" class="chip adur ${d===1?'on':''}" data-d="${d}" onclick="adDurPick(${d})">${l} · ${p?p+' ₪':'חינם 🎉'}</button>`}).join('')}</div><div class="muted" id="adurN" style="font-size:.88rem;margin-top:4px">🎉 <b>${adPrice(1)?adPrice(1)+' ₪':'חינם!'}</b> המודעה מוצגת 24 שעות מרגע האישור.</div>`}
+function adPayModal(a){const msg=`שלום 🙏 שלחתי בקשה לפרסום מודעה באפליקציית ${S.settings.appName||'אשריכם ישראל'}:\n*${a.title}*\nלמשך: ${(AD_DUR.find(x=>x[0]===a.dur)||[0,a.dur+' ימים'])[1]}\nהעברתי ${a.price} ₪ ב___ (ביט / פייבוקס).`;
+  modal(`<div style="text-align:center"><div style="font-size:3rem">💳</div><p>הבקשה נשלחה! כדי שהמודעה תפורסם, העבירו <b style="font-size:1.3rem">${a.price} ₪</b></p>
+  <div class="card hl" style="text-align:center">ב<b>ביט</b> או ב<b>פייבוקס</b> למספר:<div style="font-size:1.5rem;font-weight:800;letter-spacing:1px;margin-top:4px" dir="ltr">${adPayNum()}</div><button class="btn sec sm" style="margin-top:6px" onclick="navigator.clipboard&&navigator.clipboard.writeText('${adPayNum().replace(/-/g,'')}');toast('המספר הועתק 📋')">📋 העתקת המספר</button></div>
+  <p class="muted" style="font-size:.9rem">אחרי ההעברה שלחו לנו הודעה (אפשר עם צילום של אישור התשלום), והמודעה תעלה אחרי האימות – למשך ${(AD_DUR.find(x=>x[0]===a.dur)||[0,a.dur+' ימים'])[1]} מרגע הפרסום.</p>
+  <button class="btn" style="width:100%;background:#25d366;color:#fff;min-height:50px" onclick="window.open('https://wa.me/'+adminWa()+'?text='+encodeURIComponent(${esc(JSON.stringify(msg))}))">💬 שליחת אישור תשלום בוואטסאפ</button></div>`,'💳 תשלום על הפרסום')}
+function adPricesEdit(){const P=S.settings.adPrices||{};modal(`<div class="muted">המחירים שהמפרסמים רואים בטופס. ${launchOn()?'<b>במבצע ההשקה יום אחד חינם</b> – המחיר של יום אחד יחול אחרי המבצע.':''}</div>${AD_DUR.map(([d,l])=>`<label class="f">${l}</label><input class="inp" type="number" min="0" inputmode="numeric" id="adp${d}" value="${P[d]??AD_PDEF[d]}">`).join('')}<button class="btn" style="width:100%;margin-top:12px" onclick="adPricesSave()">💾 שמירה</button>`,'💰 מחירי פרסום (₪)')}
+async function adPricesSave(){const P={};AD_DUR.forEach(([d])=>P[d]=Math.max(0,+$('#adp'+d).value||0));S.settings.adPrices=P;await saveConfig();closeModal();toast('✔️ המחירים נשמרו');render()}
 function adPromo(){const L=launchOn();return `<div class="adpromo"><div class="adp-t">📢 רוצים לפרסם מודעה?</div>
   <div class="adp-s">לבית הכנסת, לשיעור, לשמחה – <b>וגם לעסק הפרטי שלכם</b>. המודעה מגיעה לכל המתפללים בשכונה.</div>
-  ${L?`<div class="adp-free">🎉 מבצע השקה: 3 החודשים הראשונים – <b>חינם!</b></div>`:''}
-  <button class="btn" style="width:100%;margin-top:10px;min-height:50px;font-size:1.05rem" onclick="adForm()">📝 לפרסום מודעה${L?' בחינם':''}</button>
+  ${L?`<div class="adp-free">🎉 מבצע השקה: מודעה ליום אחד – <b>חינם!</b></div>`:''}
+  <button class="btn" style="width:100%;margin-top:10px;min-height:50px;font-size:1.05rem" onclick="adForm()">📝 לפרסום מודעה${L?' – יום אחד חינם':''}</button>
   <button class="adp-link" onclick="adDesign()">🎨 צריכים עיצוב? נעצב לכם מודעה בתשלום סמלי</button></div>`}
 function board(){
   const ok=S.ads.filter(adLive).sort((a,b)=>adT(b)-adT(a)),ended=ROLE?.type==='admin'?S.ads.filter(a=>a.st==='ok'&&!adLive(a)):[],pend=S.ads.filter(a=>a.st==='pend');
   const L=launchOn();
   return `<h2>📌 לוח מודעות</h2>
-  ${L?`<div class="launch"><div class="l1">🎉 מבצע השקה 🎉</div><div class="l2">3 החודשים הראשונים – פרסום <b>חינם</b>!</div><div class="l3">עסקים, שיעורים, שמחות, אירועים ומודעות קהילה · בתוקף עד ${hebDate(LAUNCH_END,1)} (${gStr(LAUNCH_END)})</div></div>`:''}
-  <button class="btn" style="width:100%;margin-bottom:12px" onclick="adForm()">${ROLE?.type==='admin'?'📝 מודעה חדשה – מתפרסמת מיד':'📝 בקשה לפרסום מודעה'+(L?' – חינם':'')}</button>
+  ${L?`<div class="launch"><div class="l1">🎉 מבצע השקה 🎉</div><div class="l2">מודעה ליום אחד (24 שעות) – <b>חינם</b>!</div><div class="l3">עסקים, שיעורים, שמחות, אירועים ומודעות קהילה · המבצע בתוקף עד ${hebDate(LAUNCH_END,1)} (${gStr(LAUNCH_END)}) · פרסום ליותר מיום – בתשלום</div></div>`:''}
+  <button class="btn" style="width:100%;margin-bottom:12px" onclick="adForm()">${ROLE?.type==='admin'?'📝 מודעה חדשה – מתפרסמת מיד':'📝 בקשה לפרסום מודעה'+(L?' – יום אחד חינם':'')}</button>${ROLE?.type==='admin'?`<button class="btn ghost sm" style="width:100%;margin:-6px 0 12px" onclick="adPricesEdit()">💰 מחירי פרסום</button>`:''}
   ${ROLE?.type==='admin'&&pend.length?`<h3>⏳ ממתינות לאישור (${pend.length})</h3>${pend.map(adCard).join('')}<h3>מפורסמות</h3>`:''}
   ${ok.map(adMini).join('')||'<div class="empty-msg">אין מודעות כרגע</div>'}
   ${ended.length?`<details style="margin-top:12px"><summary class="muted">⏱️ מודעות שהסתיים זמנן (${ended.length}) – רק המנהל רואה</summary>${ended.map(adMini).join('')}</details>`:''}`;
 }
 function adForm(id){const E=id?S.ads.find(z=>z.id===id):null,ed=!!E,v=k=>esc(E&&E[k]||'');window._adEd=E;
   const w=E?(E.date?'date':E.d?'rec':''):'';const pp=E&&E.popD!==undefined?String(E.popD):'7';
-  modal(`${!ed&&launchOn()?'<div class="launch sm">🎉 מבצע השקה – 3 החודשים הראשונים הפרסום חינם!</div>':''}${ed?'':'<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, עסקים, אבידות ומציאות ועוד.</div><div class="card hl" style="margin:8px 0;font-size:.92rem">🖼️ <b>יש לכם מודעה מעוצבת?</b> מספיק להעלות אותה בשדה "תמונה" למטה – אין חובה למלא כותרת ותוכן.</div>'}
+  modal(`${!ed&&launchOn()?'<div class="launch sm">🎉 מבצע השקה – מודעה ליום אחד (24 שעות) חינם!</div>':''}${ed?'':'<div class="muted">המודעה תפורסם לאחר אישור מנהל האפליקציה. הכנסת ספר תורה, שמחות, שיעור חדש, עסקים, אבידות ומציאות ועוד.</div><div class="card hl" style="margin:8px 0;font-size:.92rem">🖼️ <b>יש לכם מודעה מעוצבת?</b> מספיק להעלות אותה בשדה "תמונה" למטה – אין חובה למלא כותרת ותוכן.</div>'}
   <label class="f">כותרת <small class="muted">(לא חובה כשמעלים מודעה מעוצבת)</small></label><input class="inp" id="at" maxlength="70" value="${v('title')}">
   <label class="f">תוכן המודעה</label>${fmtBar('ax')}<textarea class="inp fmt-ta" id="ax" maxlength="600" oninput="fmtPrev('ax')">${v('text')}</textarea><div class="fmt-pv" id="ax_pv"></div>
   <label class="f">טלפון ליצירת קשר</label><input class="inp" id="ac" inputmode="tel" value="${v('contact')}">
@@ -1386,8 +1398,9 @@ function adForm(id){const E=id?S.ads.find(z=>z.id===id):null,ed=!!E,v=k=>esc(E&&
   <label class="f">🔔 תזכורת במסך הראשי</label><select class="inp" id="apop">${[['1','מיום לפני'],['3','מ-3 ימים לפני'],['7','משבוע לפני'],['14','משבועיים לפני'],['0','בלי תזכורת']].map(([x,l])=>`<option value="${x}" ${pp===x?'selected':''}>${l}</option>`).join('')}</select>
   <div class="muted" style="font-size:.85rem">המודעה קופצת במסך הראשי (מתחת למניין הקרוב) – <b>וככל שהמועד מתקרב, היא קופצת יותר</b>: בהתחלה פעם בכמה שעות, ביום האירוע כל שעה, ובשעות האחרונות כמעט בכל כניסה.</div></div>
   <select class="inp" id="awr" style="display:${w==='rec'?'block':'none'};margin-top:6px">${dsOpts(E&&E.d||'mz')}</select>
-  <label class="f">⏱️ הסרה אוטומטית של המודעה (לא חובה)</label><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><input class="inp" type="date" id="au" value="${v('until')}" ${E&&E.until?'data-man="1"':''} oninput="this.dataset.man=1"><input class="inp" type="time" id="autm" value="${v('untilTm')}"></div>
-  <div class="muted" style="font-size:.85rem">בתאריך ובשעה האלה המודעה יורדת לבד מהאפליקציה. בלי שעה – בסוף היום.</div>
+  ${!ed&&ROLE?.type!=='admin'?adDurBox():''}
+  <div style="${!ed&&ROLE?.type!=='admin'?'display:none':''}"><label class="f">⏱️ הסרה אוטומטית של המודעה (לא חובה)</label><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:8px"><input class="inp" type="date" id="au" value="${v('until')}" ${E&&E.until?'data-man="1"':''} oninput="this.dataset.man=1"><input class="inp" type="time" id="autm" value="${v('untilTm')}"></div>
+  <div class="muted" style="font-size:.85rem">בתאריך ובשעה האלה המודעה יורדת לבד מהאפליקציה. בלי שעה – בסוף היום.</div></div>
   ${ROLE?`<label class="f">שיוך לבית כנסת</label><select class="inp" id="asid"><option value="">ללא</option>${S.shuls.filter(x=>canEdit(x.id)).map(x=>`<option value="${x.id}" ${(E?E.sid===x.id:ROLE.sid===x.id)?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}
   ${ROLE?'':termsBox('adT')}
   <button class="btn" style="width:100%;margin-top:14px" onclick="sendAd()">${ed?'💾 שמירת השינויים':ROLE?'📌 פרסום עכשיו':'שליחה לאישור'}</button>
@@ -1484,7 +1497,7 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
    {k:'mny',t:'חסר לכם מניין בשעה מיוחדת? ב<b>מארגנים מניין</b> פותחים קריאה, והשכנים מקבלים הודעה ומצטרפים.',b:'🙋 מארגנים מניין',a:"closeModal();go('mny')"},
    {k:'voice',t:'אפשר גם <b>לשאול בקול</b>: "מתי מנחה?" או "מתי שקיעה?" – ואני עונה 🎤',b:'🎤 לשאול בקול',a:"closeModal();askVoice()"},
    {k:'fix',t:'ראיתם זמן לא נכון? בדף בית הכנסת יש <b>✏️ דיווח טעות</b>. ההודעה מגיעה ישר לגבאי ולמנהל.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
-   {k:'board2',t:'יש לכם <b>עסק</b>, שיעור, שמחה או אירוע? פרסמו מודעה לכל השכונה'+(launchOn()?' – <b>3 החודשים הראשונים חינם!</b>':'.')+'<br>אין לכם מודעה מעוצבת? נעצב לכם בתשלום סמלי 🎨',b:'📝 לפרסום מודעה',a:"closeModal();adForm()"},
+   {k:'board2',t:'יש לכם <b>עסק</b>, שיעור, שמחה או אירוע? פרסמו מודעה לכל השכונה'+(launchOn()?' – <b>מודעה ליום אחד חינם!</b>':'.')+'<br>אין לכם מודעה מעוצבת? נעצב לכם בתשלום סמלי 🎨',b:'📝 לפרסום מודעה',a:"closeModal();adForm()"},
    !(U.zr&&(Object.values(U.zr.it||{}).some(x=>x&&x.on)||U.zr.candle?.on))&&{k:'zrem',t:'חדש! <b>תזכורות זמנים</b> – בוחרים זמן (שקיעה, סוף זמן ק״ש, הדלקת נרות…) ואני מזכיר לכם. עם צליל, רטט או רק הודעה – איך שנוח לכם.',b:'🔔 לתזכורות זמנים',a:"closeModal();go('zrem')"},
    {k:'mik',t:'חדש באפליקציה: <b>מקוואות</b> בשכונה – כתובות, שעות וניווט בלחיצה.',b:'💧 למקוואות',a:"closeModal();go('mikva')"}
   ].filter(Boolean);
@@ -3265,7 +3278,7 @@ function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
 }
-function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30,relay:S.settings.relay||'',proLive:!!S.settings.proLive},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
+function saveConfig(){if(!needCloud())return Promise.resolve();return C.F.setDoc(dref('config','main'),strip({settings:{appName:S.settings.appName,adminPhone:S.settings.adminPhone||'',tickerSpeed:S.settings.tickerSpeed||30,relay:S.settings.relay||'',proLive:!!S.settings.proLive,adPrices:S.settings.adPrices||null},neighborhoods:S.neighborhoods,hillulot:S.hillulot}),{merge:true}).catch(cerr)}
 function shulDoc(s){const o=strip(s);delete o.photos;delete o.photoIds;delete o.code;delete o.id;Object.keys(o).forEach(k=>{if(k[0]==='_')delete o[k]});return o}
 
 /* ----- כניסה ----- */
@@ -3372,13 +3385,18 @@ async function sendAd(){const E=window._adEd;
   if(!hasImg&&(!a.title||!a.text))return toast('נא למלא כותרת ותוכן – או להעלות מודעה מעוצבת');
   if(!a.title)a.title=(a.text.split('\n')[0]||'').replace(/[*_~]/g,'').slice(0,60)||'📌 מודעה';if(!ROLE&&!termsChk('adT'))return;if(!needCloud())return;
   if(ROLE&&ROLE.type==='gabbai')a.sid=ROLE.sid;
+  if(!E&&ROLE?.type!=='admin'){a.dur=window._adDur||1;a.price=adPrice(a.dur);a.until='';a.untilTm=''}
   const f=$('#ai').files[0];if(f)a.img=await shrink(f,(!a.text?1280:900));
   if(E){try{await C.F.setDoc(dref('ads',E.id),a);Object.assign(E,a);U.adShown&&delete U.adShown[E.id]}catch(e){return cerr(e)}window._adEd=null;closeModal();toast('✔️ המודעה עודכנה');render();return}
   try{await C.F.addDoc(col('ads'),a)}catch(e){return cerr(e)}
-  closeModal();toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור');
+  closeModal();if(a.price){setTimeout(()=>adPayModal(a),80);try{relayAdmin('req','📌 בקשת פרסום בתשלום ('+a.price+' ₪)',a.title)}catch(e){}return}
+  toast(a.st==='ok'?'המודעה פורסמה':'הבקשה נשלחה ✔️ תפורסם לאחר אישור'+(a.dur===1?' – ל-24 שעות':''));
   if(a.st!=='ok'&&S.settings.adminPhone)window.open(`https://wa.me/${S.settings.adminPhone.replace(/\D/g,'').replace(/^0/,'972')}?text=`+encodeURIComponent(`בקשת פרסום חדשה:\n*${a.title}*\n${a.text}\n${a.contact}`));
 }
-async function adSt(id,st){if(!needCloud())return;try{if(st==='del'){if(!confirm('למחוק את המודעה?'))return;await C.F.deleteDoc(dref('ads',id))}else await C.F.updateDoc(dref('ads',id),{st})}catch(e){cerr(e)}}
+async function adSt(id,st){if(!needCloud())return;const a=S.ads.find(z=>z.id===id);
+  const pr=a?(a.price||(a.dur>1?adPrice(a.dur):0)):0;if(st==='ok'&&pr&&!confirm('לפני האישור: האם התקבל תשלום של '+pr+' ₪ על המודעה?'))return;
+  try{if(st==='del'){if(!confirm('למחוק את המודעה?'))return;await C.F.deleteDoc(dref('ads',id))}
+  else{const u={st};if(st==='ok'&&a&&a.dur&&!a.until){const e=new Date(Date.now()+a.dur*864e5);u.until=iso(e);u.untilTm=hm(e);u.okAt=Date.now()}await C.F.updateDoc(dref('ads',id),u);if(u.until)toast('✅ פורסם עד '+gStr(new Date(Date.now()+a.dur*864e5))+' '+u.untilTm)}}catch(e){cerr(e)}}
 
 /* ----- הגדרות, שכונות, הילולות ----- */
 function saveHill(id){const o={id:id||uid(),name:$('#hn').value.trim(),d:+$('#hd').value,m:$('#hm').value,place:$('#hp').value.trim()};if(!o.name)return toast('נא למלא שם');if(id)S.hillulot=S.hillulot.map(x=>x.id===id?o:x);else S.hillulot.push(o);saveConfig();closeModal();render()}
@@ -3841,12 +3859,13 @@ function relayAdmin(kind,title,body){const u=RELAY();if(!u||!/^https:\/\/script\
   try{fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind,title:String(title).slice(0,80),body:String(body).slice(0,160)})}).catch(()=>{})}catch(e){}}
 
 /* ===== 📜 תקנון ותנאי שימוש ===== */
-const TERMS_VER='1.1 · כסלו תשפ״ז';
+const TERMS_VER='1.2 · כסלו תשפ״ז';
 const TERMS=[
 ['1. כללי','האפליקציה "אשריכם ישראל" (להלן: "האפליקציה") היא אפליקציה פרטית לחלוטין, בבעלותו הבלעדית של מפתחה, הפועל בשם "חי אפליקציות" (להלן: "המפעיל"). האפליקציה פותחה, מומנה ומתוחזקת במלואה על ידי המפעיל ועל חשבונו, והיא מועמדת לשימוש הציבור ללא תמורה, כחסד פרטי של המפעיל. השימוש באפליקציה, לרבות צפייה, הרשמה, פרסום, שליחת הודעה או תרומה, מהווה הסכמה מלאה לתקנון זה. מי שאינו מסכים לתקנון – מתבקש שלא להשתמש באפליקציה. התקנון מנוסח בלשון זכר מטעמי נוחות בלבד ומתייחס לכל המינים.'],
 ['2. אפליקציה פרטית','האפליקציה אינה גוף ציבורי, אינה עמותה ואינה פועלת מטעם רשות, עירייה, מועצה דתית, בית כנסת, קהילה או ארגון כלשהו. אין לאפליקציה בעלים, שותפים או מנהלים מלבד המפעיל. האפליקציה מופצת באופן פרטי באמצעות קישור, ואינה מופיעה בחנויות האפליקציות. העובדה שהשימוש בה פתוח לציבור, ושבתי כנסת, גבאים ומפרסמים מופיעים בה, אינה הופכת אותה לציבורית ואינה מקנה לאיש זכות או חלק בה.'],
 ['3. אופי האפליקציה וייעודה','האפליקציה נועדה לשרת את ציבור שומרי התורה והמצוות, ולהנגיש מידע על תפילות, שיעורי תורה, פעילויות ואירועים – ברוח התורה וההלכה ובהתאם לאופייה ולערכיה של האפליקציה, כפי שאלה נקבעים על ידי המפעיל ועל פי שיקול דעתו.'],
 ['4. אין זכות לפרסום','האפליקציה אינה במה ציבורית פתוחה, ולאף אדם, קהילה, בית כנסת, ארגון או גוף אין זכות לפרסם בה. כל פרסום – לרבות רישום בית כנסת, זמני תפילה, שיעור, פעילות, מודעה, קריאה למניין, ספר תהילים, תמונה או עדכון – נתון לשיקול דעתו הבלעדי והמוחלט של המפעיל.'],
+  ['4א. פרסום מודעות – משך ותשלום','מודעה בחינם (במסגרת מבצע ההשקה) מוצגת יום אחד – 24 שעות מרגע אישור המנהל – ויורדת אוטומטית. פרסום לתקופה ארוכה יותר כרוך בתשלום לפי המחירון המוצג בטופס הפרסום, והמודעה תפורסם רק לאחר אימות התשלום. הספירה מתחילה מרגע הפרסום. המנהל רשאי לסרב לפרסם מודעה או להסירה לפי שיקול דעתו.'],
 ['5. סמכות המפעיל לגבי תוכן','המפעיל רשאי, בכל עת ועל פי שיקול דעתו הבלעדי, ללא הודעה מוקדמת וללא חובת הנמקה: לסרב לפרסם כל תוכן; לערוך, לקצר או לתקן תוכן; להסיר תוכן שכבר פורסם; לבטל או להשעות גישה, קוד גבאי או חשבון; ולהסיר בית כנסת, קהילה או גוף מהאפליקציה – לרבות בשל תוכן או פעילות שאינם תואמים, לדעת המפעיל, את אופי האפליקציה וייעודה כאמור בסעיף 3.'],
 ['6. ויתור על טענות','המשתמש, המפרסם והגבאי מצהירים כי ידוע להם שאין להם כל זכות לפרסום באפליקציה, וכי לא תהיה להם כל טענה, דרישה או תביעה כלפי המפעיל, מי מטעמו או מי שמסייע לו, בגין סירוב לפרסם, עריכה, הסרה, השעיה או ביטול – מכל סיבה שהיא.'],
 ['7. אחריות על התוכן ועל הזמנים','האחריות על נכונות התוכן המפורסם מוטלת על המפרסם או הגבאי בלבד. זמני התפילה והזמנים ההלכתיים מחושבים באופן ממוחשב ומוצגים לנוחות בלבד; ייתכנו טעויות, שינויים או סטיות, ומומלץ להחמיר כמה דקות ולוודא מול בית הכנסת או מורה הוראה. המפעיל אינו אחראי לכל נזק, ישיר או עקיף, הנובע מהסתמכות על המידע.'],
