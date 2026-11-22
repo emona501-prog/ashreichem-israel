@@ -1176,10 +1176,10 @@ function shulPage(){
   ${ed?proEdCard(s):''}${proPinHtml(s)}${proDonHtml(s)}${proAliyotHtml(s)}
   ${s.notes?`<div class="card hl" style="white-space:pre-line"><b>ℹ️ הודעות בית הכנסת</b>\n${linkify(s.notes)}</div>`:''}
   <div class="card"><h3>🕰️ זמני תפילות</h3>
-    ${gp.length?gp.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(p=>p.t==='זמן'?`<div class="row"><div class="time" style="color:var(--acc);font-size:1.1rem">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.n)}</b></div></div>`:`<div class="row"><div class="time">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.t)}</b>${p.rel||isRel(p.tm)?`<span class="badge" style="margin-inline-start:6px">⏱ ${relLabel(p.tm)}</span>`:''}${p.n?`<span class="muted" style="display:block">${esc(p.n)}</span>`:''}</div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','prayers','${p.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">עדיין לא הוזנו זמנים</div>'}
+    ${gp.length?gp.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}${shabTag(d)}</span>${a.map(p=>p.t==='זמן'?`<div class="row"><div class="time" style="color:var(--acc);font-size:1.1rem">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.n)}</b></div></div>`:`<div class="row"><div class="time">${esc(dispTm(p))}</div><div class="main"><b>${esc(p.t)}</b>${p.rel||isRel(p.tm)?`<span class="badge" style="margin-inline-start:6px">⏱ ${relLabel(p.tm)}</span>`:''}${p.n?`<span class="muted" style="display:block">${esc(p.n)}</span>`:''}</div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','prayers','${p.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">עדיין לא הוזנו זמנים</div>'}
   </div>
   <div class="card"><h3>📚 שיעורים ופעילויות</h3>
-    ${ge.length?ge.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}</span>${a.map(e=>`<div class="row"><div class="time">${e.tm?esc(dispTm(e)):'<small style="font-size:.75rem">'+esc(e.n)+'</small>'}</div><div class="main"><b>${esc(e.title)}</b><span class="muted">${isRel(e.tm)?'⏱ '+relLabel(e.tm)+' · ':''}${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.c)}${e.who?' · '+esc(e.who):''}${e.n?' · '+esc(e.n):''}</span></div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','events','${e.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">אין פעילויות רשומות</div>'}
+    ${ge.length?ge.map(([d,a])=>`<div style="margin-bottom:8px"><span class="badge gold">${DAYSETS[d]?.l||d}${shabTag(d)}</span>${a.map(e=>`<div class="row"><div class="time">${e.tm?esc(dispTm(e)):'<small style="font-size:.75rem">'+esc(e.n)+'</small>'}</div><div class="main"><b>${esc(e.title)}</b><span class="muted">${isRel(e.tm)?'⏱ '+relLabel(e.tm)+' · ':''}${e.end?'עד '+esc(e.end)+' · ':''}${esc(e.c)}${e.who?' · '+esc(e.who):''}${e.n?' · '+esc(e.n):''}</span></div><button class="btn ghost sm" aria-label="תזכורת" onclick="remind('${s.id}','events','${e.id}')">🔔</button></div>`).join('')}</div>`).join(''):'<div class="empty-msg">אין פעילויות רשומות</div>'}
   </div>
   ${proLinksHtml(s)}
   ${alonShulSec(s)}
@@ -1815,6 +1815,7 @@ function omerText(n){const dW=n=>n===1?'יום אחד':heDay(n)+(n<=10?' ימי�
 /* ===== 📖 פרשת השבוע (לוח ארץ ישראל, תשפ״ז–תשצ״ז) ===== */
 let _pd=null;const PD=()=>_pd||(_pd=JSON.parse($('#parshadata').textContent));
 const ymd=dt=>iso(dt).replace(/-/g,'');
+const shabTag=d=>/^(fri|sat)$/.test(d)?' · '+parTitle(nextSat(new Date())):'';
 function nextSat(dt){let x=new Date(dt||new Date());x.setHours(12,0,0,0);while(x.getDay()!==6)x=addDays(x,1);return x}
 function parashaOf(sat){const p=PD(),i=p.d[ymd(sat)];if(i!=null)return p.n[i].replace(', ','–');const h=holidaysOn(sat).filter(t=>t!=='ראש חודש');return h.length?h[0]:''}
 const parTitle=sat=>{const p=parashaOf(sat);return !p?'שבת קודש':PD().d[ymd(sat)]!=null?'פרשת '+p:p}
@@ -3675,11 +3676,16 @@ async function reqSubmit(){
   toast('📍 בודק את הכתובת…');const geo=await areaCheck(ED.address);if(geo.r==='out')return outArea(geo.where);
   if(geo.ll){ED.lat=geo.ll.lat;ED.lng=geo.ll.lng}
   const g0=ED.gabbaim[0];ED.gabbai=g0.name||'';ED.phone=g0.phone||'';U.name=g0.name||U.name;U.phone=g0.phone||U.phone;saveU();
-  try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',geo:geo.r,data:shulDoc(ED)})}catch(e){return cerr(e)}
+  const gcode=String(Math.floor(100000+Math.random()*900000));let ibId='';
+  try{const ib=await C.F.addDoc(col('inbox'),{uid:uidv,name:g0.name||'',phone:g0.phone||'',cat:'req',kind:'join',text:`🕍 בקשת הצטרפות: ${ED.name}\n📍 ${ED.address||''}\n👤 ${g0.name||''} ${g0.phone||''}\n🔑 קוד הגבאי שנוצר: ${gcode}`,dt:Date.now(),st:'open',rep:[],unA:true,unU:false});ibId=ib.id}catch(e){}
+  try{await C.F.addDoc(col('shulReqs'),{uid:uidv,dt:Date.now(),st:'pend',geo:geo.r,code:gcode,ibId,data:shulDoc(ED)})}catch(e){return cerr(e)}
+  U.myCodes=U.myCodes||{};U.myCodes[ED.name]=gcode;saveU();
   relayAdmin('req','📥 בקשת הצטרפות חדשה',ED.name||'בית כנסת');
   const nm=ED.name;closeModal();
   modal(`<div style="text-align:center;font-size:3rem">🎉</div><h2 style="text-align:center">הפרטים נשלחו בהצלחה!</h2>
-  <p style="text-align:center">בית הכנסת <b>${esc(nm)}</b> ממתין לאישור המנהל. אחרי האישור הוא יופיע באפליקציה, ותקבל <b>קוד גבאי אישי</b> לעדכונים.</p>
+  <p style="text-align:center">בית הכנסת <b>${esc(nm)}</b> ממתין לאישור המנהל, ואחרי האישור הוא יופיע באפליקציה.</p>
+  <div class="card hl" style="text-align:center">🔑 קוד הגבאי שלך: <b style="font-size:1.6rem;letter-spacing:3px">${gcode}</b><div class="muted" style="font-size:.88rem;margin-top:4px">שמרו אותו! הקוד יופעל מיד כשהמנהל יאשר את בית הכנסת – ותקבלו על כך הודעה כאן באפליקציה (📬 ההודעות שלי).</div>
+  <button class="btn sec sm" style="margin-top:8px" onclick="navigator.clipboard&&navigator.clipboard.writeText('${gcode}');toast('הקוד הועתק 📋')">📋 העתקת הקוד</button></div>
   <button class="btn" style="width:100%;background:#25d366;color:#fff" onclick="window.open('https://wa.me/${adminWa()}?text='+encodeURIComponent('שלום, אני ${esc(g0.name||'')}, הגבאי של *${esc(nm).replace(/'/g,'')}* 🕍\\nמילאתי עכשיו את פרטי בית הכנסת באפליקציה ואשמח לאישור. תודה!'))">💬 להודיע למנהל בוואטסאפ (לא חובה)</button>
   <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal();go('home')">סיום</button>`,'תודה רבה! 🙏');
 }
@@ -3699,13 +3705,15 @@ function reqsV(){
 function reqApprove(rid,edit){
   const r=(S.reqs||[]).find(x=>x.id===rid);if(!r)return;
   {const D=dupOf(r.data);if(D.length&&!confirm('⚠️ הבקשה נראית כמו בית כנסת שכבר קיים:\n'+dupMsg(D)+'\n\nלהמשיך בכל זאת? (ביטול = לא לאשר עכשיו)'))return}
-  ED={...JSON.parse(JSON.stringify(r.data)),id:'s'+uid(),photos:[],code:String(Math.floor(100000+Math.random()*900000)),_fromReq:rid};
+  ED={...JSON.parse(JSON.stringify(r.data)),id:'s'+uid(),photos:[],code:r.code||String(Math.floor(100000+Math.random()*900000)),_fromReq:rid};
   ED.prayers=(ED.prayers||[]).map(p=>({...p,id:p.id||uid()}));ED.events=(ED.events||[]).map(x=>({...x,id:x.id||uid()}));
   if(edit)drawEd(true);else saveShul();
 }
 async function reqReject(rid){if(!confirm('לדחות את הבקשה?'))return;try{await C.F.updateDoc(dref('shulReqs',rid),{st:'no'})}catch(e){cerr(e)}}
 async function reqDone(rid,sid,code,s){
+  let rq=null;try{rq=(await C.F.getDoc(dref('shulReqs',rid))).data()}catch(e){}
   try{await C.F.updateDoc(dref('shulReqs',rid),{st:'ok',sid})}catch(e){}
+  if(rq&&rq.ibId)try{await C.F.updateDoc(dref('inbox',rq.ibId),{rep:C.F.arrayUnion({by:'admin',t:`✅ בית הכנסת "${s.name}" אושר ועלה לאפליקציה!\n🔑 קוד הגבאי שלך פעיל עכשיו: ${code}\nנכנסים דרך 🔑 למעלה ← בוחרים את בית הכנסת ← מקלידים את הקוד. תזכו למצוות!`,dt:Date.now()}),unU:true,unA:false,st:'done'})}catch(e){}
   const g=(s.gabbaim||[]).find(x=>telOk(x.phone));
   const msg=`שלום ${g?g.name:''} 🙏\nבית הכנסת *${s.name}* עלה לאפליקציית *${S.settings.appName}*!\n\n🔑 קוד הגבאי שלך: *${code}*\nנכנסים דרך 🔑 למעלה ← בוחרים את בית הכנסת ← מקלידים את הקוד.\n\nתזכו למצוות על זיכוי הרבים!\n${APP_URL}`;
   modal(`<div style="text-align:center;font-size:3rem">✅</div><h2 style="text-align:center">${esc(s.name)} עלה לאפליקציה!</h2>
