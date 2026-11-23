@@ -1610,7 +1610,26 @@ function codeInvite(sid){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין
   window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
 function codeResend(sid){const s=shul(sid),g=gabPh(s),c=codeOf(sid);if(!c)return toast('הקוד לא נטען – נסו שוב בעוד רגע');if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');
   const t=`שלום ${g.name||''} 👋\nתזכורת – הקוד האישי שלך ל"${s.name}" באפליקציה *אשריכם ישראל*:\n\n🔑 *${c}*\n\nאיך נכנסים: פותחים את האפליקציה ← לוחצים על המפתח 🔑 למעלה ← בוחרים את בית הכנסת ← כותבים את הקוד ← "כניסה".\n${APP_URL}\n\nאחרי הכניסה אפשר לעדכן את זמני התפילות לבד. תודה רבה! 🙏`;
-  window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank')}
+  window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank');codeMarkSent(sid)}
+async function codeMarkSent(sid){try{const o=C.secrets[sid];if(!o)return;o.sent=Date.now();o.sentN=(o.sentN||0)+1;await C.F.setDoc(dref('secrets','gabbaim'),{[sid]:{sent:o.sent,sentN:o.sentN}},{merge:true})}catch(e){}}
+const codeSent=sid=>(C.secrets[sid]&&C.secrets[sid].sent)||0;
+/* 📦 שליחה מרוכזת: יצירת קודים לכל מי שאין + תור שליחה בוואטסאפ אחד אחרי השני */
+async function codeBulkMake(){const L=codeGroups().no.filter(s=>gabPh(s));if(!L.length)return toast('אין בתי כנסת בלי קוד שיש להם טלפון גבאי');
+  if(!confirm(`ליצור עכשיו קוד גבאי ל-${L.length} בתי כנסת?
+אחר כך תוכלו לשלוח לכל גבאי את הקוד שלו בוואטסאפ.`))return;
+  let ok=0;for(let i=0;i<L.length;i++){toast(`יוצר קודים… ${i+1}/${L.length}`);const c=String(Math.floor(100000+Math.random()*900000));if(await setGabbaiCode(L[i].id,c)){L[i].login='set';ok++}await new Promise(r=>setTimeout(r,700))}
+  toast(`נוצרו ${ok} קודים 🔑`);render();if(ok)setTimeout(()=>codeQueue('new'),400)}
+function codeQList(kind){const G=codeGroups();const has=s=>codeOf(s.id)&&gabPh(s);
+  if(kind==='new')return G.wait.filter(s=>has(s)&&!codeSent(s.id));
+  return G.wait.filter(has)}
+function codeQueue(kind,i){const L=codeQList(kind);window._cq={kind,L:L.map(s=>s.id),i:i||0};codeQDraw()}
+function codeQDraw(){const q=window._cq;if(!q)return;if(q.i>=q.L.length){closeModal();toast('✅ סיימתם לשלוח לכולם');render();return}
+  const s=shul(q.L[q.i]),g=gabPh(s),sent=codeSent(s.id);
+  modal(`<div class="muted">${q.i+1} מתוך ${q.L.length} · לוחצים "שליחה", בוואטסאפ לוחצים שלח, וחוזרים לכאן להבא בתור</div>
+  <div style="height:6px;background:#e5e7eb;border-radius:4px;margin:10px 0"><div style="height:6px;border-radius:4px;background:#1fa855;width:${Math.round(q.i/q.L.length*100)}%"></div></div>
+  <div class="card" style="margin:0"><b>${s.no?s.no+'. ':''}${esc(s.name)}</b><div class="muted">👤 ${esc(g&&g.name||'')} ${esc(g&&g.phone||'')}${sent?` · נשלח כבר ב-${new Date(sent).toLocaleDateString('he-IL')}`:''}</div></div>
+  <button class="btn" style="width:100%;margin-top:10px;background:#1fa855;min-height:50px" onclick="codeResend('${s.id}');window._cq.i++;setTimeout(codeQDraw,600)">💬 שליחה ל${esc(g&&g.name||'גבאי')}</button>
+  <div class="btns" style="margin-top:8px"><button class="btn ghost sm" onclick="window._cq.i++;codeQDraw()">⏭️ דילוג</button><button class="btn ghost sm" onclick="window._cq=null;closeModal();render()">עצירה</button></div>`,'📤 שליחת קודים לגבאים',true)}
 function codeBox(sid){if(!PRO_ON)return codeBox0(sid);return codeBox0(sid)+`<button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="closeModal();setTimeout(()=>proAdmin('${sid}'),50)">⭐ מנוי פרו: ${(()=>{const p=proInfo(sid);return p.on?(p.trial?'ניסיון':'פעיל')+' עד '+dmy(p.until):'לא פעיל'})()}</button>`}
 function codeBox0(sid){const has=!!codeOf(sid);
   return `<div class="cd-box ${has?'ok':'no'}">${has?`<div>✅ לבית הכנסת יש קוד</div><button class="btn sm" style="background:#1fa855" onclick="codeResend('${sid}')">📤 שליחת הקוד לגבאי בוואטסאפ</button>`
@@ -1621,8 +1640,15 @@ async function codeMakeSend(sid){if(!gabPh(shul(sid))&&!(ED&&ED.id===sid&&(ED.ga
   if(!await setGabbaiCode(sid,c))return;const s=shul(sid);if(s&&!s.login)s.login='set';if(ED&&ED.id===sid){ED.code=c;if(!gabPh(s)&&s)s.gabbaim=ED.gabbaim}
   toast('הקוד נוצר 🔑');codeResend(sid);if(ED&&ED.id===sid)drawEd()}
 function codesV(){if(!window._secTry&&(!C.secrets||!Object.keys(C.secrets).length)){window._secTry=1;loadSecrets()}const G=codeGroups();
-  const row=(s,btn)=>{const g=gabPh(s);return `<div class="row"><div class="main"><b>${s.no?`<span class="sh-no sm">${s.no}</span> `:''}${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${g?`👤 ${esc(g.name||'')} ${esc(g.phone)}`:'⚠️ אין טלפון גבאי'}${s.gIn?` · נכנס לאחרונה ${new Date(s.gIn).toLocaleDateString('he-IL')}`:''}</span></div>${btn}</div>`};
+  const row=(s,btn)=>{const g=gabPh(s);return `<div class="row"><div class="main"><b>${s.no?`<span class="sh-no sm">${s.no}</span> `:''}${esc(s.name)}</b><span class="muted" style="font-size:.8rem">${g?`👤 ${esc(g.name||'')} ${esc(g.phone)}`:'⚠️ אין טלפון גבאי'}${s.gIn?` · נכנס לאחרונה ${new Date(s.gIn).toLocaleDateString('he-IL')}`:''}${!s.gIn&&codeOf(s.id)?(codeSent(s.id)?` · 📤 נשלח ${new Date(codeSent(s.id)).toLocaleDateString('he-IL')}`:' · <b style="color:#b45309">📭 עוד לא נשלח</b>'):''}</span></div>${btn}</div>`};
+  const noPh=G.no.filter(s=>gabPh(s)).length,qNew=codeQList('new').length,qAll=codeQList('all').length,noTel=S.shuls.filter(s=>!gabPh(s)).length;
   return `<h2>🔑 מצב קודי גבאים</h2>
+  <div class="card" style="border:2px solid #1fa855"><h3>📦 שליחה מרוכזת</h3>
+  <div class="muted" style="font-size:.85rem;margin-bottom:8px">בודקים מי עוד לא קיבל קוד, ושולחים לכולם בתור – אחד אחרי השני בוואטסאפ.</div>
+  ${noPh?`<button class="btn" style="width:100%;margin-bottom:8px;background:#b45309" onclick="codeBulkMake()">🔑 יצירת קוד לכל מי שאין (${noPh})</button>`:''}
+  <button class="btn" style="width:100%;margin-bottom:8px;background:#1fa855" ${qNew?'':'disabled'} onclick="codeQueue('new')">📤 שליחה לכל מי שעוד לא קיבל (${qNew})</button>
+  <button class="btn sec" style="width:100%" ${qAll?'':'disabled'} onclick="codeQueue('all')">🔁 שליחה חוזרת לכל מי שלא נכנס (${qAll})</button>
+  ${noTel?`<div class="muted" style="font-size:.8rem;margin-top:8px">⚠️ ל-${noTel} בתי כנסת אין טלפון גבאי – אי אפשר לשלוח להם. מוסיפים טלפון ב✏️ עריכה.</div>`:''}</div>
   <div class="cd-sum"><div class="r"><b>${G.no.length}</b><span>❌ בלי קוד</span></div><div class="y"><b>${G.wait.length}</b><span>⏳ לא נכנסו</span></div><div class="g"><b>${G.act.length}</b><span>✅ נכנסו</span></div></div>
   <div class="card"><h3>❌ בלי קוד (${G.no.length})</h3><div class="muted" style="font-size:.85rem">לבתי הכנסת האלה עוד לא נוצר קוד. אפשר לשלוח לגבאי הזמנה לבקש קוד, או ליצור קוד בעצמכם בעריכת בית הכנסת.</div>
   ${G.no.map(s=>row(s,`<div class="btns" style="flex:none;gap:4px">${gabPh(s)?`<button class="btn sm" style="background:#1fa855" onclick="codeInvite('${s.id}')">💬 הזמנה</button>`:''}<button class="btn sec sm" onclick="editShul('${s.id}')">✏️</button></div>`)).join('')||'<div class="muted">לכולם יש קוד 🎉</div>'}</div>
