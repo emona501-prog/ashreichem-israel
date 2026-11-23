@@ -850,7 +850,7 @@ async function liveDo(sid,pid,st){if(!needCloud())return;const k=liveKey(sid,pid
   if(U.liveAt[k]&&Date.now()-U.liveAt[k]<2*6e4)return toast('כבר דיווחתם לפני רגע 🙏 אפשר לדווח שוב בעוד דקה-שתיים');
   const v=LIVE[k],same=v&&v.st===st&&Date.now()-v.at<15*6e4;
   try{await C.F.setDoc(dref('live',k),{sid,pid,day:iso(new Date()),st,at:Date.now(),uid:myUid(),cnt:same?C.F.increment(1):1},{merge:true})}catch(e){return cerr(e)}
-  U.liveAt[k]=Date.now();saveU();closeModal();toast('🙏 תודה! הדיווח עודכן לכולם');
+  U.liveAt[k]=Date.now();saveU();popAdd(sid,2,1);closeModal();toast('🙏 תודה! הדיווח עודכן לכולם');
   if(!same&&RELAY())try{fetch(RELAY(),{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind:'live',id:k})})}catch(e){}}
 async function liveQ(sid,pid,i){if(!needCloud())return;const k=liveKey(sid,pid),q=LIVE_Q[i];U.liveQAt=U.liveQAt||{};
   if(U.liveQAt[k]&&Date.now()-U.liveQAt[k]<5*6e4)return toast('כבר שאלתם לפני רגע – נחכה לתשובה 🙏');
@@ -881,7 +881,7 @@ function verOf(s,p){listenVer();const v=(VER[s.id]||{})[p.id],g=s.upd||s.updAt||
   if(v&&v.at)parts.push(`👍 אומת ע״י ${v.n>1?v.n+' מתפללים':'מתפלל'} · ${agoTxt(v.at)}`);
   if(g)parts.push(`✏️ עודכן ע״י הגבאי ${agoTxt(g)}`);
   return parts.length?parts.join(' · '):'<span class="muted">עוד לא אומת – הייתם שם? לחצו 👍</span>'}
-async function verDo(sid,pid){if(!needCloud())return;const k=sid+'_'+pid;U.ver=U.ver||{};if(U.ver[k]&&Date.now()-U.ver[k]<864e5)return toast('כבר אישרתם היום – תודה! 🙏');
+async function verDo(sid,pid){if(!needCloud())return;popAdd(sid,2,1);const k=sid+'_'+pid;U.ver=U.ver||{};if(U.ver[k]&&Date.now()-U.ver[k]<864e5)return toast('כבר אישרתם היום – תודה! 🙏');
   try{await C.F.setDoc(dref('verify',sid),{[pid]:{n:C.F.increment(1),at:Date.now()}},{merge:true});U.ver[k]=Date.now();saveU();toast('👍 תודה! עזרתם לכולם לדעת שהזמן נכון')}catch(e){toast('לא הצלחנו לשמור – נסו שוב מאוחר יותר')}}
 function fixRep(sid,pid){const s=shul(sid),p=(s.prayers||[]).find(x=>x.id===pid);if(!s||!p)return;
   modal(`<div class="muted">ראיתם זמן לא נכון? כתבו מה הזמן הנכון – וההודעה תגיע לגבאי ולמנהל.</div>
@@ -1040,27 +1040,33 @@ function times(){
 }
 
 /* ===== בתי כנסת ===== */
-function shSortFn(){const so=U.shSort||'no',F=x=>U.favs.includes(x.id)?1:0,N=x=>x.no||1e9,A=(a,b)=>a.name.replace(/["״']/g,'').localeCompare(b.name.replace(/["״']/g,''),'he');
-  return(a,b)=>(F(b)-F(a))||(so==='nh'?(a.nh||'').localeCompare(b.nh||'','he')||N(a)-N(b):so==='abc'?A(a,b):N(a)-N(b)||A(a,b))}
+let POP={};
+function listenPop(){if(C.unsub.pop||!S.cloud||!C.F)return;C.unsub.pop=C.F.onSnapshot(dref('pub','pop'),d=>{POP=d.exists()?d.data():{};if(TAB==='shuls'&&(U.shSort||'pop')==='pop')softRender()},()=>{})}
+function popAdd(sid,n,once){if(!C.ok||!sid||isMe())return;if(once){const k=sid+iso(new Date());U.popSeen=U.popSeen||{};if(U.popSeen[k])return;U.popSeen=Object.fromEntries(Object.entries(U.popSeen).filter(([x])=>x.endsWith(iso(new Date()))));U.popSeen[k]=1;saveU()}
+  C.F.setDoc(dref('pub','pop'),{[sid]:C.F.increment(n)},{merge:true}).catch(()=>{})}
+async function shPin(id){const s=shul(id);if(!s)return;const v=prompt('מיקום קבוע בראש הרשימה (1 = ראשון). 0 = לבטל הצמדה:',s.pin||'');if(v===null)return;const n=Math.max(0,Math.min(99,parseInt(v)||0));
+  try{await C.F.updateDoc(dref('shuls',id),{pin:n||C.F.deleteField()});s.pin=n||undefined;render();toast(n?'📌 הוצמד למקום '+n:'ההצמדה בוטלה')}catch(e){cerr(e)}}
+function shSortFn(){listenPop();const so=U.shSort||'pop',F=x=>U.favs.includes(x.id)?1:0,PN=x=>x.pin||1e9,PP=x=>POP[x.id]||0,N=x=>x.no||1e9,A=(a,b)=>a.name.replace(/["״']/g,'').localeCompare(b.name.replace(/["״']/g,''),'he');
+  return(a,b)=>(F(b)-F(a))||(PN(a)-PN(b))||(so==='pop'?PP(b)-PP(a)||N(a)-N(b):so==='nh'?(a.nh||'').localeCompare(b.nh||'','he')||N(a)-N(b):so==='abc'?A(a,b):N(a)-N(b)||A(a,b))}
 function shuls(){
   const q=(ST.q||'').trim();
   const list=S.shuls.filter(inNh).filter(s=>!q||(s.name+s.address+s.nh+s.nusach).includes(q))
     .sort(shSortFn());
-  const so=U.shSort||'no';let lastNh=null;
+  const so=U.shSort||'pop';let lastNh=null;
   const dp=ROLE?.type==='admin'?dupPairs().length:0;
   return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0">🕍 בתי כנסת <span class="muted" style="font-size:.95rem">(${list.length})</span></h2><button class="btn sm" onclick="go('map')">🗺️ במפה</button></div>
   ${dp?`<button class="adq-sp" style="background:linear-gradient(135deg,#b3541e,#f0a35e);margin:8px 0" onclick="dupsV()">⚠️ <b>${dp} כפילויות אפשריות</b> – לחצו לבדיקה</button>`:''}
   <input class="search" placeholder="🔍 חיפוש לפי שם, רחוב או נוסח" value="${esc(q)}" oninput="ST.q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{render();const i=$('.search');i.focus();i.setSelectionRange(i.value.length,i.value.length)},350)" aria-label="חיפוש בית כנסת">
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
-  <div class="sh-sort"><span class="muted">סדר:</span>${[['no','לפי מספר'],['nh','לפי אזור'],['abc','א–ב']].map(([k,l])=>`<button class="${so===k?'on':''}" onclick="U.shSort='${k}';saveU();render()">${l}</button>`).join('')}</div>
+  <div class="sh-sort"><span class="muted">סדר:</span>${[['pop','🔥 הכי פעילים'],['no','לפי מספר'],['nh','לפי אזור'],['abc','א–ב']].map(([k,l])=>`<button class="${so===k?'on':''}" onclick="U.shSort='${k}';saveU();render()">${l}</button>`).join('')}</div>
   ${list.map(s=>`${so==='nh'&&!U.favs.includes(s.id)&&s.nh!==lastNh?`<div class="sh-grp">📍 ${esc((lastNh=s.nh)||'אחר')}</div>`:''}<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
     <div class="thumb" style="${(s.thumb||s.photos[0])?`background-image:url(${s.thumb||s.photos[0]})`:shulLogo(s)?`background:#fff url(${shulLogo(s)}) center/88% no-repeat`:''}">${(s.thumb||s.photos[0]||shulLogo(s))?'':ic('shul','fill')}</div>
-    <div style="flex:1;min-width:0"><b>${s.no?`<span class="sh-no">${s.no}</span>`:''}${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
-    <button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
+    <div style="flex:1;min-width:0"><b>${s.pin?'📌 ':''}${s.no?`<span class="sh-no">${s.no}</span>`:''}${esc(s.name)}</b><div class="muted">${esc(s.address)} · ${esc(s.nh)}</div>${s.nusach?`<span class="badge">${esc(s.nusach)}</span>`:''}</div>
+    ${ROLE?.type==='admin'?`<button class="star" aria-label="הצמדה למקום ברשימה" title="הצמדה למקום ברשימה" style="font-size:1.1rem" onclick="event.stopPropagation();shPin('${s.id}')">📌</button>`:''}<button class="star" aria-label="מועדף" onclick="event.stopPropagation();fav('${s.id}')">${U.favs.includes(s.id)?'★':'☆'}</button>
   </div>`).join('')||`<div class="empty-msg">לא נמצאו בתי כנסת</div>`}`;
 }
-function fav(id){const i=U.favs.indexOf(id);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();pushTags();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
+function fav(id){const i=U.favs.indexOf(id);if(i<0)popAdd(id,3);i<0?U.favs.push(id):U.favs.splice(i,1);saveU();pushTags();render();toast(i<0?'נוסף למועדפים ⭐':'הוסר מהמועדפים')}
 function groupBy(arr){const g={};arr.forEach(x=>{(g[x.d]=g[x.d]||[]).push(x)});Object.values(g).forEach(a=>a.sort((a,b)=>(dispTm(a)?toMin(dispTm(a)):9999)-(dispTm(b)?toMin(dispTm(b)):9999)));const K=['all','wk6','wk','d023','d14','d013','d03','d13','d0','d1','d2','d3','d4','fri','sat','mz'];return Object.entries(g).sort((a,b)=>K.indexOf(a[0])-K.indexOf(b[0]))}
 /* ===================== ⭐ גרסת פרו לבית כנסת ===================== */
 /* ניסיון 3 חודשים חינם (proTrial על בית הכנסת) · מנוי בתשלום: config/pro {sid:{until}} – רק המנהל כותב */
@@ -3334,7 +3340,7 @@ function adStatsHtml(a,sm){const o=(S.stats&&S.stats.ads||{})[a.id]||{};if(!(ROL
 async function adCntReset(id){if(!confirm('לאפס את המונים של המודעה הזו ל-0?'))return;try{await C.F.setDoc(dref('stats','ads'),{[id]:{pop:0,open:0,wa:0}},{merge:true});if(S.stats&&S.stats.ads)S.stats.ads[id]={pop:0,open:0,wa:0};toast('המונים אופסו');closeModal();render()}catch(e){cerr(e)}}
 function adWaUrl(a){const ph=String(a.wa||'').replace(/\D/g,'').replace(/^0/,'972');return `https://wa.me/${ph}?text=`+encodeURIComponent(`שלום, ראיתי את המודעה "${a.title}" באפליקציית אשריכם ישראל 🙂`)}
 function adWaBtn(a,sm){if(!a.wa)return'';return `<a class="ad-wa${sm?' sm':''}" href="${adWaUrl(a)}" target="_blank" rel="noopener" onclick="event.stopPropagation();countAd('${a.id}','wa')">${esc(a.waL||'💬 לפרטים בוואטסאפ')}</a>`}
-function countView(sid){if(!C.ok||isMe())return;C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
+function countView(sid){if(!C.ok||isMe())return;popAdd(sid,1,1);C.F.setDoc(dref('stats','views'),{[sid]:C.F.increment(1)},{merge:true}).catch(()=>{})}
 function loadPhotos(sid){
   if(!C.ok||C.unsub['ph_'+sid])return;const F=C.F;
   C.unsub['ph_'+sid]=F.onSnapshot(F.query(col('photos'),F.where('sid','==',sid)),q=>{const s=shul(sid);if(!s)return;const ds=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.dt-b.dt);s.photos=ds.map(d=>d.img);s.photoIds=ds.map(d=>d.id);save();if(TAB==='shul'&&ST.id===sid)softRender()});
