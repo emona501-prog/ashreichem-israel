@@ -361,7 +361,7 @@ body.dark .fchip{background:#24344a}
 .fc-v{font-size:.78rem;color:#5b6b80;margin:6px 4px 0;font-style:italic}.fc-a{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .fbtn{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 6px;font:inherit;font-size:.85rem;font-weight:700;color:var(--pri,#24456b);text-decoration:none;cursor:pointer;white-space:nowrap}body.dark .fbtn{background:#24344a;color:#dbe5f1}
 .mk-h{background:#fff;border-radius:12px;padding:8px 10px;margin-top:8px;line-height:1.6;font-size:.92rem}body.dark .mk-h{background:#24344a}
-.sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
+.sh-sort{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:.85rem;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.sh-sort>*{flex:none;white-space:nowrap}.sh-sort button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;color:inherit;cursor:pointer}.sh-sort button.on{background:var(--pri,#24456b);color:#fff;border-color:transparent}
 .sh-grp{font-weight:800;color:var(--pri,#24456b);margin:14px 4px 6px;font-size:.95rem}
 .sh-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 5px;border-radius:999px;background:var(--pri,#24456b);color:#fff;font-size:.78rem;font-weight:800;margin-inline-end:6px;vertical-align:2px}
 .topbar{flex-direction:column;align-items:stretch!important;gap:6px!important;padding:8px 12px 8px!important}
@@ -763,6 +763,62 @@ function hlCheck(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='admin'||viewingAsUse
   modal(`<div style="text-align:center;font-size:2.4rem">🩺</div><div style="text-align:center;margin:6px 0 12px">המערכת זיהתה <b>${D.length} בתי כנסת</b> שצריכים קצת חיזוק – פרטים חסרים או שלא עודכנו מזמן.<br><span class="muted">הכנתי לכל גבאי הודעה אישית ומעודדת, מוכנה לשליחה.</span></div>
   <div class="muted" style="font-size:.85rem;margin-bottom:10px">${D.slice(0,4).map(x=>'• '+esc(x.s.name)+' – '+esc(x.I[0].l)).join('<br>')}${D.length>4?'<br>…':''}</div>
   <button class="btn" style="width:100%;background:#1fa855;min-height:48px" onclick="closeModal();hlQueue()">💌 לשליחת ההודעות</button><div class="btns" style="margin-top:8px"><button class="btn sec sm" onclick="closeModal();go('health')">📋 לרשימה</button><button class="btn ghost sm" onclick="closeModal()">אחר כך</button></div>`,'🔔 התראה מהמערכת')},6000)}
+
+/* ===== 🤝 גמ"חים בשכונה – משתמשים מוסיפים, המנהל מאשר (נשמר באוסף המודעות עם kind:'gmach') ===== */
+const GC_CAT=[['baby','🍼','תינוקות וילדים'],['dress','👗','בגדים ושמלות'],['event','🍽️','כלים ואירועים'],['furn','🪑','ריהוט וציוד לבית'],['med','🩺','ציוד רפואי'],['loan','💰','הלוואות'],['books','📚','ספרים'],['tools','🧰','כלי עבודה'],['food','🥖','מזון'],['other','🎁','אחר']];
+const gcCat=k=>GC_CAT.find(c=>c[0]===k)||GC_CAT[GC_CAT.length-1];
+function gcV(){const L=S.gmach||[],c=ST.gc||'',q=(ST.gq||'').trim(),adm=ROLE&&ROLE.type==='admin',P=S.gmachP||[];
+  const F=L.filter(g=>(!c||g.cat===c)&&(!q||[g.title,g.desc,g.addr,g.name].join(' ').includes(q))).sort((a,b)=>a.title.localeCompare(b.title,'he'));
+  return `<h2>🤝 גמ"חים בשכונה</h2>
+  <div class="muted" style="margin-bottom:8px">כל הגמ"חים במקום אחד – השאלה, עזרה וחסד בין שכנים 💙</div>
+  ${adm&&P.length?`<div class="card" style="border:2px solid #f59e0b"><h3>⏳ ממתינים לאישור (${P.length})</h3>${P.map(g=>gcRow(g,1)).join('')}</div>`:''}
+  <button class="btn" style="width:100%;margin-bottom:10px;min-height:48px" onclick="gcForm()">➕ הוספת גמ"ח</button>
+  <input class="inp" placeholder="🔍 חיפוש גמ״ח…" value="${esc(q)}" oninput="ST.gq=this.value;clearTimeout(window._gqT);window._gqT=setTimeout(()=>{render();const i=document.querySelector('#view input');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},400)">
+  <div class="chips" style="margin-top:8px"><button class="chip ${!c?'on':''}" onclick="ST.gc='';render()">הכל (${L.length})</button>${GC_CAT.filter(x=>L.some(g=>g.cat===x[0])).map(x=>`<button class="chip ${c===x[0]?'on':''}" onclick="ST.gc='${x[0]}';render()">${x[1]} ${x[2]}</button>`).join('')}</div>
+  <div class="card">${F.map(g=>gcRow(g)).join('')||`<div class="empty-msg">${L.length?'לא נמצאו גמ"חים':'עוד אין גמ"חים – היו הראשונים להוסיף! 🌱'}</div>`}</div>`}
+function gcRow(g,pend){const c=gcCat(g.cat),tel=(g.phone||'').replace(/[^\d+]/g,'');
+  return `<div class="row" style="align-items:flex-start;flex-wrap:wrap"><span class="em" style="font-size:1.6rem">${c[1]}</span><div class="main"><b>${esc(g.title)}</b><span class="muted">${esc(c[2])}${g.addr?' · 📍 '+esc(g.addr):''}</span>
+  ${g.desc?`<div style="font-size:.88rem;margin-top:3px;white-space:pre-line">${esc(g.desc)}</div>`:''}${g.hours?`<div class="muted" style="font-size:.82rem">🕐 ${esc(g.hours)}</div>`:''}<div class="muted" style="font-size:.82rem">👤 ${esc(g.name||'')} · ${esc(g.phone||'')}</div>
+  <div class="btns" style="margin-top:6px;gap:6px"><a class="btn sm" style="text-decoration:none" href="tel:${tel}">📞 התקשרות</a><a class="btn sm" style="text-decoration:none;background:#1fa855" href="https://wa.me/${waNum(g.phone)}?text=${encodeURIComponent('שלום, ראיתי את הגמ"ח "'+g.title+'" באפליקציית אשריכם ישראל 🙂')}" target="_blank" rel="noopener">💬 וואטסאפ</a>
+  ${pend?`<button class="btn sm" onclick="gcSt('${g.id}','ok')">✅ אישור</button><button class="btn red sm" onclick="gcSt('${g.id}','no')">✕ דחייה</button>`:''}${ROLE&&ROLE.type==='admin'&&!pend?`<button class="btn ghost sm" onclick="gcSt('${g.id}','del')">🗑️</button>`:''}</div></div></div>`}
+function gcForm(){modal(`<div class="muted" style="margin-bottom:6px">ממלאים את כל הפרטים – והגמ"ח יופיע אחרי בדיקה קצרה של מנהל האפליקציה ✔️</div>
+  <label class="f">שם הגמ"ח *</label><input class="inp" id="gcT" maxlength="80" placeholder='לדוגמה: גמ"ח עגלות תינוק – משפחת כהן'>
+  <label class="f">קטגוריה *</label><select class="inp" id="gcC"><option value="">בחרו…</option>${GC_CAT.map(c=>`<option value="${c[0]}">${c[1]} ${c[2]}</option>`).join('')}</select>
+  <label class="f">מה יש בגמ"ח? *</label><textarea class="inp" id="gcD" rows="3" maxlength="400" placeholder="מה משאילים / נותנים, תנאים (פיקדון, החזרה) וכו׳"></textarea>
+  <label class="f">כתובת *</label><input class="inp" id="gcA" maxlength="80" placeholder="רחוב ומספר">
+  <label class="f">שעות פעילות</label><input class="inp" id="gcH" maxlength="80" placeholder="לדוגמה: א׳–ה׳ 20:00–22:00 (בתיאום מראש)">
+  <label class="f">שם איש הקשר *</label><input class="inp" id="gcN" maxlength="40">
+  <label class="f">טלפון *</label><input class="inp" id="gcP" inputmode="tel" maxlength="20" placeholder="05X-XXXXXXX">
+  <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:.88rem"><input type="checkbox" id="gcOk" style="width:20px;height:20px;flex:none"> אני מאשר/ת שהפרטים נכונים ושמותר לפרסם את הטלפון באפליקציה</label>
+  <button class="btn" style="width:100%;margin-top:12px;min-height:48px" onclick="gcSend()">📤 שליחה לאישור</button>`,'🤝 הוספת גמ"ח')}
+async function gcSend(){const v=id=>($('#'+id).value||'').trim(),o={title:v('gcT'),cat:v('gcC'),desc:v('gcD'),addr:v('gcA'),hours:v('gcH'),name:v('gcN'),phone:v('gcP')};
+  const miss=[];if(o.title.length<3)miss.push('שם הגמ"ח');if(!o.cat)miss.push('קטגוריה');if(o.desc.length<10)miss.push('מה יש בגמ"ח (לפחות כמה מילים)');if(o.addr.length<3)miss.push('כתובת');if(o.name.length<2)miss.push('שם איש קשר');if(!telOk(o.phone))miss.push('טלפון תקין');
+  if(miss.length)return toast('חסר: '+miss.join(', '),5000);if(!$('#gcOk').checked)return toast('יש לאשר שהפרטים נכונים');if(!needCloud())return;
+  try{const adm=ROLE&&ROLE.type==='admin';await C.F.addDoc(col('ads'),{...o,kind:'gmach',st:adm?'ok':'pend',uid:myUid(),at:Date.now()});closeModal();
+    if(adm){toast('✔️ הגמ"ח פורסם');return}
+    modal(`<div style="text-align:center;font-size:2.6rem">🙏</div><div style="text-align:center;margin:8px 0">תודה רבה! הגמ"ח נשלח לבדיקה,<br>ויופיע ברשימה אחרי אישור המנהל.</div><div class="muted" style="text-align:center">אשריכם – חסד אמיתי 💙</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeModal()">סגירה</button>`,'נשלח לאישור');
+    if(RELAY())relayCall({kind:'gcreq',title:'🤝 גמ"ח חדש ממתין לאישור',body:o.title+' · '+gcCat(o.cat)[2]})}catch(e){cerr(e)}}
+async function gcSt(id,st){if(!needCloud())return;try{if(st==='del'||st==='no'){if(!confirm(st==='del'?'למחוק את הגמ"ח?':'לדחות את הבקשה?'))return;await C.F.deleteDoc(dref('ads',id));S.gmachP=(S.gmachP||[]).filter(g=>g.id!==id);S.gmach=(S.gmach||[]).filter(g=>g.id!==id)}
+  else{await C.F.updateDoc(dref('ads',id),{st:'ok',okAt:Date.now()});const g=(S.gmachP||[]).find(x=>x.id===id);S.gmachP=(S.gmachP||[]).filter(x=>x.id!==id);if(g){g.st='ok';S.gmach=(S.gmach||[]).concat(g)}toast('✅ הגמ"ח אושר ופורסם')}render()}catch(e){cerr(e)}}
+
+/* ===== 🗓️ לוח השיעורים השבועי – כל השיעורים והאירועים, עם שיתוף והדפסה. מתפרסם בבית בכל מוצ"ש ===== */
+function wsDays(){const n=new Date(),st=new Date(n);st.setHours(12,0,0,0);if(n.getDay()===6&&n.getHours()>=16)st.setDate(st.getDate()+1);const D=[];for(let i=0;i<7;i++){const d=new Date(st);d.setDate(st.getDate()+i);D.push(d)}return D}
+function wsData(){return wsDays().map(dt=>({dt,day:dt.getDay(),L:collect('events',dt.getDay(),e=>!ST.wc||catOk(e,ST.wc),dt)}))}
+const wsDate=d=>d.toLocaleDateString('he-IL',{day:'numeric',month:'numeric'});
+function wsHome(){const n=new Date(),d=n.getDay();if(!((d===6&&n.getHours()>=17)||d===0||(d===1&&n.getHours()<14)))return'';const c=wsData().reduce((a,x)=>a+x.L.length,0);if(!c)return'';
+  return `<button class="shb chg" style="background:linear-gradient(135deg,#1e3a5f,#3d6ea5)" onclick="go('wsum')"><div class="shb-x"><b>🗓️ לוח השיעורים לשבוע הקרוב</b><span>${c} שיעורים ואירועים בשכונה · לצפייה, שיתוף והדפסה</span></div><span style="font-size:1.4rem">‹</span></button>`}
+function wsV(){const W=wsData(),c=ST.wc||'',tot=W.reduce((a,x)=>a+x.L.length,0);
+  return `<h2>🗓️ לוח השיעורים השבועי</h2><div class="muted" style="margin-bottom:6px">${wsDate(W[0].dt)}–${wsDate(W[6].dt)} · ${tot} שיעורים ואירועים</div>${nhChips()}
+  <div class="chips"><button class="chip ${!c?'on':''}" onclick="ST.wc='';render()">הכל</button>${CATS.map(x=>`<button class="chip ${x===c?'on':''}" onclick="ST.wc='${x}';render()">${x}</button>`).join('')}</div>
+  <div class="btns" style="margin:8px 0"><button class="btn" style="flex:1;background:#1fa855" onclick="wsShare()">💬 שיתוף בוואטסאפ</button><button class="btn sec" style="flex:1" onclick="wsPrint()">🖨️ הדפסה / PDF</button></div>
+  ${W.map(x=>x.L.length?`<div class="card"><h3 style="margin:0 0 6px">${x.day===6?'שבת קודש':'יום '+DAYNAMES[x.day]} · ${wsDate(x.dt)}</h3>${x.L.map(e=>prayerRow(e,x.day)).join('')}</div>`:'').join('')||'<div class="empty-msg">אין שיעורים השבוע בבחירה הזו</div>'}
+  <div class="muted" style="font-size:.8rem;text-align:center;margin:10px">💡 הלוח נבנה אוטומטית מהשיעורים שהגבאים מעדכנים בכל בית כנסת</div>`}
+function wsLine(e){return `${e.tm||e.n||''} – ${e.title||e.t||''}${e.by?' ('+e.by+')':''} · ${String(e.s.name).split(/ [–-] /)[0]}`}
+function wsShare(){const W=wsData();const t=`🗓️ *לוח השיעורים השבועי – ${S.settings.appName||'אשריכם ישראל'}*\n${wsDate(W[0].dt)}–${wsDate(W[6].dt)}\n`+W.filter(x=>x.L.length).map(x=>`\n*${x.day===6?'שבת קודש':'יום '+DAYNAMES[x.day]} ${wsDate(x.dt)}*\n`+x.L.map(e=>'• '+wsLine(e)).join('\n')).join('\n')+`\n\n📲 כל השיעורים והזמנים מתעדכנים באפליקציה:\n${APP_URL}`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
+function wsPrint(){const W=wsData();const body=`<h1 style="text-align:center;margin:0">🗓️ לוח השיעורים השבועי</h1><div style="text-align:center;margin-bottom:10px">${esc(S.settings.appName||'אשריכם ישראל')} · ${wsDate(W[0].dt)}–${wsDate(W[6].dt)}</div><div class="cols">`+
+  W.filter(x=>x.L.length).map(x=>`<div class="blk"><h2>${x.day===6?'שבת קודש':'יום '+DAYNAMES[x.day]} ${wsDate(x.dt)}</h2><table>${x.L.map(e=>`<tr><td class="k">${esc(e.tm||e.n||'')}</td><td>${esc(e.title||e.t||'')}${e.by?' – '+esc(e.by):''}<br><small>🕍 ${esc(String(e.s.name).split(/ [–-] /)[0])}</small></td></tr>`).join('')}</table></div>`).join('')+`</div>`+prFoot();
+  prShow(body,{back:"closeModal()"})}
 /* ===== ניווט ===== */
 const NAV=[];
 function go(t,st,noPush){if(TAB==='compass'&&t!=='compass')stopCompass();
@@ -778,7 +834,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,health:healthV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,health:healthV,gmach:gcV,wsum:wsV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   const NOTN=['home','admin','gab','inbox','reqs','codes','health','terms','pro','conv','th2','mine'];
   $('#view').innerHTML=(NOTN.includes(TAB)?'':topNav())+V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
@@ -827,7 +883,7 @@ function admHome(){
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
-    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${b('🩺','צריכים חיזוק',hlDue().length||'',"go('health')")}${PRO_ON?b('⭐','גרסת פרו','',"go('pro')"):''}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
+    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${b('🩺','צריכים חיזוק',hlDue().length||'',"go('health')")}${b('🤝','גמ"חים לאישור',(S.gmachP||[]).length||'',"go('gmach')")}${PRO_ON?b('⭐','גרסת פרו','',"go('pro')"):''}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
   return'';
 }
@@ -1000,6 +1056,7 @@ function home(){
   ${alonWeek().length?`<button class="shb chg" style="background:linear-gradient(135deg,#5b3a1a,#a8742c)" onclick="go('alonim')"><div class="shb-ic">${ic('alon')}</div><div class="shb-x"><b>עלוני השבוע</b><span>${alonWeek().length===1?'עלון חדש':alonWeek().length+' עלונים חדשים'} – לקריאה, שיתוף והדפסה ‹</span></div></button>`:''}
   ${nearest()}${liveStrip()}
   ${nearestEv()}
+  ${wsHome()}
   <div class="say-row"><button onclick="sayToggle(()=>nearSay())">${ic('speaker','bi')}הקראת המניין הקרוב</button><button onclick="askVoice()">${ic('mic','bi')}לשאול בקול</button></div>
   ${adPop()||adImgPop()}
   ${mnyHome()}
@@ -1119,8 +1176,15 @@ async function shRenum(){if(!confirm('לסדר מחדש את כל המספרים
   try{await Promise.all(L.map((x,i)=>x.no===i+1?null:(x.no=i+1,C.F.updateDoc(dref('shuls',x.id),{no:i+1}))));toast('✔️ המספור סודר');render()}catch(e){cerr(e)}}
 async function shPin(id){const s=shul(id);if(!s)return;const v=prompt('מיקום קבוע בראש הרשימה (1 = ראשון). 0 = לבטל הצמדה:',s.pin||'');if(v===null)return;const n=Math.max(0,Math.min(99,parseInt(v)||0));
   try{await C.F.updateDoc(dref('shuls',id),{pin:n||C.F.deleteField()});s.pin=n||undefined;render();toast(n?'📌 הוצמד למקום '+n:'ההצמדה בוטלה')}catch(e){cerr(e)}}
-function shSortFn(){listenPop();if(ST.ordEdit)return(a,b)=>(a.no||1e9)-(b.no||1e9);let so=U.shSort||'pop';if(so==='abc'||(so==='no'&&!isAdm()))so='pop';if(so==='loc'&&!MYLL)so='pop';const D=x=>{const l=shulLL(x);return l&&MYLL?distKm({lat:MYLL[0],lng:MYLL[1]},{lat:l[0],lng:l[1]}):1e9},F=x=>U.favs.includes(x.id)?1:0,PN=x=>x.pin||1e9,PP=x=>POP[x.id]||0,N=x=>x.no||1e9,A=(a,b)=>a.name.replace(/["״']/g,'').localeCompare(b.name.replace(/["״']/g,''),'he');
-  return(a,b)=>(F(b)-F(a))||(PN(a)-PN(b))||(so==='loc'?D(a)-D(b)||N(a)-N(b):so==='pop'?PP(b)-PP(a)||N(a)-N(b):so==='nh'?(a.nh||'').localeCompare(b.nh||'','he')||N(a)-N(b):so==='abc'?A(a,b):N(a)-N(b)||A(a,b))}
+/* 🔥 ציון פעילות = תוכן בית הכנסת (תפילות, שיעורים, פרטים) + טיפוח הגבאי (עדכון אחרון) + שימוש הציבור (צפיות, מועדפים, אימותים, דיווחים) */
+function actParts(s){const P=(s.prayers||[]).filter(p=>p.t!=='זמן').length,E=(s.events||[]).length,d=s.upd?(Date.now()-s.upd)/864e5:999;
+  const content=Math.min(P,15)*2+Math.min(E,15)*3+((s.address||'').trim()?3:0)+(shulLL(s)?3:0)+(shulLogo(s)||(s.photos||[]).length?4:0)+(s.payUrl?2:0);
+  const care=(d<8?20:d<31?12:d<61?5:0)+(s.gIn?5:0);
+  const pub=Math.round(Math.sqrt(POP[s.id]||0)*4);
+  return{content,care,pub,tot:content+care+pub}}
+const actScore=s=>actParts(s).tot;
+function shSortFn(){listenPop();if(ST.ordEdit)return(a,b)=>(a.no||1e9)-(b.no||1e9);let so=U.shSort||'pop';if(so==='abc'||(so==='no'&&!isAdm()))so='pop';if(so==='loc'&&!MYLL)so='pop';const D=x=>{const l=shulLL(x);return l&&MYLL?distKm({lat:MYLL[0],lng:MYLL[1]},{lat:l[0],lng:l[1]}):1e9},F=x=>U.favs.includes(x.id)?1:0,PN=x=>x.pin||1e9,PP=x=>POP[x.id]||0,AS=x=>actScore(x),N=x=>x.no||1e9,A=(a,b)=>a.name.replace(/["״']/g,'').localeCompare(b.name.replace(/["״']/g,''),'he');
+  return(a,b)=>(F(b)-F(a))||(PN(a)-PN(b))||(so==='loc'?D(a)-D(b)||N(a)-N(b):so==='pop'?AS(b)-AS(a)||N(a)-N(b):so==='fav'?PP(b)-PP(a)||AS(b)-AS(a):so==='ev'?(b.events||[]).length-(a.events||[]).length||AS(b)-AS(a):so==='nh'?(a.nh||'').localeCompare(b.nh||'','he')||N(a)-N(b):so==='abc'?A(a,b):N(a)-N(b)||A(a,b))}
 function shSortLoc(){if(MYLL){U.shSort='loc';saveU();render();return}
   modal(`<div style="text-align:center;font-size:2.4rem">📍</div><div style="text-align:center;margin:6px 0 12px">כדי לסדר את בתי הכנסת <b>מהקרוב אליך לרחוק</b> – צריך לאשר לאפליקציה לראות את המיקום שלך.<br><span class="muted">המיקום נשאר רק בטלפון שלך, לא נשמר ולא נשלח לאף אחד.</span></div>
   <div class="muted" style="font-size:.85rem;margin-bottom:10px">💡 אם לא קורה כלום – בדקו שהמיקום (GPS) דלוק: מושכים את התפריט מלמעלה ← 📍 מיקום.</div>
@@ -1140,7 +1204,7 @@ function shuls(){
   <div style="height:8px"></div>${nhChips()}
   ${ROLE?.type==='admin'?`<button class="btn" style="width:100%;margin-bottom:12px" onclick="editShul()">➕ הוספת בית כנסת</button>`:''}
   ${isAdm()&&so==='no'?`<div class="btns" style="margin-bottom:8px"><button class="btn ${ST.ordEdit?'gold':'sec'} sm" onclick="ST.ordEdit=!ST.ordEdit;render()">${ST.ordEdit?'✔️ סיום עריכת הסדר':'✏️ עריכת הסדר'}</button>${ST.ordEdit?`<button class="btn ghost sm" onclick="shRenum()">🔢 מספור מחדש ברצף</button>`:''}</div>${ST.ordEdit?'<div class="muted" style="font-size:.88rem;margin-bottom:8px">הזיזו בחיצים ⬆️⬇️ – השינוי נשמר מיד ומופיע לכל המשתמשים.</div>':''}`:''}
-  <div class="sh-sort"><span class="muted">סדר:</span>${[['pop','🔥 הכי פעילים'],['loc','📍 הכי קרובים'],['nh','לפי אזור']].concat(isAdm()?[['no','🔢 לפי מספר']]:[]).map(([k,l])=>`<button class="${(so===k&&(k!=='loc'||MYLL))?'on':''}" onclick="${k==='loc'?'shSortLoc()':`U.shSort='${k}';saveU();render()`}">${l}</button>`).join('')}</div>
+  <div class="sh-sort"><span class="muted">סדר:</span>${[['pop','🔥 הכי פעילים'],['loc','📍 הכי קרובים'],['ev','📚 הכי הרבה שיעורים'],['fav','❤️ אהובי הציבור'],['nh','לפי אזור']].concat(isAdm()?[['no','🔢 לפי מספר']]:[]).map(([k,l])=>`<button class="${(so===k&&(k!=='loc'||MYLL))?'on':''}" onclick="${k==='loc'?'shSortLoc()':`U.shSort='${k}';saveU();render()`}">${l}</button>`).join('')}</div>
   ${so==='loc'&&!MYLL?`<div class="muted" style="font-size:.85rem;margin:-4px 0 8px">📍 כדי לסדר לפי קרבה – לוחצים "הכי קרובים" ומאשרים מיקום (צריך שהמיקום בטלפון יהיה דלוק).</div>`:''}
   ${list.map(s=>`${so==='nh'&&!U.favs.includes(s.id)&&s.nh!==lastNh?`<div class="sh-grp">📍 ${esc((lastNh=s.nh)||'אחר')}</div>`:''}<div class="card shulcard" onclick="go('shul',{id:'${s.id}'})">
     <div class="thumb" style="${(s.thumb||s.photos[0])?`background-image:url(${s.thumb||s.photos[0]})`:shulLogo(s)?`background:#fff url(${shulLogo(s)}) center/88% no-repeat`:''}">${(s.thumb||s.photos[0]||shulLogo(s))?'':ic('shul','fill')}</div>
@@ -1398,6 +1462,8 @@ function more(){
   const it=(em,t,act,sub='')=>`<div class="row" role="button" tabindex="0" onclick="${act}"><span class="em">${em}</span><div class="main">${t}${sub?`<div class="muted" style="font-weight:400">${sub}</div>`:''}</div><span>‹</span></div>`;
   return `<h2>☰ עוד</h2>${shareAppCard()}<div class="card menu">
   ${it(ic('shiur','md'),'שיעורים ופעילויות',"go('acts')",'לפי קטגוריה ויום')}
+  ${it('🗓️','לוח השיעורים השבועי',"go('wsum')",'כל השיעורים והאירועים בשבוע · שיתוף והדפסה')}
+  ${it('🤝','גמ"חים בשכונה',"go('gmach')",'השאלת ציוד, תינוקות, אירועים, רפואה ועוד · אפשר להוסיף')}
   </div><h3 style="margin:14px 4px 8px">🙏 כלים אישיים למתפלל</h3><div class="card menu">
   ${it('🧭','מצפן תפילה',"go('compass')",'לאן לכוון בתפילה')}
   ${it(ic('shab2','md'),'שבת וחגים',"go('shabbat')",'פרשת השבוע · כניסה ויציאה · תפילות השבת · חגים')}
@@ -3413,7 +3479,7 @@ function listenPublic(){
     S.shuls=q.docs.map(d=>{const v=d.data();v.id=d.id;v.photos=(old[d.id]&&old[d.id].photos)||[];v.photoIds=(old[d.id]&&old[d.id].photoIds)||[];return v});S.cloud=1;save();softRender()});
   C.unsub.tick=F.onSnapshot(F.query(col('ticker'),F.orderBy('dt','desc'),F.limit(30)),q=>{if(q.empty&&!S.cloud)return;S.ticker=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
   C.unsub.pins=F.onSnapshot(col('pins'),q=>{if(q.empty&&!S.cloud)return;S.pins=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
-  C.unsub.ads=F.onSnapshot(F.query(col('ads'),F.where('st','==','ok')),q=>{if(q.empty&&!S.cloud)return;const pend=S.ads.filter(a=>a.st!=='ok'&&ROLE&&ROLE.type==='admin');S.ads=q.docs.map(d=>({...d.data(),id:d.id})).concat(pend);save();softRender()});
+  C.unsub.ads=F.onSnapshot(F.query(col('ads'),F.where('st','==','ok')),q=>{if(q.empty&&!S.cloud)return;const pend=S.ads.filter(a=>a.st!=='ok'&&ROLE&&ROLE.type==='admin');const all=q.docs.map(d=>({...d.data(),id:d.id}));S.gmach=all.filter(a=>a.kind==='gmach');S.ads=all.filter(a=>a.kind!=='gmach').concat(pend);save();softRender()});
   C.unsub.th2=F.onSnapshot(col('th2'),q=>{if(q.empty&&!S.cloud)return;S.th2=S.th2||{books:[],total:0};S.th2.books=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender()});
   C.unsub.mny=F.onSnapshot(F.query(col('minyanim'),F.where('at','>=',Date.now()-3*36e5)),q=>{S.mny=q.docs.map(d=>({...d.data(),id:d.id}));save();softRender();setTimeout(()=>{try{mnyPop()}catch(e){}},300)},e=>console.warn(e));
   C.unsub.th2t=F.onSnapshot(dref('pub','th2'),d=>{if(!d.exists())return;S.th2=S.th2||{books:[],total:0};S.th2.total=d.data().total||0;save();softRender()});
@@ -3422,7 +3488,7 @@ function ensureNh(){if(ROLE?.type!=='admin'||!S.cloud)return;setTimeout(ensureNo
   // בתי כנסת שנוספו עם שכונה שגויה (מזרח תלפיות = ארמון הנציב)
   Object.entries(NH_FIX).forEach(([id,nh])=>{const x=shul(id);if(x&&x.nh!==nh&&!x._nhfix){x._nhfix=1;C.F.updateDoc(dref('shuls',id),{nh}).catch(()=>{})}})}
 const NH_FIX={chibatyer:'ארמון הנציב',mishkanreuven:'ארמון הנציב',israelhatzair:'ארמון הנציב'};
-function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{S.ads=S.ads.filter(a=>a.st==='ok').concat(q.docs.map(d=>({...d.data(),id:d.id})));softRender()},e=>{})}
+function listenAdmin(){setTimeout(ensureNh,2500);listenReqs();if(C.unsub.adsAll)return;const F=C.F;C.unsub.adsAll=F.onSnapshot(F.query(col('ads'),F.where('st','==','pend')),q=>{const all=q.docs.map(d=>({...d.data(),id:d.id}));S.gmachP=all.filter(a=>a.kind==='gmach');S.ads=S.ads.filter(a=>a.st==='ok').concat(all.filter(a=>a.kind!=='gmach'));softRender()},e=>{})}
 function stopAdmin(){if(C.unsub.reqs){C.unsub.reqs();delete C.unsub.reqs}S.reqs=[];if(C.unsub.adsAll){C.unsub.adsAll();delete C.unsub.adsAll}C.secrets={};S.ads=S.ads.filter(a=>a.st==='ok')}
 async function loadSecrets(){try{const d=await C.F.getDoc(dref('secrets','gabbaim'));C.secrets=d.exists()?d.data():{};softRender()}catch(e){}}
 async function loadStats(){try{const F=C.F;const[v,w,ad]=await Promise.all([F.getDoc(dref('stats','visits')),F.getDoc(dref('stats','views')),F.getDoc(dref('stats','ads')).catch(()=>null)]);const a=v.exists()?v.data():{};S.stats={visits:a.total||0,users:a.users||0,days:a.days||{},dau:a.dau||{},nu:a.nu||{},inst:a.inst||0,views:w.exists()?w.data():{},ads:ad&&ad.exists()?ad.data():{},at:Date.now()};softRender()}catch(e){}}
