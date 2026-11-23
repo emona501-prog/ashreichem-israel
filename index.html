@@ -3183,8 +3183,9 @@ function admin(){
   <div class="card"><label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" style="width:22px;height:22px" ${noCount()?'checked':''} onchange="setNoCount(this.checked)"><div><b>🚫 לא לספור את הכניסות שלי</b><div class="muted">הכניסות והצפיות מהמכשיר הזה לא ייכנסו לסטטיסטיקה. מסמנים בכל מכשיר שלך בנפרד (טלפון, מחשב).</div></div></label></div>
   <div class="card" id="alUse"><h3>📰 עלונים – שימוש במכסה החינמית</h3><div class="muted">טוען…</div></div>
   <div class="card"><h3>📲 התראות אליך כשמגיעה הודעה או בקשה</h3>
-  <div class="muted">כשהאפליקציה פתוחה – קופצת לך הודעה עם צליל ורטט. כדי לקבל התראה <b>גם כשהאפליקציה סגורה</b>: 1) הפעילו התראות בטלפון הזה (עוד ← 🔔 התראות) כשאתם מחוברים כמנהל. 2) הדביקו כאן את כתובת הממסר (Google Apps Script) – פעם אחת בלבד.</div>
+  <div class="muted">כשהאפליקציה פתוחה – קופצת לך הודעה עם צליל ורטט. כדי לקבל התראה <b>גם כשהאפליקציה סגורה</b>: 1) לחצו על הכפתור הירוק למטה "הפעלת התראות בטלפון הזה" (כשאתם מחוברים כמנהל). 2) הדביקו כאן את כתובת הממסר (Google Apps Script) – פעם אחת בלבד.</div>
   <div class="muted" style="margin-top:4px">מצב בטלפון הזה: ${PUSH.on?'✅ התראות פעילות':'⚠️ התראות כבויות'}</div>
+  ${PUSH.on?'':'<button class="btn" style="width:100%;margin-top:8px;background:#1fa855;min-height:48px" onclick="pushToggle()">🔔 הפעלת התראות בטלפון הזה</button>'}
   <label class="f">כתובת הממסר</label><input class="inp" id="srl" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(RELAY()||'')}">
   <div class="btns" style="margin-top:8px"><button class="btn sm" onclick="saveRelay()">שמירה</button><button class="btn sec sm" onclick="relayTest()">🔔 שליחת התראת בדיקה</button><a class="btn ghost sm" style="text-decoration:none" href="https://github.com/emona501-prog/ashreichem-israel/blob/main/relay.gs" target="_blank" rel="noopener">📄 קוד הממסר</a></div></div>
   <div class="card"><h3>🔔 שליחת התראה לכל המשתמשים</h3><div class="muted">שולחים מתוך OneSignal: <b>Messages ← New Push</b>. אפשר לשלוח לכולם, או רק למי שבחר שכונה מסוימת / סימן בית כנסת כמועדף (Filters ← User Tag: <span dir="ltr">f_horsha = 1</span> וכו׳).</div>
