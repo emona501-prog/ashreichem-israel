@@ -765,26 +765,26 @@ function hlCheck(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='admin'||viewingAsUse
   <button class="btn" style="width:100%;background:#1fa855;min-height:48px" onclick="closeModal();hlQueue()">💌 לשליחת ההודעות</button><div class="btns" style="margin-top:8px"><button class="btn sec sm" onclick="closeModal();go('health')">📋 לרשימה</button><button class="btn ghost sm" onclick="closeModal()">אחר כך</button></div>`,'🔔 התראה מהמערכת')},6000)}
 
 /* ===== 🤝 גמ"חים בשכונה – משתמשים מוסיפים, המנהל מאשר (נשמר באוסף המודעות עם kind:'gmach') ===== */
-const GC_CAT=[['baby','🍼','תינוקות וילדים'],['dress','👗','בגדים ושמלות'],['event','🍽️','כלים ואירועים'],['furn','🪑','ריהוט וציוד לבית'],['med','🩺','ציוד רפואי'],['loan','💰','הלוואות'],['books','📚','ספרים'],['tools','🧰','כלי עבודה'],['food','🥖','מזון'],['other','🎁','אחר']];
+const GC_CAT=[['baby','🍼','תינוקות וילדים'],['dress','👗','בגדים ושמלות'],['event','🍽️','כלים ואירועים'],['furn','🪑','ריהוט וציוד לבית'],['med','🩺','ציוד רפואי'],['loan','💰','הלוואות'],['books','📚','ספרים'],['tools','🧰','כלי עבודה'],['food','🥖','מזון'],['dist','🎁','חלוקות לחגים'],['other','🎁','אחר']];
 const gcCat=k=>GC_CAT.find(c=>c[0]===k)||GC_CAT[GC_CAT.length-1];
 function gcV(){const L=S.gmach||[],c=ST.gc||'',q=(ST.gq||'').trim(),adm=ROLE&&ROLE.type==='admin',P=S.gmachP||[];
   const F=L.filter(g=>(!c||g.cat===c)&&(!q||[g.title,g.desc,g.addr,g.name].join(' ').includes(q))).sort((a,b)=>a.title.localeCompare(b.title,'he'));
-  return `<h2>🤝 גמ"חים בשכונה</h2>
-  <div class="muted" style="margin-bottom:8px">כל הגמ"חים במקום אחד – השאלה, עזרה וחסד בין שכנים 💙</div>
+  return `<h2>🤝 גמ"חים וחלוקות בשכונה</h2>
+  <div class="muted" style="margin-bottom:8px">כל הגמ"חים במקום אחד – השאלה, עזרה, חלוקות לפני החגים וחסד בין שכנים 💙</div>
   ${adm&&P.length?`<div class="card" style="border:2px solid #f59e0b"><h3>⏳ ממתינים לאישור (${P.length})</h3>${P.map(g=>gcRow(g,1)).join('')}</div>`:''}
-  <button class="btn" style="width:100%;margin-bottom:10px;min-height:48px" onclick="gcForm()">➕ הוספת גמ"ח</button>
+  <button class="btn" style="width:100%;margin-bottom:10px;min-height:48px" onclick="gcForm()">➕ פרסום גמ"ח או חלוקה</button>
   <input class="inp" placeholder="🔍 חיפוש גמ״ח…" value="${esc(q)}" oninput="ST.gq=this.value;clearTimeout(window._gqT);window._gqT=setTimeout(()=>{render();const i=document.querySelector('#view input');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},400)">
   <div class="chips" style="margin-top:8px"><button class="chip ${!c?'on':''}" onclick="ST.gc='';render()">הכל (${L.length})</button>${GC_CAT.filter(x=>L.some(g=>g.cat===x[0])).map(x=>`<button class="chip ${c===x[0]?'on':''}" onclick="ST.gc='${x[0]}';render()">${x[1]} ${x[2]}</button>`).join('')}</div>
-  <div class="card">${F.map(g=>gcRow(g)).join('')||`<div class="empty-msg">${L.length?'לא נמצאו גמ"חים':'עוד אין גמ"חים – היו הראשונים להוסיף! 🌱'}</div>`}</div>`}
+  <div class="card">${F.map(g=>gcRow(g)).join('')||`${L.length?'<div class="empty-msg">לא נמצאו גמ"חים</div>':`<div style="text-align:center;padding:18px 8px"><div style="font-size:2.6rem">🌱</div><b style="font-size:1.1rem">עדיין לא נרשמו גמ"חים</b><div style="margin:8px 0 14px;line-height:1.6">רוצה להיות הראשון? 😊<br>יש לך גמ"ח, או שאתה מארגן <b>חלוקה לפני החג</b>?<br>פרסם אותו כאן – וכל השכונה תדע!</div><button class="btn" style="min-height:46px" onclick="gcForm()">➕ לפרסום גמ"ח או חלוקה</button><div class="muted" style="font-size:.8rem;margin-top:8px">הפרסום חינם · מופיע אחרי אישור קצר</div></div>`}`}</div>`}
 function gcRow(g,pend){const c=gcCat(g.cat),tel=(g.phone||'').replace(/[^\d+]/g,'');
   return `<div class="row" style="align-items:flex-start;flex-wrap:wrap"><span class="em" style="font-size:1.6rem">${c[1]}</span><div class="main"><b>${esc(g.title)}</b><span class="muted">${esc(c[2])}${g.addr?' · 📍 '+esc(g.addr):''}</span>
   ${g.desc?`<div style="font-size:.88rem;margin-top:3px;white-space:pre-line">${esc(g.desc)}</div>`:''}${g.hours?`<div class="muted" style="font-size:.82rem">🕐 ${esc(g.hours)}</div>`:''}<div class="muted" style="font-size:.82rem">👤 ${esc(g.name||'')} · ${esc(g.phone||'')}</div>
   <div class="btns" style="margin-top:6px;gap:6px"><a class="btn sm" style="text-decoration:none" href="tel:${tel}">📞 התקשרות</a><a class="btn sm" style="text-decoration:none;background:#1fa855" href="https://wa.me/${waNum(g.phone)}?text=${encodeURIComponent('שלום, ראיתי את הגמ"ח "'+g.title+'" באפליקציית אשריכם ישראל 🙂')}" target="_blank" rel="noopener">💬 וואטסאפ</a>
   ${pend?`<button class="btn sm" onclick="gcSt('${g.id}','ok')">✅ אישור</button><button class="btn red sm" onclick="gcSt('${g.id}','no')">✕ דחייה</button>`:''}${ROLE&&ROLE.type==='admin'&&!pend?`<button class="btn ghost sm" onclick="gcSt('${g.id}','del')">🗑️</button>`:''}</div></div></div>`}
 function gcForm(){modal(`<div class="muted" style="margin-bottom:6px">ממלאים את כל הפרטים – והגמ"ח יופיע אחרי בדיקה קצרה של מנהל האפליקציה ✔️</div>
-  <label class="f">שם הגמ"ח *</label><input class="inp" id="gcT" maxlength="80" placeholder='לדוגמה: גמ"ח עגלות תינוק – משפחת כהן'>
+  <label class="f">שם הגמ"ח / החלוקה *</label><input class="inp" id="gcT" maxlength="80" placeholder='לדוגמה: גמ"ח עגלות תינוק – משפחת כהן / חלוקת מזון לפסח'>
   <label class="f">קטגוריה *</label><select class="inp" id="gcC"><option value="">בחרו…</option>${GC_CAT.map(c=>`<option value="${c[0]}">${c[1]} ${c[2]}</option>`).join('')}</select>
-  <label class="f">מה יש בגמ"ח? *</label><textarea class="inp" id="gcD" rows="3" maxlength="400" placeholder="מה משאילים / נותנים, תנאים (פיקדון, החזרה) וכו׳"></textarea>
+  <label class="f">מה יש בגמ"ח? *</label><textarea class="inp" id="gcD" rows="3" maxlength="400" placeholder="מה משאילים / נותנים, תנאים (פיקדון, החזרה). בחלוקה: מה מחלקים, למי, ועד מתי נרשמים"></textarea>
   <label class="f">כתובת *</label><input class="inp" id="gcA" maxlength="80" placeholder="רחוב ומספר">
   <label class="f">שעות פעילות</label><input class="inp" id="gcH" maxlength="80" placeholder="לדוגמה: א׳–ה׳ 20:00–22:00 (בתיאום מראש)">
   <label class="f">שם איש הקשר *</label><input class="inp" id="gcN" maxlength="40">
@@ -891,7 +891,7 @@ function admSmart(){modal(`<div class="muted" style="margin-bottom:6px">לאיז
 function admPick(){modal(S.shuls.slice().sort((a,b)=>a.name.localeCompare(b.name,'he')).map(s=>`<button class="row" style="width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 4px" onclick="closeModal();editShul('${s.id}')"><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(s.nh)}${missingOf(s).length?' · ⚠️ חסר: '+missingOf(s).join(', '):''}</span></div><span>✏️</span></button>`).join(''),'✏️ איזה בית כנסת לעדכן?')}
 /* ===================== 🔵 פס עיגולים עליון ===================== */
 function topNav(){const it=(img,em,l,act,on)=>`<button class="tn${on?' on':''}" onclick="${act}"><span class="tn-c">${img?`<img src="${IC[img]}" alt="">`:`<span class="tn-e">${em}</span>`}</span><b>${l}</b></button>`;
-  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls'||TAB==='shul')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}${it('','📢','פרסום',"go('board')",TAB==='board')}</nav>`}
+  return `<nav class="tnav" aria-label="קטגוריות">${it('mincha','','מניינים',"go('find')",TAB==='find')}${it('shiur','','שיעורים',"go('acts',{c:'שיעור תורה'})",TAB==='acts')}${it('','💧','מקוואות',"go('mikva')",TAB==='mikva')}${it('','🤝','גמ"חים',"go('gmach')",TAB==='gmach')}${it('shul','','בתי כנסת',"go('shuls')",TAB==='shuls'||TAB==='shul')}${it('','🗺️','מפה',"go('map')",TAB==='map')}${it('sunset','','זמני היום',"go('zmanim')",TAB==='zmanim')}${it('','📢','פרסום',"go('board')",TAB==='board')}</nav>`}
 
 /* ===================== 🕰️ חיפוש מניינים: טווח שעות · מרחק · נוסח ===================== */
 let MYLL=null;try{const x=JSON.parse(localStorage.getItem('myll')||'null');if(x&&Date.now()-x.t<6*36e5)MYLL=[x.lat,x.lng]}catch(e){}
@@ -1700,6 +1700,8 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
   try{const zc=U.zr||{};if(!(zc.chan&&zc.chan.on))for(let i=1;i<=7;i++){if(holidaysOn(addDays(d,i)).some(t=>/חנוכה – נר א/.test(t))){T.push({k:'zrch'+iso(addDays(d,i)),ev:1,t:`🕎 חנוכה מתקרב – ${i===1?'מחר בערב':'בעוד '+i+' ימים'} מדליקים נר ראשון!<br>רוצים שאזכיר לכם להדליק בכל ערב, כולל כמה נרות מדליקים?`,b:'🔔 להפעלת תזכורת חנוכה',a:"closeModal();go('zrem')"});break}}}catch(e){}
   try{const zc=U.zr||{};if(!(zc.omer&&zc.omer.on))for(let i=0;i<=5;i++){if(omerOn(addDays(d,i))){T.push({k:'zrom'+iso(addDays(d,i)),ev:1,t:`🌾 ${i===0?'הלילה':i===1?'מחר בלילה':'בעוד '+i+' ימים'} מתחילים לספור את העומר!<br>רוצים תזכורת בכל לילה בצאת הכוכבים, עם נוסח הספירה?`,b:'🔔 להפעלת תזכורת עומר',a:"closeModal();go('zrem')"});break}}}catch(e){}
   if(dw===4||dw===5)T.push({k:'sh'+iso(addDays(d,5-dw)),ev:1,t:dw===5?'שבת שלום! 🕯️<br>זמני הדלקת נרות, תפילות שבת ופרשת השבוע – הכל במקום אחד.':'כבר חמישי! 🕯️<br>תכננו את השבת מראש: זמני כניסה ויציאה, תפילות ושיעורים בשכונה.',b:'🕯️ זמני שבת',a:"closeModal();go('shabbat')"});
+  try{const B=((S.th2||{}).books||[]).filter(b=>!b.doneAt).sort((a,b)=>doneCnt(b)-doneCnt(a))[0];const w=Math.floor(Date.now()/(4*864e5));
+    if(B){const left=150-doneCnt(B);T.push({k:'thw'+w,ev:1,t:`רוצה להשתתף ב<b>ספר תהילים שלם</b>? 📖<br>בספר "<b>${esc(B.title)}</b>" נשארו עוד <b>${left} פרקים</b>. קח פרק אחד – זה לוקח כמה דקות – וביחד נסיים ספר שלם! 🙏`,b:'📖 תנו לי פרק עכשיו',a:`closeModal();go('th2',{b:'${B.id}'});setTimeout(()=>takeNext('${B.id}'),400)`})}}catch(e){}
   const S0=[
    !U.favs.length&&{k:'fav',t:'טיפ קטן: סמנו <b>⭐</b> את בתי הכנסת שלכם, ותראו את התפילה הקרובה שלהם ישר במסך הבית.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
    {k:'find',t:'מחפשים מניין? ב<b>חיפוש המניינים</b> בוחרים טווח שעות ונוסח, ורואים את המניין <b>הכי קרוב אליכם</b>.',b:'🕰️ לחיפוש מניינים',a:"closeModal();go('find')"},
@@ -2472,6 +2474,7 @@ let _remSyncing=false;
 async function remSync(){if(_remSyncing||!RELAY()||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
   try{U.sched=U.sched||{};const want={};U.rem.forEach(r=>remOcc(r,2).forEach(o=>want[o.key]={at:o.at,title:'⏰ '+r.title,body:`בשעה ${o.tm} · עוד ${r.before} דקות`}));
     if(U.zr&&zrCfg().mode!=='pop')zrOcc(2).forEach(o=>{if(o.at.getTime()>Date.now()+60000)want[o.key]={at:o.at,title:o.title,body:o.body}});
+    if(U.thRem!==false){const t=dateForDay(4);t.setHours(20,15,0,0);if(t.getTime()>Date.now()+6e4&&t-Date.now()<2.9*864e5)want['thw'+iso(t)]={at:t,title:'📖 תהילים מחולק – כל אחד פרק',body:'קחו פרק אחד ותשתתפו בספר תהילים שלם של הקהילה – כמה דקות, זכות גדולה 🙏'}}
     for(const[k,w]of Object.entries(want)){if(U.sched[k])continue;const res=await relayCall({kind:'rem',sub,at:w.at.toISOString(),title:w.title,body:w.body});U.sched[k]={id:res?.id||'',at:w.at.getTime()}}
     for(const[k,v]of Object.entries(U.sched)){if(v.at<Date.now()-36e5){delete U.sched[k];continue}if(!want[k]&&v.at>Date.now()){if(v.id)await relayCall({kind:'cancel',id:v.id});delete U.sched[k]}}
     saveU()}finally{_remSyncing=false}}
@@ -2776,6 +2779,9 @@ function thHomeCard(){
   return `<div class="card" style="cursor:pointer" onclick="go('th2',{b:'${b.id}'})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;display:flex;align-items:center;gap:8px">${ic('tehillim','md')} תהילים מחולק</h3><button class="btn sm" onclick="event.stopPropagation();takeNext('${b.id}')">קחו פרק</button></div>
   <div class="muted" style="margin:4px 0 8px">${esc(b.title)}${b.ded?' · '+esc(b.ded):''}</div>${thBar(b)}</div>`;
 }
+function thShare(bid){const b=bookOf(bid);if(!b)return;const left=150-doneCnt(b);
+  const t=`📖 *${b.title}*${b.ded?'\n'+b.ded:''}\n\nמסיימים יחד ספר תהילים שלם! נשארו עוד *${left} פרקים*.\nלוחצים על הקישור, מקבלים פרק פנוי – ואומרים אותו 🙏\n\n${APP_URL}?thb=${b.id}\n\nכל אחד פרק אחד – וביחד מסיימים 💙`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
 function th2V(){
   const T=th2();
   if(ST.b&&bookOf(ST.b)&&!bookOf(ST.b).doneAt)return thBook(bookOf(ST.b));
@@ -2797,6 +2803,7 @@ function thBook(b){
   <div class="card hl"><h2 style="margin:0">${esc(b.title)}</h2>${b.ded?`<div style="font-weight:700;color:#8a6a10">${esc(b.ded)}</div>`:''}${b.deadline?`<div class="muted">🎯 יעד: ${hebDate(fromIso(b.deadline),1)}</div>`:''}<div style="height:8px"></div>${thBar(b)}</div>
   ${mine.length?`<div class="card" style="background:#e4ecf5"><b>הפרקים שלקחת:</b> ${mine.map(n=>`<button class="btn sm" style="margin:4px 4px 0 0" onclick="openCh('${b.id}',${n})">פרק ${heNum(+n)}</button>`).join('')}<div class="muted">שמורים לך ${RES_MIN} דקות מרגע הלקיחה</div></div>`:''}
   <button class="btn" style="width:100%;margin-bottom:12px;min-height:54px;font-size:1.1rem" onclick="takeNext('${b.id}')">📖 תנו לי פרק פנוי</button>
+  <button class="btn sec" style="width:100%;margin:-4px 0 12px;background:#1fa855;color:#fff" onclick="thShare('${b.id}')">💬 שתפו את הספר – שכל אחד ייקח פרק</button>
   <div class="card"><h3>או בחרו פרק פנוי</h3>
   <div class="th">${Array.from({length:150},(_,i)=>{const n=i+1,s=chSt(b,n);return `<button class="${cls[s]}" ${s==='done'||s==='taken'?'disabled':''} onclick="takeCh('${b.id}',${n})" aria-label="פרק ${n} – ${({free:'פנוי',done:'נקרא',taken:'בקריאה אצל מישהו',mine:'שלך'})[s]}">${heNum(n)}</button>`}).join('')}</div>
   <div class="legend"><span><i style="background:var(--card);border:1px solid var(--line)"></i>פנוי</span><span><i style="background:#e9c46a"></i>בקריאה עכשיו</span><span><i style="background:var(--pri2)"></i>שלך</span><span><i style="background:var(--ok)"></i>נקרא</span></div></div>
@@ -4226,7 +4233,7 @@ function apkUpdCheck(){try{if(!NAT.on||NPUSH())return;if(Date.now()-(U.apkUpdAt|
   <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">אחר כך</button>`,'עדכון לאפליקציה')},7000)}catch(e){}}
 function pushCard(){
   return `<div class="card push-card ${PUSH.on?'on':''}"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">${PUSH.on?'🔔':'🔕'}</span><div style="flex:1"><b>${PUSH.on?'ההתראות פעילות':'קבלו התראות מהקהילה'}</b><div class="muted">${PUSH.on?'תקבלו עדכונים חשובים גם כשהאפליקציה סגורה':'הודעות חשובות, שיעורים מיוחדים, ספר תהילים חדש ועוד – גם כשהאפליקציה סגורה'}</div></div></div>
-  ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label>${LIVE_ON()?`<label class="sw" style="margin-top:8px"><span>🔴 התראות מהקהילה החיה (בתי כנסת ⭐)</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו דיווחים ושאלות מהמניינים':'לא תקבלו התראות – הדיווחים עדיין יופיעו באפליקציה')"></label>`:''}`:''}
+  ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label><label class="sw" style="margin-top:8px"><span>📖 תזכורת שבועית לתהילים מחולק</span><input type="checkbox" ${U.thRem===false?'':'checked'} onchange="U.thRem=this.checked;saveU();remSync();toast(this.checked?'תקבלו תזכורת פעם בשבוע':'התזכורת לתהילים כובתה')"></label>${LIVE_ON()?`<label class="sw" style="margin-top:8px"><span>🔴 התראות מהקהילה החיה (בתי כנסת ⭐)</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו דיווחים ושאלות מהמניינים':'לא תקבלו התראות – הדיווחים עדיין יופיעו באפליקציה')"></label>`:''}`:''}
   <button class="btn ${PUSH.on?'ghost':''}" style="width:100%;margin-top:10px" onclick="pushToggle()">${PUSH.on?'כיבוי התראות':'🔔 הפעלת התראות'}</button></div>`
 }
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
@@ -4235,7 +4242,7 @@ let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_in
 /* ===== הפעלה ===== */
 (function start(){
   const t=new Date().toISOString().slice(0,10);
-  natSetup();initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const vq=new URLSearchParams(location.search).get('v');if(vq==='install'){history.replaceState(null,'',location.pathname);if(!isStandalone()&&!NAT.on)setTimeout(()=>installInfo(),700)}else if(vq&&/^(now|zmanim|shabbat|tikkun|compass|th2|alonim|gab)$/.test(vq)){go(vq);history.replaceState(null,'',location.pathname)}const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else if(new URLSearchParams(location.search).get('ad')){openAdQ(new URLSearchParams(location.search).get('ad'));history.replaceState(null,'',location.pathname)}else if(vq!=='install')autoInstallGuide()}setInterval(()=>{checkRem();if(Date.now()-(window._rs||0)>6e5){window._rs=Date.now();remSync()}if(['home','times','now'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
+  natSetup();initYtDrag();document.querySelectorAll('img[data-ic]').forEach(i=>i.src=IC[i.dataset.ic]);applyA11y();render();cloudInit();checkRem();{const vq=new URLSearchParams(location.search).get('v');if(vq==='install'){history.replaceState(null,'',location.pathname);if(!isStandalone()&&!NAT.on)setTimeout(()=>installInfo(),700)}else if(vq&&/^(now|zmanim|shabbat|tikkun|compass|th2|alonim|gab)$/.test(vq)){go(vq);history.replaceState(null,'',location.pathname)}const q=new URLSearchParams(location.search).get('m');if(q){go('mny',{id:q});history.replaceState(null,'',location.pathname)}else if(/^[\w-]{3,40}$/.test(new URLSearchParams(location.search).get('thb')||'')){go('th2',{b:new URLSearchParams(location.search).get('thb')});history.replaceState(null,'',location.pathname)}else if(new URLSearchParams(location.search).get('ad')){openAdQ(new URLSearchParams(location.search).get('ad'));history.replaceState(null,'',location.pathname)}else if(vq!=='install')autoInstallGuide()}setInterval(()=>{checkRem();if(Date.now()-(window._rs||0)>6e5){window._rs=Date.now();remSync()}if(['home','times','now'].includes(TAB)&&!$('#modals').innerHTML)render()},30000);
 })();
 </script>
 </body>
