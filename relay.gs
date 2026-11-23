@@ -105,7 +105,7 @@ function livePush(id, c) {
   if (!/^[A-Za-z0-9_-]{10,80}$/.test(id)) return { err: 'id' };
   const v = fsGet('live/' + id); if (!v) return { err: 'nf' };
   const now = Date.now(); if (!(+v.at > now - 3 * 6e4)) return { err: 'old' };
-  const L = {"wait": "⏳ עוד לא התחילו", "late": "🕐 מתעכבים", "start": "▶️ התחילו עכשיו", "pzd": "🎶 בפסוקי דזמרה", "shma": "📖 בקריאת שמע", "amida": "🧍 בעמידה", "torah": "📜 בקריאת התורה", "end": "✅ סיימו", "nomin": "⚠️ חסרים למניין"}[v.st]; if (!L) return { err: 'st' };
+  const L = {"wait": "⏳ עוד לא התחילו", "late": "🕐 מתעכבים", "soon": "🕒 מתחילים בעוד כמה דקות", "start": "▶️ התחילו עכשיו", "pzd": "🎶 בפסוקי דזמרה", "shma": "📖 בקריאת שמע", "amida": "🧍 בעמידה", "torah": "📜 בקריאת התורה", "end": "✅ סיימו", "nomin": "⚠️ חסרים למניין"}[v.st]; if (!L) return { err: 'st' };
   const kd = 'l' + id + '_' + v.st; if (c.get(kd)) return { err: 'dup' };
   const kc = 'lc' + id, n = +(c.get(kc) || 0); if (n >= 4) return { err: 'limit' };             // עד 4 התראות לכל מניין ביום
   const kh = 'lh', h = +(c.get(kh) || 0); if (h >= 30) return { err: 'limit' };                // עד 30 בשעה בכל האפליקציה
