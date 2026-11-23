@@ -698,6 +698,66 @@ function gabbaimOf(s){if(s.gabbaim&&s.gabbaim.length)return s.gabbaim;return(s.g
 const telOk=p=>(p||'').replace(/\D/g,'').length>=9;
 const waNum=p=>{let d=(p||'').replace(/\D/g,'');if(d[0]==='0')d='972'+d.slice(1);return d};
 function missingOf(s){const m=[];if(!gabbaimOf(s).some(g=>telOk(g.phone)))m.push('טלפון של גבאי');if(!(s.address||'').trim())m.push('כתובת');if(!(s.prayers||[]).length)m.push('זמני תפילות');return m}
+
+/* ===== 🩺 בתי כנסת שצריכים חיזוק – זיהוי אוטומטי + הודעה מסוגננת לגבאי ===== */
+const HL_GAP=14;/* ימים בין הודעה להודעה לאותו גבאי */
+function hlIssues(s){const I=[],now=Date.now(),P=(s.prayers||[]).filter(p=>p.t!=='זמן'),E=(s.events||[]),d=s.upd?Math.floor((now-s.upd)/864e5):null;
+  if(!P.length)I.push({k:'noPr',w:3,l:'אין זמני תפילות',m:'עוד לא הוזנו זמני התפילות של בית הכנסת'});
+  else if(P.length<3)I.push({k:'fewPr',w:1,l:'מעט תפילות',m:'מופיעות רק '+P.length+' תפילות – אולי חסרות עוד?'});
+  if(d!==null&&d>60)I.push({k:'old',w:3,l:`לא עודכן ${d} ימים`,m:`הזמנים לא עודכנו כבר כ-${d} ימים (והשעון/הזמנים כבר זזו מאז 🕰️)`});
+  else if(d!==null&&d>30)I.push({k:'old',w:2,l:`לא עודכן ${d} ימים`,m:`עבר כבר יותר מחודש מהעדכון האחרון`});
+  else if(d===null&&!s.gIn)I.push({k:'old',w:1,l:'לא עודכן מעולם',m:'הפרטים עוד לא עודכנו על ידי הגבאי'});
+  if(!E.length)I.push({k:'noEv',w:1,l:'אין שיעורים ופעילויות',m:'עוד אין שיעורים ופעילויות – שיעור קבוע, ערבית מאוחרת, סעודה, הילולה…'});
+  if(!(s.address||'').trim())I.push({k:'addr',w:1,l:'חסרה כתובת',m:'חסרה הכתובת של בית הכנסת'});
+  if(!shulLL(s))I.push({k:'map',w:1,l:'לא על המפה',m:'בית הכנסת עוד לא מסומן על המפה (לחיצה אחת כשנמצאים שם)'});
+  if(!shulLogo(s)&&!(s.photos||[]).length)I.push({k:'logo',w:1,l:'אין תמונה/לוגו',m:'אין עדיין תמונה או לוגו – עם תמונה זה נראה הרבה יותר מכובד'});
+  if(s.login&&!s.gIn)I.push({k:'noIn',w:1,l:'הגבאי לא נכנס',m:''});
+  if(!s.login)I.push({k:'noCode',w:1,l:'אין קוד גבאי',m:''});
+  return I}
+const hlScore=s=>hlIssues(s).reduce((a,x)=>a+x.w,0);
+const hlSent=s=>s.nudge||0;
+function hlList(){return S.shuls.map(s=>({s,I:hlIssues(s),w:hlScore(s)})).filter(x=>x.w>=3).sort((a,b)=>b.w-a.w)}
+function hlDue(){return hlList().filter(x=>gabPh(x.s)&&Date.now()-hlSent(x.s)>HL_GAP*864e5)}
+function hlMsg(s,v){const g=gabPh(s),n=(g&&g.name||'').trim(),I=hlIssues(s).filter(x=>x.m),c=codeOf(s.id);v=v||0;
+  const OP=[`שלום וברכה ${n?n+' ':''}הגבאי היקר! 🌸`,`${n?n+', ':''}גבאי יקר ונאמן – שבוע טוב ומבורך! ✨`,`מה נשמע ${n?n+' ':''}היקר? 😊`,`שלום רב ${n?'לר׳ '+n:'לגבאי היקר'} 🙏`];
+  const PR=['אשריך על הזיכוי הרבים! בזכותך המתפללים יודעים מתי ואיפה מתפללים, וכל מניין שמתמלא – גם בזכותך 🙏','אין כמו גבאי שדואג למתפללים – זו מצווה גדולה של זיכוי הרבים, ואשריך שזכית בה 💎','רציתי קודם כל להגיד תודה – החזקת בית כנסת היא עבודת קודש אמיתית, ואתה עושה אותה באהבה 🕍','המתפללים בשכונה סומכים על האפליקציה כדי למצוא מניין – ו"' + s.name + '" הוא חלק חשוב מזה 🌟'];
+  const CL=['זה לוקח ממש דקה-שתיים, ומאות מתפללים ירוויחו 💪','כל עדכון קטן = עוד מתפלל שמגיע בזמן למניין 🕰️','יחד נעשה את בית הכנסת חי ותוסס גם באפליקציה 🔥','שכרך כפול – גם על בית הכנסת וגם על זיכוי הרבים 🙌'];
+  const top=I.slice(0,4).map(x=>'• '+x.m).join('\n');
+  return `${OP[v%OP.length]}\n\n${PR[v%PR.length]}\n\nעברתי על הדף של *"${s.name}"* באפליקציית *אשריכם ישראל*, ושמתי לב לכמה דברים קטנים שיעשו אותו מושלם:\n${top}\n\n${CL[v%CL.length]}\n\n📲 נכנסים: ${APP_URL}?v=gab\n${c?`🔑 הקוד האישי שלך: *${c}*\n`:'🔑 אין לך עדיין קוד? לוחצים שם "בית הכנסת שלי כבר מופיע" ומקבלים מיד.\n'}📸 לא נוח לך להקליד? פשוט שלח לי כאן צילום של לוח הזמנים – ואני אעלה בשבילך!\n\nבברכה ובהערכה רבה,\nצוות אשריכם ישראל 💙`}
+async function hlMarkSent(sid){const s=shul(sid);if(!s)return;s.nudge=Date.now();s.nudgeN=(s.nudgeN||0)+1;try{await C.F.updateDoc(dref('shuls',sid),{nudge:s.nudge,nudgeN:s.nudgeN})}catch(e){cerr(e)}}
+function hlOpen(sid,v,q){const s=shul(sid),g=gabPh(s);if(!g)return toast('אין טלפון של גבאי – הוסיפו בעריכת בית הכנסת');v=v||0;
+  const I=hlIssues(s),qq=window._hq;
+  modal(`${qq?`<div class="muted">${qq.i+1} מתוך ${qq.L.length}</div><div style="height:6px;background:#e5e7eb;border-radius:4px;margin:6px 0 10px"><div style="height:6px;border-radius:4px;background:#1fa855;width:${Math.round(qq.i/qq.L.length*100)}%"></div></div>`:''}
+  <div class="card" style="margin:0 0 8px"><b>${s.no?s.no+'. ':''}${esc(s.name)}</b><div class="muted">👤 ${esc(g.name||'')} ${esc(g.phone)}${hlSent(s)?` · הודעה אחרונה: ${new Date(hlSent(s)).toLocaleDateString('he-IL')}`:''}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${I.map(x=>`<span class="chip" style="font-size:.75rem;padding:2px 8px;cursor:default;background:${x.w>=3?'#fde2e2':x.w==2?'#fef3c7':'#eef2f7'}">${esc(x.l)}</span>`).join('')}</div></div>
+  <label class="f">ההודעה (אפשר לערוך לפני שליחה)</label><textarea class="inp" id="hlT" rows="11" style="font-size:.85rem;line-height:1.45">${esc(hlMsg(s,v))}</textarea>
+  <button class="btn" style="width:100%;margin-top:8px;background:#1fa855;min-height:50px" onclick="hlSend('${sid}')">💬 שליחה ל${esc(g.name||'גבאי')} בוואטסאפ</button>
+  <div class="btns" style="margin-top:8px"><button class="btn sec sm" onclick="hlOpen('${sid}',${v+1})">🔄 נוסח אחר</button>${qq?`<button class="btn ghost sm" onclick="window._hq.i++;hlQDraw()">⏭️ דילוג</button><button class="btn ghost sm" onclick="window._hq=null;closeModal();render()">עצירה</button>`:`<button class="btn ghost sm" onclick="closeModal();editShul('${sid}')">✏️ לעריכה</button>`}</div>`,'💌 הודעת חיזוק לגבאי',true)}
+function hlSend(sid){const s=shul(sid),g=gabPh(s),t=($('#hlT')||{}).value||hlMsg(s);window.open('https://wa.me/'+waNum(g.phone)+'?text='+encodeURIComponent(t),'_blank');hlMarkSent(sid);
+  if(window._hq){window._hq.i++;setTimeout(hlQDraw,600)}else{closeModal();toast('✔️ סומן כנשלח');render()}}
+function hlQueue(){const L=hlDue();if(!L.length)return toast('אין כרגע גבאים שממתינים להודעה 🎉');window._hq={L:L.map(x=>x.s.id),i:0};hlQDraw()}
+function hlQDraw(){const q=window._hq;if(!q)return;if(q.i>=q.L.length){window._hq=null;closeModal();toast('✅ סיימתם – כל הגבאים קיבלו הודעה');render();return}hlOpen(q.L[q.i],q.i)}
+function hlCard(){const L=hlList(),D=hlDue();if(!L.length)return'';
+  return `<div class="card" role="button" onclick="go('health')" style="cursor:pointer;border:2px solid ${D.length?'#f59e0b':'#d1d5db'}"><h3>🩺 בתי כנסת שצריכים חיזוק ${D.length?`<span class="badge" style="background:#f59e0b">${D.length}</span>`:''}</h3>
+  <div class="muted">${L.length} בתי כנסת עם פרטים חסרים או בלי עדכון${D.length?` · <b>${D.length} מחכים להודעה ממך</b>`:' · לכולם כבר נשלחה הודעה לאחרונה ✔️'}</div><div class="muted" style="font-size:.85rem;margin-top:4px">לחצו לרשימה ולהודעות מוכנות ‹</div></div>`}
+function healthV(){if(ROLE?.type!=='admin')return'<div class="empty-msg">אין הרשאה</div>';if(!window._secTry2){window._secTry2=1;loadSecrets()}
+  const L=hlList(),D=hlDue(),ok=S.shuls.length-L.length;
+  const row=x=>{const s=x.s,g=gabPh(s),sent=hlSent(s),due=g&&Date.now()-sent>HL_GAP*864e5;
+    return `<div class="row" style="align-items:flex-start"><div class="main"><b>${s.no?`<span class="sh-no sm">${s.no}</span> `:''}${esc(s.name)}</b>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0">${x.I.map(i=>`<span class="chip" style="font-size:.72rem;padding:2px 8px;cursor:default;background:${i.w>=3?'#fde2e2':i.w==2?'#fef3c7':'#eef2f7'}">${esc(i.l)}</span>`).join('')}</div>
+    <span class="muted" style="font-size:.78rem">${g?'👤 '+esc(g.name||'')+' '+esc(g.phone):'⚠️ אין טלפון גבאי'}${sent?` · 💌 נשלח ${new Date(sent).toLocaleDateString('he-IL')}`:''}</span></div>
+    ${g?`<button class="btn sm" style="flex:none;background:${due?'#1fa855':'#9ca3af'}" onclick="hlOpen('${s.id}')">💬</button>`:`<button class="btn sec sm" style="flex:none" onclick="editShul('${s.id}')">✏️</button>`}</div>`};
+  return `<h2>🩺 בתי כנסת שצריכים חיזוק</h2>
+  <div class="cd-sum"><div class="r"><b>${L.length}</b><span>🩺 צריכים חיזוק</span></div><div class="y"><b>${D.length}</b><span>💌 מחכים להודעה</span></div><div class="g"><b>${ok}</b><span>✅ במצב טוב</span></div></div>
+  <div class="card" style="border:2px solid #1fa855"><div class="muted" style="font-size:.85rem;margin-bottom:8px">המערכת בודקת כל בית כנסת: זמני תפילות, מתי עודכן לאחרונה, שיעורים ופעילויות, כתובת, מפה ותמונה – ומכינה לכל גבאי הודעה אישית, חמה ומעודדת. אחרי שליחה – הגבאי לא יופיע שוב ${HL_GAP} יום.</div>
+  <button class="btn" style="width:100%;background:#1fa855;min-height:48px" ${D.length?'':'disabled'} onclick="hlQueue()">💌 שליחה לכל מי שמחכה (${D.length}) – אחד אחרי השני</button></div>
+  <div class="card">${L.map(row).join('')||'<div class="muted">כל בתי הכנסת במצב מצוין 🎉</div>'}</div>
+  <div class="muted" style="font-size:.78rem;text-align:center;margin:10px">💡 אדום = חשוב (אין תפילות / לא עודכן חודשיים) · צהוב = לא עודכן חודש · אפור = פרט חסר</div>`}
+function hlCheck(){const R=REAL_ROLE||ROLE;if(!R||R.type!=='admin'||viewingAsUser())return;const td=iso(new Date());if(U.hlAt===td)return;
+  const D=hlDue();if(!D.length)return;setTimeout(()=>{if($('#modals').innerHTML)return;U.hlAt=td;saveU();
+  modal(`<div style="text-align:center;font-size:2.4rem">🩺</div><div style="text-align:center;margin:6px 0 12px">המערכת זיהתה <b>${D.length} בתי כנסת</b> שצריכים קצת חיזוק – פרטים חסרים או שלא עודכנו מזמן.<br><span class="muted">הכנתי לכל גבאי הודעה אישית ומעודדת, מוכנה לשליחה.</span></div>
+  <div class="muted" style="font-size:.85rem;margin-bottom:10px">${D.slice(0,4).map(x=>'• '+esc(x.s.name)+' – '+esc(x.I[0].l)).join('<br>')}${D.length>4?'<br>…':''}</div>
+  <button class="btn" style="width:100%;background:#1fa855;min-height:48px" onclick="closeModal();hlQueue()">💌 לשליחת ההודעות</button><div class="btns" style="margin-top:8px"><button class="btn sec sm" onclick="closeModal();go('health')">📋 לרשימה</button><button class="btn ghost sm" onclick="closeModal()">אחר כך</button></div>`,'🔔 התראה מהמערכת')},6000)}
 /* ===== ניווט ===== */
 const NAV=[];
 function go(t,st,noPush){if(TAB==='compass'&&t!=='compass')stopCompass();
@@ -713,9 +773,9 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,health:healthV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
-  const NOTN=['home','admin','gab','inbox','reqs','codes','terms','pro','conv','th2','mine'];
+  const NOTN=['home','admin','gab','inbox','reqs','codes','health','terms','pro','conv','th2','mine'];
   $('#view').innerHTML=(NOTN.includes(TAB)?'':topNav())+V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
   {const o=document.querySelector('.tnav .tn.on');if(o)try{o.scrollIntoView({block:'nearest',inline:'nearest'})}catch(e){}}
 }
@@ -762,7 +822,7 @@ function admHome(){
     ${[4,5].includes(new Date().getDay())?`<button class="adq-sp" style="background:linear-gradient(135deg,#3d8a5c,#9fd4a8);margin-bottom:0" onclick="bulletin()">🗞️ <b>שלח את עלון המידע לשבת</b> – תמונה מוכנה לקבוצות הוואטסאפ</button>`:''}
     ${S.cloud&&packPending().length?`<button class="adq-sp" style="background:linear-gradient(135deg,#2e7d4f,#8fd19e);margin-bottom:0" onclick="importPack()">📥 <b>${packPending().length===1?'בית כנסת חדש מוכן':packPending().length+' בתי כנסת חדשים מוכנים'}</b> – לחצו להוספה ליצירת קוד גבאי</button><button class="btn ghost sm" style="width:100%;margin:4px 0 10px;color:#cfe0f2" onclick="packDismiss()">✕ לא רלוונטי – להעביר לארכיון</button>`:''}
     <button class="adq-sp" onclick="admSmart()">✨ <b>הדבקה חכמה</b> – קיבלתם זמנים בוואטסאפ? מדביקים והמערכת מסדרת לבד</button>
-    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${PRO_ON?b('⭐','גרסת פרו','',"go('pro')"):''}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
+    <div class="adq-g">${b('📮','הודעות',ib,"go('inbox')")}${b('📥','בקשות גבאים',rq,"go('reqs')")}${b('🔑','קודי גבאים',codeGroups().no.length||'',"go('codes')")}${b('🩺','צריכים חיזוק',hlDue().length||'',"go('health')")}${PRO_ON?b('⭐','גרסת פרו','',"go('pro')"):''}${b('✏️','עריכת בית כנסת','',"admPick()")}${b('➕','בית כנסת חדש','',"editShul()")}${b('📢','עדכון לפס','',"postUpdate('')")}${b('🛡️','לוח ניהול','',"go('admin')")}${b('📝','מודעה חדשה','',"adForm()")}${b('📌','לוח מודעות',S.ads.filter(a=>a.st==='pend').length,"go('board')")}${b('📰','עלון כללי','',"alonUp('general')")}</div></div>`}
   if(!ROLE&&isAdev())return `<button class="btn" style="width:100%;margin-bottom:12px;background:#16294a" onclick="openLogin()">🛡️ כניסת מנהל</button>`;
   return'';
 }
@@ -3182,6 +3242,7 @@ function admin(){
   <div class="card"><h3 class="rf-h"><img class="rav-face" src="${IC.ravFace}" alt="">הודעה שבועית לגבאים</h3><div class="muted">פעם בשבוע קופצת לכל גבאי דמות עם הודעה: פרטים חסרים, תזכורת לשבת, עידוד וטיפים.</div><button class="btn sec" style="margin-top:8px" onclick="gabTip(1)">👀 תצוגה מקדימה</button></div>
   ${gmAdminCard()}
   ${PRO_ON?proAdminCard():''}
+  ${hlCard()}
   ${codesCard()}
   ${statsCard()}
   ${top.length?`<div class="card"><h3>🏆 בתי הכנסת הנצפים ביותר</h3>${top.map(([s,v])=>`<div class="row"><div class="main">${esc(s.name)}</div><span class="badge">${v} צפיות</span></div>`).join('')}</div>`:''}
@@ -3323,7 +3384,7 @@ async function cloudInit(){
       REAL_ROLE=role;let va=false;try{va=localStorage.getItem(VIEWAS)==='1'}catch(e){}ROLE=role&&va?null:role;ibListen(u);
       if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
-      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{liveIntroCheck()}catch(e){}try{if(!U.liveAsked||U.live!==undefined)userTipCheck()}catch(e){}},3000);
+      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{hlCheck()}catch(e){}},4000);setTimeout(()=>{try{liveIntroCheck()}catch(e){}try{if(!U.liveAsked||U.live!==undefined)userTipCheck()}catch(e){}},3000);
     });
   }catch(e){console.warn('cloud off',e)}
 }
