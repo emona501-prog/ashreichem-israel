@@ -25,6 +25,9 @@
 
         </activity>
 
+        <!-- לחיצה על התראה פותחת בתוך האפליקציה ולא בדפדפן -->
+        <meta-data android:name="com.onesignal.suppressLaunchURLs" android:value="true" />
+
         <!-- ווידג'ט למסך הבית -->
         <receiver android:name=".AshWidget" android:exported="false" android:label="אשריכם ישראל – המניין הקרוב">
             <intent-filter>

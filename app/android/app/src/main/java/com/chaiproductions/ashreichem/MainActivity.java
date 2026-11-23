@@ -13,6 +13,9 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.onesignal.OneSignal;
+import com.onesignal.notifications.INotificationClickEvent;
+import com.onesignal.notifications.INotificationClickListener;
 import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
@@ -23,7 +26,21 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WebPrintPlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
+        registerPlugin(OSPushPlugin.class);
         super.onCreate(savedInstanceState);
+
+        // 🔔 התראות אנדרואיד (OneSignal). לחיצה על התראה – פותחת את המסך המתאים בתוך האפליקציה (לא בדפדפן)
+        try {
+            OneSignal.initWithContext(this, "8adb46b8-0320-45d3-a852-bf0ae8d0e0fb");
+            OneSignal.getNotifications().addClickListener(new INotificationClickListener() {
+                @Override public void onClick(INotificationClickEvent e) {
+                    String u = e.getNotification().getLaunchURL();
+                    if (u == null || !u.startsWith("https://emona501-prog.github.io/ashreichem-israel")) return;
+                    final String url = u + (u.contains("?") ? "&" : "?") + "app=android";
+                    runOnUiThread(() -> { try { getBridge().getWebView().loadUrl(url); } catch (Exception x) { } });
+                }
+            });
+        } catch (Exception e) { }
 
         // מסך מלא "קצה לקצה": האפליקציה נמשכת מתחת לשעון ולפס הניווט, בדיוק כמו באתר המותקן
         Window w = getWindow();

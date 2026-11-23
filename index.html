@@ -2301,7 +2301,7 @@ function bulTxt(){const d=bulData(BUL.sat);const t=`🗞️ *עלון מידע �
 /* ===== ⏰ תזכורות: התראה מקומית + תזמון דרך הממסר (מגיע גם כשהאפליקציה סגורה) ===== */
 function remNext(x){const now=new Date();for(let i=0;i<8;i++){const dt=addDays(now,i);dt.setHours(12,0,0,0);if(!DAYSETS[x.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(x.tm,dt);if(!tm)continue;if(i===0&&toMin(tm)<=nowMin())continue;return{dt,tm}}return null}
 function remOcc(r,days){const o=[],now=Date.now();for(let i=0;i<=days;i++){const dt=addDays(new Date(),i);dt.setHours(12,0,0,0);if(r.once&&iso(dt)!==r.once)continue;if(!DAYSETS[r.d]?.d.includes(dt.getDay()))continue;const tm=resolveTm(r.tm,dt);if(!tm)continue;const[h,mi]=tm.split(':').map(Number);const at=new Date(dt);at.setHours(h,mi-r.before,0,0);if(at.getTime()>now+60000)o.push({key:r.id+'|'+iso(dt),at,tm})}return o}
-const osSub=()=>{try{return window.OneSignal?.User?.PushSubscription?.id||''}catch(e){return''}};
+const osSub=()=>{try{if(NPUSH())return PUSH.id||'';return window.OneSignal?.User?.PushSubscription?.id||''}catch(e){return''}};
 async function relayCall(o){const u=RELAY();if(!u)return null;try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});const t=await r.text();try{return JSON.parse(t)}catch(e){return{raw:t}}}catch(e){try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)})}catch(e2){}return null}}
 let _remSyncing=false;
 async function remSync(){if(_remSyncing||!RELAY()||!PUSH.on)return;const sub=osSub();if(!sub)return;_remSyncing=true;
@@ -4025,9 +4025,13 @@ function shareAppCard(){return `<div class="card share-app"><div style="display:
   <div class="btns" style="margin-top:10px"><button class="btn" style="flex:1" onclick="shareApp()">📤 שיתוף</button><button class="btn sec" style="background:#25d366;color:#fff" onclick="shareAppWa()">💬 וואטסאפ</button><button class="btn ghost" onclick="copyAppLink()" aria-label="העתקת קישור">📋</button></div></div>`}
 /* ===== 🔔 התראות דחיפה – OneSignal ===== */
 const OS_APP='8adb46b8-0320-45d3-a852-bf0ae8d0e0fb';
-const PUSH={ok:false,on:false,sup:true};
+const PUSH={ok:false,on:false,sup:true,id:''};
+/* באפליקציית האנדרואיד החדשה – התראות אמיתיות דרך התוסף OSPush (במקום התראות הדפדפן, שלא עובדות בתוך אפליקציה) */
+function NPUSH(){try{return NAT.on?NAT.P('OSPush'):null}catch(e){return null}}
+async function npState(rr){const P=NPUSH();if(!P)return;try{const r=await P.state();const ch=PUSH.on!==!!r.on||PUSH.id!==(r.id||'');PUSH.ok=true;PUSH.sup=true;PUSH.on=!!r.on;PUSH.id=r.id||'';if(ch){pushTags();if(rr!==false)softRender();if(PUSH.on)setTimeout(remSync,1500)}}catch(e){}}
+if(NPUSH()){setTimeout(()=>npState(),800);setTimeout(()=>npState(),4000);setInterval(()=>npState(),60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)npState()})}
 window.OneSignalDeferred=window.OneSignalDeferred||[];
-if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
+if(location.protocol==='https:'&&!NPUSH())OneSignalDeferred.push(async OS=>{
   try{
     await OS.init({appId:OS_APP,serviceWorkerPath:'ashreichem-israel/sw.js',serviceWorkerParam:{scope:'/ashreichem-israel/'},notifyButton:{enable:false},promptOptions:{slidedown:{prompts:[{type:'push',autoPrompt:true,text:{actionMessage:'רוצים לקבל עדכונים מהקהילה – שיעורים, הודעות וספרי תהילים? אפשר לבטל בכל עת.',acceptButton:'כן, להפעיל',cancelButton:'אחר כך'},delay:{pageViews:1,timeDelay:10}}]}},welcomeNotification:{disable:false,title:'אשריכם ישראל',message:'תודה! מעכשיו תקבלו עדכונים מהקהילה 🙏'}});
     PUSH.ok=true;PUSH.sup=OS.Notifications.isPushSupported();PUSH.on=OS.User.PushSubscription.optedIn;
@@ -4035,14 +4039,18 @@ if(location.protocol==='https:')OneSignalDeferred.push(async OS=>{
     pushTags();softRender();setTimeout(remSync,3000);
   }catch(e){console.warn('push',e)}
 });
-function pushTags(){if(!PUSH.ok||!PUSH.on)return;OneSignalDeferred.push(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');const RR=REAL_ROLE||ROLE;if(RR&&RR.type==='gabbai')t.gabbai=RR.sid;if(RR&&RR.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';t.nolive=(U.noLive||!LIVE_ON())?'1':'';
-  const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
+function pushTags(){if(!PUSH.ok||!PUSH.on)return;const NP=NPUSH();(NP?(f=>f(null)):(f=>OneSignalDeferred.push(f)))(OS=>{const t={nh:U.nh||'all'};S.shuls.forEach(s=>t['f_'+s.id]=U.favs.includes(s.id)?'1':'');const RR=REAL_ROLE||ROLE;if(RR&&RR.type==='gabbai')t.gabbai=RR.sid;if(RR&&RR.type==='admin')t.admin='1';t.nomny=U.noMny?'1':'';t.nolive=(U.noLive||!LIVE_ON())?'1':'';
+  const add={},del=[];Object.entries(t).forEach(([k,v])=>v?add[k]=v:del.push(k));if(NP){NP.setTags({add,del}).catch(()=>{});return}try{OS.User.addTags(add);if(del.length)OS.User.removeTags(del)}catch(e){}})}
 function pushToggle(){
+  const NP=NPUSH();
+  if(NP){(async()=>{try{const r=PUSH.on?await NP.optOut():await NP.request();PUSH.ok=true;PUSH.on=!!r.on;PUSH.id=r.id||'';toast(PUSH.on?'🔔 ההתראות הופעלו':(r.perm===false?'ההתראות חסומות – אפשרו אותן בהגדרות הטלפון':'ההתראות כובו'));pushTags();if(PUSH.on)setTimeout(remSync,1500)}catch(e){toast('לא הצלחנו להפעיל התראות')}render()})();return}
+  if(NAT.on)return pushOldApk();
   if(location.protocol!=='https:')return toast('ההתראות עובדות רק מהכתובת באינטרנט');
   if(!PUSH.ok)return toast('שירות ההתראות עוד נטען – נסו שוב בעוד רגע');
   if(!PUSH.sup)return toast('המכשיר או הדפדפן לא תומך בהתראות. באייפון – קודם מוסיפים את האפליקציה למסך הבית');
   OneSignalDeferred.push(async OS=>{try{if(PUSH.on){await OS.User.PushSubscription.optOut();toast('ההתראות כובו')}else{if(Notification.permission==='granted')await OS.User.PushSubscription.optIn();else await OS.Notifications.requestPermission();}}catch(e){toast('לא הצלחנו להפעיל התראות')}PUSH.on=OS.User.PushSubscription.optedIn;pushTags();render()})
 }
+function pushOldApk(){modal(`<h3>🔔 כדי לקבל התראות – עדכנו את האפליקציה</h3><div class="muted" style="margin:8px 0">בגרסה החדשה של האפליקציה יש התראות אמיתיות לטלפון, גם כשהיא סגורה. מורידים ומתקינים מעל הקיימת – שום דבר לא נמחק.</div><a class="btn" style="display:block;text-align:center;text-decoration:none" href="https://github.com/emona501-prog/ashreichem-israel/releases/latest/download/ashreichem-israel.apk" target="_blank" rel="noopener">⬇️ הורדת הגרסה החדשה</a><button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeModal()">סגירה</button>`)}
 function pushCard(){
   return `<div class="card push-card ${PUSH.on?'on':''}"><div style="display:flex;align-items:center;gap:12px"><span style="font-size:2rem">${PUSH.on?'🔔':'🔕'}</span><div style="flex:1"><b>${PUSH.on?'ההתראות פעילות':'קבלו התראות מהקהילה'}</b><div class="muted">${PUSH.on?'תקבלו עדכונים חשובים גם כשהאפליקציה סגורה':'הודעות חשובות, שיעורים מיוחדים, ספר תהילים חדש ועוד – גם כשהאפליקציה סגורה'}</div></div></div>
   ${PUSH.on?`<label class="sw" style="margin-top:8px"><span>🙋 התראה כשמישהו מארגן מניין</span><input type="checkbox" ${U.noMny?'':'checked'} onchange="U.noMny=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו התראה על מניינים מתארגנים':'לא תקבלו התראות על מניינים')"></label>${LIVE_ON()?`<label class="sw" style="margin-top:8px"><span>🔴 התראות מהקהילה החיה (בתי כנסת ⭐)</span><input type="checkbox" ${U.noLive?'':'checked'} onchange="U.noLive=!this.checked;saveU();pushTags();toast(this.checked?'תקבלו דיווחים ושאלות מהמניינים':'לא תקבלו התראות – הדיווחים עדיין יופיעו באפליקציה')"></label>`:''}`:''}
