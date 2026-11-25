@@ -819,6 +819,32 @@ function wsShare(){const W=wsData();const t=`🗓️ *לוח השיעורים ה
 function wsPrint(){const W=wsData();const body=`<h1 style="text-align:center;margin:0">🗓️ לוח השיעורים השבועי</h1><div style="text-align:center;margin-bottom:10px">${esc(S.settings.appName||'אשריכם ישראל')} · ${wsDate(W[0].dt)}–${wsDate(W[6].dt)}</div><div class="cols">`+
   W.filter(x=>x.L.length).map(x=>`<div class="blk"><h2>${x.day===6?'שבת קודש':'יום '+DAYNAMES[x.day]} ${wsDate(x.dt)}</h2><table>${x.L.map(e=>`<tr><td class="k">${esc(e.tm||e.n||'')}</td><td>${esc(e.title||e.t||'')}${e.by?' – '+esc(e.by):''}<br><small>🕍 ${esc(String(e.s.name).split(/ [–-] /)[0])}</small></td></tr>`).join('')}</table></div>`).join('')+`</div>`+prFoot();
   prShow(body,{back:"closeModal()"})}
+
+/* ===== 📘 מדריך האפליקציה – מה יש ואיך משתמשים. כל פיצ'ר: הסבר קצר + "לנסות" ===== */
+const FEATS=[
+ {k:'live',em:'🔴',t:'הקהילה החיה',d:'מתפללים מדווחים מהמניין <b>בזמן אמת</b> – "התחילו", "בעמידה", "חסרים למניין" – ואפשר לשאול "התחילו כבר?" ולקבל תשובה מהשטח. כמו וייז, רק למניינים 🙂',h:'מצטרפים פעם אחת (עוד ← 🔴 הקהילה החיה). בבית תופיע רשימת המניינים הקרובים עם כפתורי דיווח ושאלה. מי שלא מצטרף – לא רואה את זה בכלל.',b:'🔴 להצטרפות',a:"liveIntro()",on:()=>!LIVE_ON()},
+ {k:'find',em:'🕰️',t:'חיפוש מניינים',d:'רוצים לדעת איפה יש מנחה ב-13:30? בוחרים <b>טווח שעות, נוסח ומרחק</b> – ורואים את המניין הכי קרוב.',h:'בעיגול "מניינים" למעלה. אפשר לסמן 👍 ליד זמן נכון – זה עוזר לכולם.',b:'🕰️ לחיפוש מניינים',a:"go('find')"},
+ {k:'mny',em:'🙋',t:'מארגנים מניין',d:'חסר מניין בשעה מיוחדת (אזכרה, בית אבל, מנחה בעבודה)? פותחים קריאה – והשכנים מקבלים הודעה ומצטרפים.',h:'עוד ← 🙋 מארגנים מניין.',b:'🙋 לפתיחת מניין',a:"go('mny')"},
+ {k:'zrem',em:'⏰',t:'תזכורות זמנים',d:'תזכורת לסוף זמן קריאת שמע, שקיעה, הדלקת נרות, ספירת העומר ונרות חנוכה – <b>עם צליל, רטט או רק הודעה</b>.',h:'בזמני היום ← 🔔 תזכורות זמנים. בוחרים מה ומתי.',b:'⏰ לתזכורות',a:"go('zrem')"},
+ {k:'th2',em:'📖',t:'תהילים מחולק',d:'כל אחד לוקח פרק – וביחד מסיימים <b>ספר תהילים שלם</b>. אפשר לפתוח ספר לרפואה/להצלחה ולשתף קישור בוואטסאפ.',h:'עוד ← 📖 תהילים מחולק ← "תנו לי פרק פנוי".',b:'📖 לקחת פרק',a:"go('th2')"},
+ {k:'wsum',em:'🗓️',t:'לוח השיעורים השבועי',d:'כל השיעורים והאירועים בשכונה לשבוע הקרוב – במקום אחד, עם <b>שיתוף והדפסה</b>. מתפרסם בכל מוצאי שבת.',h:'עוד ← 🗓️ לוח השיעורים השבועי.',b:'🗓️ ללוח השבועי',a:"go('wsum')"},
+ {k:'gmach',em:'🤝',t:'גמ"חים וחלוקות',d:'כל הגמ"חים בשכונה – תינוקות, אירועים, ציוד רפואי, הלוואות – וגם <b>חלוקות לפני החגים</b>. יש לכם גמ"ח? פרסמו בחינם!',h:'בעיגול "גמ"חים" למעלה.',b:'🤝 לגמ"חים',a:"go('gmach')"},
+ {k:'tik',em:'🔥',t:'תיקון הכללי',d:'עשרה מזמורי תהילים שרבי נחמן הבטיח עליהם – לאמירה יומית, אפילו בכמה דקות.',h:'בתפריט התחתון ← תיקון הכללי.',b:'🔥 לתיקון הכללי',a:"go('tikkun')"},
+ {k:'lim',em:'📚',t:'לימוד יומי',d:'דף יומי, משנה יומית, רמב״ם ועוד – מתחלף לבד בשקיעה.',h:'עוד ← 📚 הלימוד היומי.',b:'📚 ללימוד',a:"go('limud')"},
+ {k:'hill',em:'🕯️',t:'הילולות צדיקים',d:'מי ההילולא היום ומחר, עם תזכורת – זמן מסוגל לתפילה ולהדלקת נר.',h:'עוד ← 🕯️ הילולות צדיקים.',b:'🕯️ להילולות',a:"go('hill')"},
+ {k:'shab',em:'🕯️',t:'זמני שבת והדלקת נרות',d:'כניסה ויציאה מדויקות לפי גובה ירושלים – <b>20 דקות</b> או <b>40 דקות למחמירים</b>, ופרשת השבוע.',h:'בעיגול "זמני היום" ← שבת.',b:'🕯️ לזמני שבת',a:"go('shabbat')"},
+ {k:'mik',em:'💧',t:'מקוואות',d:'מקוואות בשכונה – כתובות, שעות וניווט בלחיצה.',h:'בעיגול "מקוואות" למעלה.',b:'💧 למקוואות',a:"go('mikva')"},
+ {k:'map',em:'🗺️',t:'מפת בתי הכנסת',d:'כל בתי הכנסת על המפה, ומיון <b>"הכי קרובים"</b> לפי המיקום שלכם.',h:'בעיגול "מפה" למעלה, או בבתי כנסת ← 📍 הכי קרובים.',b:'🗺️ למפה',a:"go('map')"},
+ {k:'board',em:'📢',t:'לוח מודעות',d:'שמחות, שיעורים, עסקים ואירועים בשכונה. יש לכם מה לפרסם? <b>מודעה ליום אחד – חינם!</b>',h:'בעיגול "פרסום" למעלה.',b:'📢 ללוח המודעות',a:"go('board')"},
+ {k:'push',em:'🔔',t:'התראות לטלפון',d:'מניין שמתארגן, דיווחים מהקהילה החיה, תזכורות והודעות חשובות – <b>גם כשהאפליקציה סגורה</b>.',h:'האזור האישי ← 🔔 הפעלת התראות.',b:'🔔 להפעלה',a:"pushToggle()",on:()=>!PUSH.on},
+ {k:'voice',em:'🎤',t:'שואלים בקול',d:'"מתי מנחה?", "מתי שקיעה?" – שואלים, ואני עונה.',h:'בכפתור המיקרופון במסך הבית.',b:'🎤 לנסות',a:"askVoice()"},
+ {k:'fix',em:'✏️',t:'דיווח טעות',d:'ראיתם זמן לא נכון? מדווחים מדף בית הכנסת – וההודעה מגיעה ישר לגבאי.',h:'בדף בית הכנסת ← ✏️ דיווח טעות.',b:'🕍 לבתי הכנסת',a:"go('shuls')"},
+ {k:'fav',em:'⭐',t:'בתי הכנסת שלי',d:'מסמנים ⭐ את בתי הכנסת שלכם – ורואים את התפילה הקרובה שלהם ישר במסך הבית.',h:'בבתי כנסת ← ⭐ ליד השם.',b:'🕍 לסימון',a:"go('shuls')"}
+];
+function guideV(){return `<h2>📘 מה יש באפליקציה?</h2><div class="muted" style="margin-bottom:10px">כל הדברים הטובים במקום אחד – עם הסבר קצר ולחיצה לנסות 🙂</div>
+  ${FEATS.map(f=>`<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:1.9rem;line-height:1">${f.em}</span><div style="flex:1"><b style="font-size:1.05rem">${f.t}</b>${f.k==='live'&&LIVE_ON()?' <span class="badge" style="background:#1fa855">פעיל אצלך ✓</span>':''}<div style="margin:4px 0;line-height:1.55">${f.d}</div><div class="muted" style="font-size:.84rem">📍 ${f.h}</div>
+  <button class="btn sm" style="margin-top:8px" onclick="${f.a}">${f.b}</button></div></div></div>`).join('')}`}
+function guideHome(){const n=U.tipOpen||0;if(n>25||U.guideX)return'';return `<div class="card" style="background:linear-gradient(135deg,#eef4ff,#fff);border:1.5px solid #c7d7f5;cursor:pointer" onclick="go('guide')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📘</span><div style="flex:1"><b>חדשים כאן? הכירו את כל מה שיש</b><div class="muted" style="font-size:.85rem">הקהילה החיה, חיפוש מניינים, תזכורות, תהילים מחולק, גמ"חים ועוד</div></div><button class="btn ghost sm" style="flex:none" onclick="event.stopPropagation();U.guideX=1;saveU();render()">✕</button></div></div>`}
 /* ===== ניווט ===== */
 const NAV=[];
 function go(t,st,noPush){if(TAB==='compass'&&t!=='compass')stopCompass();
@@ -834,7 +860,7 @@ function render(){
   $('#appName').textContent=S.settings.appName;document.title=S.settings.appName;
   {const n=new Date();$('#hdate').textContent=(n.getDay()===6?'שבת קודש':'יום '+DAYNAMES[n.getDay()])+' · '+hebDate(n)+' · '+gStr(n);}
   renderTicker();renderRole();{const b=$('#backB'),v=!!(NAV.length||TAB!=='home');if(b)b.style.display=v?'':'none';document.body.classList.toggle('hasback',v)}
-  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,health:healthV,gmach:gcV,wsum:wsV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
+  const V={reqs:reqsV,gab:gabV,inbox:ibV,mny:mnyV,tikkun:tikkunV,home,times,cal,shuls,shul:shulPage,terms:termsV,shabbat:shabbatV,now:nowV,alonim:alonimV,acts,more,hill,board,mine,admin,updates,compass,zmanim:zmanimV,thyomi,conv,th2:th2V,map:mapV,limud:limudV,codes:codesV,health:healthV,gmach:gcV,wsum:wsV,guide:guideV,find:findV,mikva:mikvaV,zrem:zremV,pro:()=>`<h2>⭐ גרסת פרו</h2>${proAdminCard()}`}[TAB]||home;
   try{wFeed()}catch(e){}try{viewPill()}catch(e){}setTimeout(()=>{try{mnyPop()}catch(e){}},400);
   const NOTN=['home','admin','gab','inbox','reqs','codes','health','terms','pro','conv','th2','mine'];
   $('#view').innerHTML=(NOTN.includes(TAB)?'':topNav())+V()+`<footer>נבנה ע״י חי אפליקציות · <a href="https://youtube.com/@yeshurun148" target="_blank" rel="noopener">ערוץ גאולה וישועה ▶</a></footer>`;
@@ -1057,6 +1083,7 @@ function home(){
   ${nearest()}${liveStrip()}
   ${nearestEv()}
   ${wsHome()}
+  ${guideHome()}
   <div class="say-row"><button onclick="sayToggle(()=>nearSay())">${ic('speaker','bi')}הקראת המניין הקרוב</button><button onclick="askVoice()">${ic('mic','bi')}לשאול בקול</button></div>
   ${adPop()||adImgPop()}
   ${mnyHome()}
@@ -1461,6 +1488,7 @@ function limShare(){const d=limDate();const L=(U.lim||LIM_DEF).concat(LIM.flatMa
 function more(){
   const it=(em,t,act,sub='')=>`<div class="row" role="button" tabindex="0" onclick="${act}"><span class="em">${em}</span><div class="main">${t}${sub?`<div class="muted" style="font-weight:400">${sub}</div>`:''}</div><span>‹</span></div>`;
   return `<h2>☰ עוד</h2>${shareAppCard()}<div class="card menu">
+  ${it('📘','מה יש באפליקציה?',"go('guide')",'מדריך קצר לכל האפשרויות')}
   ${it(ic('shiur','md'),'שיעורים ופעילויות',"go('acts')",'לפי קטגוריה ויום')}
   ${it('🗓️','לוח השיעורים השבועי',"go('wsum')",'כל השיעורים והאירועים בשבוע · שיתוף והדפסה')}
   ${it('🤝','גמ"חים בשכונה',"go('gmach')",'השאלת ציוד, תינוקות, אירועים, רפואה ועוד · אפשר להוסיף')}
@@ -1702,6 +1730,8 @@ function userTips(){const T=[],d=new Date(),k=iso(d),dw=d.getDay();
   if(dw===4||dw===5)T.push({k:'sh'+iso(addDays(d,5-dw)),ev:1,t:dw===5?'שבת שלום! 🕯️<br>זמני הדלקת נרות, תפילות שבת ופרשת השבוע – הכל במקום אחד.':'כבר חמישי! 🕯️<br>תכננו את השבת מראש: זמני כניסה ויציאה, תפילות ושיעורים בשכונה.',b:'🕯️ זמני שבת',a:"closeModal();go('shabbat')"});
   try{const B=((S.th2||{}).books||[]).filter(b=>!b.doneAt).sort((a,b)=>doneCnt(b)-doneCnt(a))[0];const w=Math.floor(Date.now()/(4*864e5));
     if(B){const left=150-doneCnt(B);T.push({k:'thw'+w,ev:1,t:`רוצה להשתתף ב<b>ספר תהילים שלם</b>? 📖<br>בספר "<b>${esc(B.title)}</b>" נשארו עוד <b>${left} פרקים</b>. קח פרק אחד – זה לוקח כמה דקות – וביחד נסיים ספר שלם! 🙏`,b:'📖 תנו לי פרק עכשיו',a:`closeModal();go('th2',{b:'${B.id}'});setTimeout(()=>takeNext('${B.id}'),400)`})}}catch(e){}
+  if(!LIVE_ON()&&!U.liveAnn)T.unshift({k:'liveAnn1',ev:1,t:`<b>חדש! 🔴 הקהילה החיה</b><br>מתפללים מדווחים מהמניין <b>בזמן אמת</b> – "התחילו", "בעמידה", "חסרים למניין" 🙋<br>ואפשר לשאול "התחילו כבר?" ולקבל תשובה ממי שנמצא שם.<br><span class="muted" style="font-size:.9rem">כמו וייז – רק למניינים. מצטרפים בלחיצה, ויוצאים מתי שרוצים.</span>`,b:'🔴 ספרו לי עוד',a:"closeModal();U.liveAnn=1;saveU();setTimeout(liveIntro,150)"});
+  FEATS.filter(f=>!['live','push','tik','lim','find','mny','voice','fix','fav','board','zrem','mik'].includes(f.k)).forEach(f=>{if(!f.on||f.on())T.push({k:'ft_'+f.k,ev:1,t:`<b>${f.em} ${f.t}</b><br>${f.d}`,b:f.b,a:'closeModal();'+f.a})});
   const S0=[
    !U.favs.length&&{k:'fav',t:'טיפ קטן: סמנו <b>⭐</b> את בתי הכנסת שלכם, ותראו את התפילה הקרובה שלהם ישר במסך הבית.',b:'🕍 לבתי הכנסת',a:"closeModal();go('shuls')"},
    {k:'find',t:'מחפשים מניין? ב<b>חיפוש המניינים</b> בוחרים טווח שעות ונוסח, ורואים את המניין <b>הכי קרוב אליכם</b>.',b:'🕰️ לחיפוש מניינים',a:"closeModal();go('find')"},
