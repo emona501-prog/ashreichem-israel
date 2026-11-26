@@ -846,6 +846,20 @@ function guideV(){return `<h2>📘 מה יש באפליקציה?</h2><div class=
   ${FEATS.map(f=>`<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:1.9rem;line-height:1">${f.em}</span><div style="flex:1"><b style="font-size:1.05rem">${f.t}</b>${f.k==='live'&&LIVE_ON()?' <span class="badge" style="background:#1fa855">פעיל אצלך ✓</span>':''}<div style="margin:4px 0;line-height:1.55">${f.d}</div><div class="muted" style="font-size:.84rem">📍 ${f.h}</div>
   <button class="btn sm" style="margin-top:8px" onclick="${f.a}">${f.b}</button></div></div></div>`).join('')}`}
 function guideHome(){const n=U.tipOpen||0;if(n>25||U.guideX)return'';return `<div class="card" style="background:linear-gradient(135deg,#eef4ff,#fff);border:1.5px solid #c7d7f5;cursor:pointer" onclick="go('guide')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📘</span><div style="flex:1"><b>חדשים כאן? הכירו את כל מה שיש</b><div class="muted" style="font-size:.85rem">הקהילה החיה, חיפוש מניינים, תזכורות, תהילים מחולק, גמ"חים ועוד</div></div><button class="btn ghost sm" style="flex:none" onclick="event.stopPropagation();U.guideX=1;saveU();render()">✕</button></div></div>`}
+
+/* ===== 🔄 עדכון גרסה – לכל המשתמשים. טוען את הגרסה הכי חדשה ישר מהשרת (עוקף את זיכרון המטמון) ===== */
+const APP_V='ashreichem-v147';
+async function verLatest(){try{const r=await fetch('sw.js?nc='+Date.now(),{cache:'no-store'});const t=await r.text();const m=t.match(/const C='([^']+)'/);return m?m[1]:''}catch(e){return''}}
+async function appUpdate(){toast('🔄 בודק אם יש גרסה חדשה…');const L=await verLatest();
+  if(L&&L===APP_V){modal(`<div style="text-align:center;font-size:2.4rem">✅</div><div style="text-align:center;margin:8px 0">יש לכם כבר את הגרסה הכי חדשה!</div><div class="muted" style="text-align:center;font-size:.85rem">גרסה ${APP_V.replace(/\D+/,'')}</div><button class="btn ghost" style="width:100%;margin-top:10px" onclick="appReload()">🔄 לרענן בכל זאת</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal()">סגירה</button>`,'עדכון גרסה');return}
+  appReload()}
+async function appReload(){toast('⬇️ מעדכן לגרסה החדשה…');try{if(window.caches){const k=await caches.keys();await Promise.all(k.map(x=>caches.delete(x)))}}catch(e){}
+  try{const R=await navigator.serviceWorker?.getRegistrations?.();if(R)await Promise.all(R.map(r=>r.update().catch(()=>{})))}catch(e){}
+  setTimeout(()=>{const u=new URL(location.href);u.searchParams.set('upd',Date.now());location.replace(u.toString())},500)}
+/* בדיקה שקטה בכל פתיחה: יש גרסה חדשה? פס קטן למעלה */
+async function verCheck(){const L=await verLatest();if(!L||L===APP_V)return;if(sessionStorage.getItem('verX')===L)return;let b=document.getElementById('verBar');if(b)return;
+  b=document.createElement('div');b.id='verBar';b.setAttribute('role','status');b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:#1fa855;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.2)';
+  b.innerHTML='<span style="flex:1">✨ יש גרסה חדשה לאפליקציה</span><button style="background:#fff;color:#137a3c;border:0;border-radius:10px;padding:8px 14px;font-weight:800;font-family:inherit" onclick="appReload()">🔄 לעדכן</button><button aria-label="סגירה" style="background:none;border:0;color:#fff;font-size:1.2rem" onclick="sessionStorage.setItem(\'verX\',\''+L+'\');this.parentNode.remove()">✕</button>';document.body.appendChild(b)}
 /* ===== ניווט ===== */
 const NAV=[];
 function go(t,st,noPush){if(TAB==='compass'&&t!=='compass')stopCompass();
@@ -1503,6 +1517,7 @@ function more(){
   const it=(em,t,act,sub='')=>`<div class="row" role="button" tabindex="0" onclick="${act}"><span class="em">${em}</span><div class="main">${t}${sub?`<div class="muted" style="font-weight:400">${sub}</div>`:''}</div><span>‹</span></div>`;
   return `<h2>☰ עוד</h2>${shareAppCard()}<div class="card menu">
   ${it('📘','מה יש באפליקציה?',"go('guide')",'מדריך קצר לכל האפשרויות')}
+  ${it('🔄','עדכון גרסה',"appUpdate()",'בודק ומתקין את הגרסה הכי חדשה · גרסה '+APP_V.replace(/\D+/,''))}
   ${it('📣','מזמינים את השכנים',"go('invite')",'שיעור, שמחה, אזכרה, סעודת מצווה, עזרה')}
   ${it(ic('shiur','md'),'שיעורים ופעילויות',"go('acts')",'לפי קטגוריה ויום')}
   ${it('🗓️','לוח השיעורים השבועי',"go('wsum')",'כל השיעורים והאירועים בשבוע · שיתוף והדפסה')}
@@ -1850,6 +1865,7 @@ function favHome(){const L=S.shuls.filter(s=>U.favs.includes(s.id));if(!L.length
 function mine(){
   const favs=S.shuls.filter(s=>U.favs.includes(s.id));
   return `<h2>⭐ האזור האישי שלי</h2>
+  <button class="btn sec" style="width:100%;margin-bottom:10px" onclick="appUpdate()">🔄 עדכון גרסה <span class="muted" style="font-weight:400">(גרסה ${APP_V.replace(/\D+/,'')})</span></button>
   <div class="card"><h3>⭐ בתי הכנסת המועדפים שלי</h3>${favs.map(s=>`<div class="row" onclick="go('shul',{id:'${s.id}'})" style="cursor:pointer"><span>⭐</span><div class="main"><b>${esc(s.name)}</b><span class="muted">${esc(shulNext(s)?'⏰ הקרוב היום: '+shulNext(s):s.address||'')}</span></div><button class="btn ghost sm" aria-label="הסרה מהמועדפים" onclick="event.stopPropagation();fav('${s.id}')">✕ הסרה</button></div>`).join('')||'<div class="empty-msg">לחצו על ☆ ליד בית כנסת כדי להוסיף אותו לכאן</div>'}</div>
   ${pushCard()}
   <button class="btn gold" style="width:100%;margin-bottom:12px;min-height:50px" onclick="go('zrem')">🔔 תזכורות זמנים – זמני היום, נרות, חנוכה ועומר</button>
@@ -3515,7 +3531,7 @@ async function cloudInit(){
       REAL_ROLE=role;let va=false;try{va=localStorage.getItem(VIEWAS)==='1'}catch(e){}ROLE=role&&va?null:role;ibListen(u);
       if(role&&role.type==='admin'){try{localStorage.setItem(ADEV,'1')}catch(e){}listenAdmin();loadSecrets();loadStats()}else stopAdmin();
       if(role&&role.type==='gabbai'){const s=shul(role.sid);if(s&&missingOf(s).length)setTimeout(()=>toast('⚠️ חסרים פרטים בבית הכנסת שלך: '+missingOf(s).join(', ')),1200)}
-      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{hlCheck()}catch(e){}},4000);setTimeout(hlWeekly,9000);apkUpdCheck();setTimeout(()=>{try{liveIntroCheck()}catch(e){}try{if(!U.liveAsked||U.live!==undefined)userTipCheck()}catch(e){}},3000);
+      countVisit();softRender();setTimeout(gabTipCheck,2500);setTimeout(()=>{try{hlCheck()}catch(e){}},4000);setTimeout(verCheck,5000);setTimeout(hlWeekly,9000);apkUpdCheck();setTimeout(()=>{try{liveIntroCheck()}catch(e){}try{if(!U.liveAsked||U.live!==undefined)userTipCheck()}catch(e){}},3000);
     });
   }catch(e){console.warn('cloud off',e)}
 }
@@ -4329,6 +4345,7 @@ function pushCard(){
   <button class="btn ${PUSH.on?'ghost':''}" style="width:100%;margin-top:10px" onclick="pushToggle()">${PUSH.on?'כיבוי התראות':'🔔 הפעלת התראות'}</button></div>`
 }
 /* ===== התקנה ועבודה בלי אינטרנט ===== */
+try{const u=new URL(location.href);if(u.searchParams.has('upd')){u.searchParams.delete('upd');history.replaceState(null,'',u.pathname+u.search+u.hash);setTimeout(()=>toast('✅ האפליקציה עודכנה לגרסה החדשה'),1200)}}catch(e){}
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{}));
 let _inst=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e;if(TAB==='more')render()});addEventListener('appinstalled',()=>{U.instNever=1;saveU()});
 /* ===== הפעלה ===== */
