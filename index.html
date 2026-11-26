@@ -825,7 +825,7 @@ const FEATS=[
  {k:'live',em:'🔴',t:'הקהילה החיה',d:'מתפללים מדווחים מהמניין <b>בזמן אמת</b> – "התחילו", "בעמידה", "חסרים למניין" – ואפשר לשאול "התחילו כבר?" ולקבל תשובה מהשטח. כמו וייז, רק למניינים 🙂',h:'מצטרפים פעם אחת (עוד ← 🔴 הקהילה החיה). בבית תופיע רשימת המניינים הקרובים עם כפתורי דיווח ושאלה. מי שלא מצטרף – לא רואה את זה בכלל.',b:'🔴 להצטרפות',a:"liveIntro()",on:()=>!LIVE_ON()},
  {k:'find',em:'🕰️',t:'חיפוש מניינים',d:'רוצים לדעת איפה יש מנחה ב-13:30? בוחרים <b>טווח שעות, נוסח ומרחק</b> – ורואים את המניין הכי קרוב.',h:'בעיגול "מניינים" למעלה. אפשר לסמן 👍 ליד זמן נכון – זה עוזר לכולם.',b:'🕰️ לחיפוש מניינים',a:"go('find')"},
  {k:'mny',em:'🙋',t:'מארגנים מניין',d:'חסר מניין בשעה מיוחדת (אזכרה, בית אבל, מנחה בעבודה)? פותחים קריאה – והשכנים מקבלים הודעה ומצטרפים.',h:'עוד ← 🙋 מארגנים מניין.',b:'🙋 לפתיחת מניין',a:"go('mny')"},
- {k:'invite',em:'📣',t:'מזמינים את השכנים',d:'שיעור לחנוכת בית, שמחה, אזכרה שצריך להשלים בה עניין, סעודת מצווה או בקשת עזרה – <b>מזמינים את כל השכונה</b>, והשכנים לוחצים "אני מגיע".',h:'במסך הבית ← 📣 מזמינים את השכנים.',b:'📣 להזמנה',a:"go('invite')"},
+ {k:'invite',em:'📣',t:'הציבור מוזמן',d:'שיעור לחנוכת בית, שמחה, אזכרה שצריך להשלים בה עניין, סעודת מצווה או בקשת עזרה – <b>מזמינים את כל השכונה</b>, והשכנים לוחצים "אני מגיע".',h:'במסך הבית ← 📣 הציבור מוזמן.',b:'📣 להזמנה',a:"go('invite')"},
  {k:'zrem',em:'⏰',t:'תזכורות זמנים',d:'תזכורת לסוף זמן קריאת שמע, שקיעה, הדלקת נרות, ספירת העומר ונרות חנוכה – <b>עם צליל, רטט או רק הודעה</b>.',h:'בזמני היום ← 🔔 תזכורות זמנים. בוחרים מה ומתי.',b:'⏰ לתזכורות',a:"go('zrem')"},
  {k:'th2',em:'📖',t:'תהילים מחולק',d:'כל אחד לוקח פרק – וביחד מסיימים <b>ספר תהילים שלם</b>. אפשר לפתוח ספר לרפואה/להצלחה ולשתף קישור בוואטסאפ.',h:'עוד ← 📖 תהילים מחולק ← "תנו לי פרק פנוי".',b:'📖 לקחת פרק',a:"go('th2')"},
  {k:'wsum',em:'🗓️',t:'לוח השיעורים השבועי',d:'כל השיעורים והאירועים בשכונה לשבוע הקרוב – במקום אחד, עם <b>שיתוף והדפסה</b>. מתפרסם בכל מוצאי שבת.',h:'עוד ← 🗓️ לוח השיעורים השבועי.',b:'🗓️ ללוח השבועי',a:"go('wsum')"},
@@ -848,7 +848,7 @@ function guideV(){return `<h2>📘 מה יש באפליקציה?</h2><div class=
 function guideHome(){const n=U.tipOpen||0;if(n>25||U.guideX)return'';return `<div class="card" style="background:linear-gradient(135deg,#eef4ff,#fff);border:1.5px solid #c7d7f5;cursor:pointer" onclick="go('guide')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📘</span><div style="flex:1"><b>חדשים כאן? הכירו את כל מה שיש</b><div class="muted" style="font-size:.85rem">הקהילה החיה, חיפוש מניינים, תזכורות, תהילים מחולק, גמ"חים ועוד</div></div><button class="btn ghost sm" style="flex:none" onclick="event.stopPropagation();U.guideX=1;saveU();render()">✕</button></div></div>`}
 
 /* ===== 🔄 עדכון גרסה – לכל המשתמשים. טוען את הגרסה הכי חדשה ישר מהשרת (עוקף את זיכרון המטמון) ===== */
-const APP_V='ashreichem-v147';
+const APP_V='ashreichem-v148';
 async function verLatest(){try{const r=await fetch('sw.js?nc='+Date.now(),{cache:'no-store'});const t=await r.text();const m=t.match(/const C='([^']+)'/);return m?m[1]:''}catch(e){return''}}
 async function appUpdate(){toast('🔄 בודק אם יש גרסה חדשה…');const L=await verLatest();
   if(L&&L===APP_V){modal(`<div style="text-align:center;font-size:2.4rem">✅</div><div style="text-align:center;margin:8px 0">יש לכם כבר את הגרסה הכי חדשה!</div><div class="muted" style="text-align:center;font-size:.85rem">גרסה ${APP_V.replace(/\D+/,'')}</div><button class="btn ghost" style="width:100%;margin-top:10px" onclick="appReload()">🔄 לרענן בכל זאת</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal()">סגירה</button>`,'עדכון גרסה');return}
@@ -1518,7 +1518,7 @@ function more(){
   return `<h2>☰ עוד</h2>${shareAppCard()}<div class="card menu">
   ${it('📘','מה יש באפליקציה?',"go('guide')",'מדריך קצר לכל האפשרויות')}
   ${it('🔄','עדכון גרסה',"appUpdate()",'בודק ומתקין את הגרסה הכי חדשה · גרסה '+APP_V.replace(/\D+/,''))}
-  ${it('📣','מזמינים את השכנים',"go('invite')",'שיעור, שמחה, אזכרה, סעודת מצווה, עזרה')}
+  ${it('📣','הציבור מוזמן',"go('invite')",'שיעור, שמחה, אזכרה, סעודת מצווה, עזרה')}
   ${it(ic('shiur','md'),'שיעורים ופעילויות',"go('acts')",'לפי קטגוריה ויום')}
   ${it('🗓️','לוח השיעורים השבועי',"go('wsum')",'כל השיעורים והאירועים בשבוע · שיתוף והדפסה')}
   ${it('🤝','גמ"חים בשכונה',"go('gmach')",'השאלת ציוד, תינוקות, אירועים, רפואה ועוד · אפשר להוסיף')}
@@ -3948,8 +3948,8 @@ function mnyShare(id){const m=(S.mny||[]).find(x=>x.id===id);if(!m)return;const 
   const t=`🙋 *מארגנים מניין ל${m.t}!*\n🕰️ ${mnyWhen(m.at)}\n📍 ${pl}${m.note?'\n📝 '+m.note:''}\n\nכבר ${n} מתוך 10 – חסרים ${Math.max(0,10-n)}!\nלהצטרפות בלחיצה:\n${location.origin+location.pathname}?m=${id}`;
   if(navigator.share)navigator.share({text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t))}
 
-/* ===== 📣 מזמינים את השכנים – שיעור, שמחה, אזכרה, סעודה, חסד (נפרד ממניין; נשמר באוסף המניינים עם k) ===== */
-const EV_K=[['shiur','📚','שיעור תורה','לדוגמה: שיעור בהלכות שבת לרגל חנוכת הבית'],['simcha','🎉','שמחה','לדוגמה: חנוכת בית / סיום מסכת / בר מצווה – כולם מוזמנים!'],['azkara','🕯️','אזכרה / השלמת עניין','לדוגמה: אזכרה לאבי ז״ל – מבקשים להשלים לימוד משניות ותהילים'],['seuda','🍽️','סעודת מצווה','לדוגמה: שבע ברכות – חסרים פנים חדשות'],['chesed','🤲','עזרה וחסד','לדוגמה: צריך עזרה בהעברת דירה / ליווי לבית חולים'],['other','✨','אחר','מה קורה? ספרו לשכנים']];
+/* ===== 📣 הציבור מוזמן – שיעור, שמחה, אזכרה, סעודה, חסד (נפרד ממניין; נשמר באוסף המניינים עם k) ===== */
+const EV_K=[['shiur','📚','שיעור תורה','לדוגמה: שיעור בהלכות שבת לרגל חנוכת הבית'],['simcha','🎉','שמחה','לדוגמה: חנוכת בית / סיום מסכת / בר מצווה – כולם מוזמנים!'],['azkara','🕯️','אזכרה / השלמת מניין','לדוגמה: אזכרה לאבי ז״ל – מבקשים להשלים מניין לקדיש'],['seuda','🍽️','סעודת מצווה','לדוגמה: שבע ברכות – חסרים פנים חדשות'],['chesed','🤲','עזרה וחסד','לדוגמה: צריך עזרה בהעברת דירה / ליווי לבית חולים'],['other','✨','אחר','מה קורה? ספרו לשכנים']];
 const evK=k=>EV_K.find(x=>x[0]===k)||EV_K[EV_K.length-1];
 const evCnt=m=>Object.values(m.j||{}).reduce((a,x)=>a+(+x.c||1),0);
 function evList(){const now=Date.now();return(S.mny||[]).filter(m=>m.k&&!m.cx&&m.at>now-2*36e5&&m.at<now+15*864e5).sort((a,b)=>a.at-b.at)}
@@ -3962,10 +3962,10 @@ function evCard(m,full){const k=evK(m.k),n=evCnt(m),me=m.j&&m.j[myUid()],mine=m.
     ${full&&m.ph?`<div class="muted">📞 ${esc(m.on||'')} – <a href="https://wa.me/${waNum(m.ph)}" target="_blank" rel="noopener">וואטסאפ</a></div>`:''}</div></div>
     <div class="btns" style="margin-top:8px">${me?`<button class="btn ghost sm" onclick="evLeave('${m.id}')">✕ לא אגיע</button>`:`<button class="btn sm" onclick="evJoin('${m.id}')">🙋 אני מגיע!</button>`}
     <button class="btn sec sm" onclick="evShare('${m.id}')">💬 להזמין חברים</button>${!full?`<button class="btn ghost sm" onclick="go('invite',{id:'${m.id}'})">פרטים</button>`:''}${(mine||ROLE?.type==='admin')&&full?`<button class="btn red sm" onclick="evCancel('${m.id}')">ביטול</button>`:''}</div></div>`}
-function evHome(){const L=evList();return `<div class="card mny-home"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">📣 מזמינים את השכנים</h3><button class="btn sm" onclick="evForm()">➕ להזמין</button></div>
+function evHome(){const L=evList();return `<div class="card mny-home"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">📣 הציבור מוזמן</h3><button class="btn sm" onclick="evForm()">➕ להזמין</button></div>
   ${L.length?L.slice(0,2).map(m=>evCard(m,0)).join('')+(L.length>2?`<button class="btn ghost sm" style="width:100%" onclick="go('invite')">לכל ${L.length} ההזמנות ‹</button>`:''):`<div class="muted" style="margin-top:6px">שיעור לחנוכת בית, שמחה, אזכרה שצריך להשלים בה עניין, סעודת מצווה או בקשת עזרה – מזמינים את כל השכונה בלחיצה.</div>`}</div>`}
 function evV(){const L=evList(),one=ST.id&&L.find(m=>m.id===ST.id);
-  return `<h2>📣 מזמינים את השכנים</h2><div class="muted" style="margin-bottom:10px">שיעורים, שמחות, אזכרות, סעודות מצווה ועזרה בין שכנים. (צריכים מניין? יש לזה <a href="#" onclick="go('mny');return false">כפתור נפרד</a>)</div>
+  return `<h2>📣 הציבור מוזמן</h2><div class="muted" style="margin-bottom:10px">שיעורים, שמחות, אזכרות, סעודות מצווה ועזרה בין שכנים. (צריכים מניין? יש לזה <a href="#" onclick="go('mny');return false">כפתור נפרד</a>)</div>
   <button class="btn" style="width:100%;min-height:52px;margin-bottom:12px" onclick="evForm()">➕ הזמנה חדשה</button>
   ${one?evCard(one,1):(ST.id?'<div class="empty-msg">ההזמנה הזו כבר הסתיימה או בוטלה</div>':'')}${L.filter(m=>m!==one).map(m=>evCard(m,1)).join('')||(!one?'<div class="empty-msg">אין כרגע הזמנות פתוחות – פתחו את הראשונה!</div>':'')}`}
 function evForm(k){if(!needCloud())return;k=k||'shiur';const n=new Date(Date.now()+60*6e4),tm=hm(new Date(Math.ceil(n.getTime()/(15*6e4))*15*6e4));
@@ -3977,7 +3977,7 @@ function evForm(k){if(!needCloud())return;k=k||'shiur';const n=new Date(Date.now
   <input class="inp" id="evP" style="margin-top:6px" placeholder="רחוב, מספר, קומה / משפחה" maxlength="80">
   <label class="f">פרטים נוספים</label><textarea class="inp" id="evN" rows="2" maxlength="300" placeholder="מי מוסר, מה צריך להביא, לעילוי נשמת…"></textarea>
   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:8px"><div><label class="f">השם שלך *</label><input class="inp" id="evNm" value="${esc(U.name||'')}" maxlength="30"></div><div><label class="f">וואטסאפ (לא חובה)</label><input class="inp" id="evPh" inputmode="tel" maxlength="15"></div></div>
-  <input type="hidden" id="evK" value="${k}"><button class="btn" style="width:100%;margin-top:14px;min-height:48px" onclick="evCreate()">📣 פרסום ההזמנה</button>`,evK(k)[1]+' הזמנה לשכנים')}
+  <input type="hidden" id="evK" value="${k}"><button class="btn" style="width:100%;margin-top:14px;min-height:48px" onclick="evCreate()">📣 פרסום ההזמנה</button>`,evK(k)[1]+' הזמנה לציבור')}
 async function evCreate(){const k=$('#evK').value,t=$('#evT').value.trim(),sid=$('#evS').value,place=sid?'':$('#evP').value.trim(),nm=$('#evNm').value.trim();
   if(t.length<3)return toast('נא לכתוב כותרת');if(!sid&&!place)return toast('נא לכתוב איפה');if(!nm)return toast('נא לכתוב שם');
   const[hh,mm]=$('#evTm').value.split(':');const d=new Date();d.setDate(d.getDate()+ +$('#evD').value);d.setHours(+hh,+mm,0,0);if(d.getTime()<Date.now()-5*6e4)return toast('השעה כבר עברה');
