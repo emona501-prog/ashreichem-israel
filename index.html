@@ -3900,7 +3900,8 @@ function mnyV(){const L=mnyList();const one=ST.id&&L.find(m=>m.id===ST.id);
   ${C.ok?'':'<div class="muted">⚠️ צריך חיבור לאינטרנט כדי לארגן מניין</div>'}`}
 function mnyForm(){
   if(!needCloud())return;const n=new Date(Date.now()+30*6e4);const tm=hm(new Date(Math.ceil(n.getTime()/(5*6e4))*5*6e4));
-  modal(`<label class="f">איזו תפילה?</label><div class="chips" style="flex-wrap:wrap" id="mnT">${MNY_T.map((t,i)=>`<button class="chip ${i===0?'on':''}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this))">${t}</button>`).join('')}</div>
+  modal(`<label class="f">איזו תפילה?</label><div class="chips" style="flex-wrap:wrap" id="mnT">${MNY_T.map((t,i)=>`<button class="chip ${i===0?'on':''}" onclick="this.parentNode.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b===this));$('#mnO').style.display=this.textContent==='תפילה אחרת'?'block':'none'">${t}</button>`).join('')}</div>
+  <input class="inp" id="mnO" style="display:none;margin-top:6px" maxlength="40" placeholder="איזו? לדוגמה: מוסף, סליחות, קריאת התורה, תהילים בציבור">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="f">מתי?</label><select class="inp" id="mnD"><option value="0">היום</option><option value="1">מחר</option></select></div><div><label class="f">שעה</label><input class="inp" type="time" id="mnTm" value="${tm}"></div></div>
   <label class="f">איפה?</label><select class="inp" id="mnS" onchange="$('#mnP').style.display=this.value?'none':'block'"><option value="">מקום אחר (לכתוב)</option>${S.shuls.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
   <input class="inp" id="mnP" style="margin-top:6px" placeholder="לדוגמה: בית אבל ברחוב…, גן ציבורי…" maxlength="80">
@@ -3910,7 +3911,7 @@ function mnyForm(){
   <button class="btn" style="width:100%;margin-top:14px" onclick="mnyCreate()">📢 פתיחת קריאה למניין</button>`,'🙋 ארגון מניין');
 }
 async function mnyCreate(){
-  const t=$('#mnT .chip.on').textContent,sid=$('#mnS').value,place=sid?'':$('#mnP').value.trim(),nm=$('#mnNm').value.trim();
+  let t=$('#mnT .chip.on').textContent;if(t==='תפילה אחרת'){const o=$('#mnO').value.trim();if(!o)return toast('נא לכתוב איזו תפילה');t=o}const sid=$('#mnS').value,place=sid?'':$('#mnP').value.trim(),nm=$('#mnNm').value.trim();
   if(!sid&&!place)return toast('נא לכתוב איפה');if(!nm)return toast('נא לכתוב שם');
   const [hh,mm]=$('#mnTm').value.split(':');const d=new Date();d.setDate(d.getDate()+ +$('#mnD').value);d.setHours(+hh,+mm,0,0);
   if(d.getTime()<Date.now()-5*6e4)return toast('השעה כבר עברה');
