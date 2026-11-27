@@ -848,7 +848,7 @@ function guideV(){return `<h2>📘 מה יש באפליקציה?</h2><div class=
 function guideHome(){const n=U.tipOpen||0;if(n>25||U.guideX)return'';return `<div class="card" style="background:linear-gradient(135deg,#eef4ff,#fff);border:1.5px solid #c7d7f5;cursor:pointer" onclick="go('guide')"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.8rem">📘</span><div style="flex:1"><b>חדשים כאן? הכירו את כל מה שיש</b><div class="muted" style="font-size:.85rem">הקהילה החיה, חיפוש מניינים, תזכורות, תהילים מחולק, גמ"חים ועוד</div></div><button class="btn ghost sm" style="flex:none" onclick="event.stopPropagation();U.guideX=1;saveU();render()">✕</button></div></div>`}
 
 /* ===== 🔄 עדכון גרסה – לכל המשתמשים. טוען את הגרסה הכי חדשה ישר מהשרת (עוקף את זיכרון המטמון) ===== */
-const APP_V='ashreichem-v148';
+const APP_V='ashreichem-v149';
 async function verLatest(){try{const r=await fetch('sw.js?nc='+Date.now(),{cache:'no-store'});const t=await r.text();const m=t.match(/const C='([^']+)'/);return m?m[1]:''}catch(e){return''}}
 async function appUpdate(){toast('🔄 בודק אם יש גרסה חדשה…');const L=await verLatest();
   if(L&&L===APP_V){modal(`<div style="text-align:center;font-size:2.4rem">✅</div><div style="text-align:center;margin:8px 0">יש לכם כבר את הגרסה הכי חדשה!</div><div class="muted" style="text-align:center;font-size:.85rem">גרסה ${APP_V.replace(/\D+/,'')}</div><button class="btn ghost" style="width:100%;margin-top:10px" onclick="appReload()">🔄 לרענן בכל זאת</button><button class="btn" style="width:100%;margin-top:8px" onclick="closeModal()">סגירה</button>`,'עדכון גרסה');return}
@@ -3580,7 +3580,7 @@ function countAd(id,k){if(!id||!C.ok||isMe())return;const key=id+k;if(k!=='wa'&&
   C.F.setDoc(dref('stats','ads'),{[id]:{[k]:C.F.increment(1)}},{merge:true}).catch(()=>{});
   if(S.stats){S.stats.ads=S.stats.ads||{};const o=S.stats.ads[id]=S.stats.ads[id]||{};o[k]=(o[k]||0)+1}}
 function adStatsHtml(a,sm){const o=(S.stats&&S.stats.ads||{})[a.id]||{};if(!(ROLE&&ROLE.type==='admin'))return'';
-  return `<div class="ad-st${sm?' sm':''}"><span title="הופיעה במסך הראשי">👁️ ${o.pop||0}</span><span title="נפתחה">👆 ${o.open||0}</span>${a.wa?`<span title="לחצו וואטסאפ">💬 ${o.wa||0}</span>`:''}${sm?'':`<button class="ad-rst" onclick="event.stopPropagation();adCntReset('${a.id}')">🔄 איפוס</button>`}</div>`}
+  return `<div class="ad-st${sm?' sm':''}"><span title="הופיעה במסך הראשי">👁️ ${o.pop||0}${sm?'':' <small>הופעות</small>'}</span><span title="נפתחה">👆 ${o.open||0}${sm?'':' <small>פתיחות</small>'}</span>${a.wa?`<span title="לחצו וואטסאפ">💬 ${o.wa||0}${sm?'':' <small>וואטסאפ</small>'}</span>`:''}${sm?'':`<button class="ad-rst" onclick="event.stopPropagation();adCntReset('${a.id}')">🔄 איפוס</button>`}</div>`}
 async function adCntReset(id){if(!confirm('לאפס את המונים של המודעה הזו ל-0?'))return;try{await C.F.setDoc(dref('stats','ads'),{[id]:{pop:0,open:0,wa:0}},{merge:true});if(S.stats&&S.stats.ads)S.stats.ads[id]={pop:0,open:0,wa:0};toast('המונים אופסו');closeModal();render()}catch(e){cerr(e)}}
 function adWaUrl(a){const ph=String(a.wa||'').replace(/\D/g,'').replace(/^0/,'972');return `https://wa.me/${ph}?text=`+encodeURIComponent(`שלום, ראיתי את המודעה "${a.title}" באפליקציית אשריכם ישראל 🙂`)}
 function adWaBtn(a,sm){if(!a.wa)return'';return `<a class="ad-wa${sm?' sm':''}" href="${adWaUrl(a)}" target="_blank" rel="noopener" onclick="event.stopPropagation();countAd('${a.id}','wa')">${esc(a.waL||'💬 לפרטים בוואטסאפ')}</a>`}
